@@ -1,6 +1,6 @@
 
 # obtain connecting pattern (cdf of shifted events) between each node and each cluster
-get_node_cdf_array_v2 = function(edge_time_mat, clusters, n0_mat=0, t_vec=seq(0, 50, 0.05)){  
+get_node_cdf_array = function(edge_time_mat, clusters, n0_mat=0, t_vec=seq(0, 50, 0.05), standardize=FALSE){  
   time_unit = t_vec[2]-t_vec[1]
   
   adjs_edge_time_mat = edge_time_mat - time_unit*n0_mat
@@ -23,6 +23,9 @@ get_node_cdf_array_v2 = function(edge_time_mat, clusters, n0_mat=0, t_vec=seq(0,
                                   error=function(x)return(numeric(length(t_vec))))
       ###################################
       
+      if(standardize & max(cdf_array[i,l,])>0){
+        cdf_array[i,l, ] = cdf_array[i,l, ]/max(cdf_array[i,l, ])
+      }
     }
   }
   
