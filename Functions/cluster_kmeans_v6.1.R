@@ -1,9 +1,11 @@
 
 
 # k-means clustering
-### Normalize node_cdf_array when updating clusters
-### Normalize node_cdf_array when updating time shifts
-cluster_kmeans_v3 = function(edge_time_mat_list, 
+### Based on v3
+### The clustering task considers both conn_prob and shape. No need to specify the weight.
+### Use est_n0_vec_v4.1: force n0 to be less than earliest edge time
+### Normalize node_cdf_array when updating time shifts.
+cluster_kmeans_v6.1 = function(edge_time_mat_list, 
                              clusters_list, n0_vec_list=NULL, n0_mat_list=NULL, center_cdf_array=NULL, 
                              t_vec=seq(0,200,length.out=1000), order_list=NULL, ...)
 {
@@ -66,20 +68,38 @@ cluster_kmeans_v3 = function(edge_time_mat_list,
 
     ### Compute distance between each node and each cluster
     dist_mat = matrix(nrow=N_node, ncol=N_clus)
-    dist_array = array(dim=c(N_node,N_clus,N_clus))
+    dist_array = dist_array_1 = dist_array_2 = array(dim=c(N_node,N_clus,N_clus))
+    node_cdf_array_normed = node_cdf_array
+    center_cdf_array_normed = center_cdf_array
     for (q in 1:N_clus) {
       for (k in 1:N_clus) {
-        ### Normalize (match connecting probabilities)
-        node_cdf_array[,k,] = node_cdf_array[,k,] / (node_cdf_array[,k,dim(node_cdf_array)[3]] + 1e-10)
-        center_cdf_array[q,k,] = center_cdf_array[q,k,] / max(max(center_cdf_array[q,k,]), 1e-6)
+        ### Compute distance between connecting probabilities
+        conn_prob_N_vec = node_cdf_array[,k,dim(node_cdf_array)[3]]
+        conn_prob_F = max(center_cdf_array[q,k,])
+        dist_array_2[,q,k] = (conn_prob_N_vec - conn_prob_F)^2
         
-        ### Compute distance
-        tmp = rowSums( ( node_cdf_array[,k,] - matrix(data=center_cdf_array[q,k,],
+        ### Normalize (match connecting probabilities)
+        node_cdf_array_normed[,k,] = node_cdf_array[,k,] / (node_cdf_array[,k,dim(node_cdf_array)[3]] + 1e-10)
+        center_cdf_array_normed[q,k,] = center_cdf_array[q,k,] / max(max(center_cdf_array[q,k,]), 1e-6)
+        
+        ### Compute distance between normalized distribution
+        tmp = rowSums( ( node_cdf_array_normed[,k,] - matrix(data=center_cdf_array_normed[q,k,],
                                                     nrow=N_node, ncol=length(t_vec), byrow = TRUE) )^2 )
-        dist_array[,q,k] = tmp
+        dist_array_1[,q,k] = tmp
+        
+        ### Weighted sum of conn_prob and shape
+        dist_array[,q,k] = dist_array_1[,q,k]*(conn_prob_N_vec)^2 + 
+                            dist_array_2[,q,k]*(sum((center_cdf_array_normed[q,k,]*
+                                                       I(center_cdf_array_normed[q,k,]<1))^2))
       }
+    }
+    
+    ### Compute distances
+    for (q in 1:N_clus) {
       dist_mat[,q] = rowSums(dist_array[,q,]*weights)
     }
+    
+      
 
     ### Update memberships and clusters
     for (i in 1:N_node) {
@@ -87,7 +107,7 @@ cluster_kmeans_v3 = function(edge_time_mat_list,
       membership[i] = which.min(dist_vec)
       dist_to_centr_vec[i] = min(dist_vec)
     }
-    clusters = mem2clus(membership)
+    clusters = mem2clus(membership = membership, N_clus_min = N_clus)
 
     ################ V2: clustering. Use pairwise distance, do not need estimated centers
     # pdist_array = array(0, dim=c(N_node, N_node, N_clus))
@@ -117,7 +137,7 @@ cluster_kmeans_v3 = function(edge_time_mat_list,
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
                                              n0_mat_list = n0_mat_list, t_vec = t_vec)
-  
+  # browser(); mean(clusters_list[[1]][[1]])
   
   clustering_end_time = Sys.time()
   cluster_time = clustering_end_time - clustering_start_time
@@ -127,7 +147,7 @@ cluster_kmeans_v3 = function(edge_time_mat_list,
   
   align_start_time = Sys.time()
   
-  res = est_n0_vec_v4(edge_time_mat_list = edge_time_mat_list, 
+  res = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, 
                       clusters_list = clusters_list, 
                       n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list,
                       center_cdf_array = center_cdf_array,

@@ -2,12 +2,12 @@
 ### Generate network_list, run our algorithm, and output measurements of errors.
 ### Force the true min(time shifts) to be zero.
 ### Use jittered true time shifts as initialization
-### Use do_cluster_v8: adaptive time shift order.
-main_v3 = function(### Parameters for generative model
+### Use do_cluster_v8.1: adaptive time shift order.
+main_v3.1 = function(### Parameters for generative model
                    SEED, N_subj=1, N_node_vec = rep(90,N_subj),
                    N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                    total_time=200, 
-                   conn_patt_var=1, conn_patt_sep = 1.3, const=40, conn_prob_mean = 1, conn_prob_rad = 0, 
+                   conn_patt_var=1, conn_patt_sep = 1.5, const=40, conn_prob_mean = 1, conn_prob_rad = 0, 
                    time_shift_struc=max, time_shift_mean_vec = rep(20,N_clus), 
                    time_shift_rad = min(time_shift_mean_vec),
                    ### Parameters for algorithms
@@ -17,7 +17,6 @@ main_v3 = function(### Parameters for generative model
 {
   
 # Generate networks -------------------------------------------------------
-  
   
   network_list = generate_network2_v3(SEED = SEED, N_subj = N_subj, N_node_vec = N_node_vec, 
                              N_clus = N_clus, clus_size_mat = clus_size_mat,
@@ -60,7 +59,7 @@ main_v3 = function(### Parameters for generative model
 
   
   ### V8
-  res = do_cluster_v8(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
+  res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
                       total_time = total_time, max_iter=max_iter, t_vec=t_vec,
                       clusters_list_init = clusters_list_init,
                       n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
@@ -233,6 +232,10 @@ main_v3 = function(### Parameters for generative model
 
 # Test --------------------------------------------------------------------
 
-# res = main_v2(SEED=831, N_subj=3, conn_patt_var = 1, conn_patt_sep = 2)
-# res$network_param
-# res[-1]
+# for(. in 1:5){
+#   SEED=sample(1:10^5,1)
+#   main_v3.1(SEED=SEED, conn_prob_mean = 1, N_node_vec = c(90),
+#             clus_size_mat = matrix(c(80,5,5),nrow = 1),
+#             conn_patt_sep = 1.5, time_shift_mean_vec = rep(20,3))->tmp.1;
+#   print(tmp.1$ARI_vec)
+# }

@@ -1,15 +1,15 @@
 
 
 ### main algorithm
-### Based on v7
+### Use cluster_kmeans_v6.1: Consider both conn_prob and shape(cdf) when clustering.
 ### Update time shifts at each iteration
-do_cluster_v8 = function(edge_time_mat_list, N_clus, 
+do_cluster_v8.1 = function(edge_time_mat_list, N_clus, 
                          clusters_list_init, n0_vec_list_init, n0_mat_list_init,
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
                          MaxIter=10, conv_thres=5e-3, ...)
 {
   print("####################")
-  print("[do_cluster_v8]: Update time shifts at each iteration.")
+  print("[do_cluster_v8.1]: Update time shifts at each iteration.")
   print("####################")
   
   t_unit = t_vec[2] - t_vec[1]
@@ -46,7 +46,7 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
   
   # Update clusters and connecting patterns separately for each subject ---------------------
   
-  
+
   clusters_list_update = clusters_list_current = clusters_list
   n0_vec_list_update = n0_vec_list_current = n0_vec_list
   n0_mat_list_update = n0_mat_list_current = n0_mat_list
@@ -69,7 +69,7 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
     while (!stopping & n_iter<=MaxIter){
       
       ### Update clusters, time shifts and connecting patterns
-      res = cluster_kmeans_v3(edge_time_mat_list=edge_time_mat_list[m], 
+      res = cluster_kmeans_v6.1(edge_time_mat_list=edge_time_mat_list[m], 
                               clusters_list=clusters_list_current[m], 
                               n0_vec_list=n0_vec_list_current[m], n0_mat_list=n0_mat_list_current[m], 
                               center_cdf_array = center_cdf_array_current,
@@ -114,11 +114,11 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
       
       
       ### Test: Evaluate loss
-      # loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list[m], 
-      #                     n0_mat_list = n0_mat_list_current[m], 
-      #                     clusters_list = clusters_list_current[m], 
-      #                     center_cdf_array = center_cdf_array_current, t_vec = t_vec)$loss
-      # loss_history_tmp = c(loss_history_tmp, loss)
+      loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list[m],
+                          n0_mat_list = n0_mat_list_current[m],
+                          clusters_list = clusters_list_current[m],
+                          center_cdf_array = center_cdf_array_current, t_vec = t_vec)$loss
+      loss_history = c(loss_history, loss)
       
     }
     
@@ -129,13 +129,11 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
   }
   
   
-  
-  
   # Match clusters across subjects ------------------------------------------
   
   if (N_subj>1) {
     ### Find permutation
-    res = match_clusters(center_cdf_array_list = center_cdf_array_list)
+    res = match_clusters_v2(center_cdf_array_list = center_cdf_array_list)
     permn_list = res$permn_list
     
     ### Permutate clusters
@@ -175,7 +173,7 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
     while (!stopping & n_iter<=MaxIter){
       
       ### Update clusters, time shifts and connecting patterns
-      res = cluster_kmeans_v3(edge_time_mat_list=edge_time_mat_list, 
+      res = cluster_kmeans_v6.1(edge_time_mat_list=edge_time_mat_list, 
                               clusters_list=clusters_list_current, 
                               n0_vec_list=n0_vec_list_current, n0_mat_list=n0_mat_list_current, 
                               center_cdf_array = center_cdf_array_current,
@@ -256,7 +254,8 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
   
   return(list(clusters_list=clusters_list, clusters_history=clusters_history, 
               loss_history=loss_history,
-              v_vec_list=v_vec_list,
+              v_vec_list=v_vec_list, 
+              n0_vec_list=n0_vec_list, n0_mat_list=n0_mat_list,
               center_pdf_array=center_pdf_array, center_cdf_array=center_cdf_array,
               cluster_time=cluster_time, align_time=align_time))
   

@@ -1,9 +1,11 @@
 
 ### Update time shifts and connecting patterns alternatively
 
+### Based on v4
+### Force n0 to be less than earliest edge time.
 ### Normalize node_cdf_array when estimating time shifts
 
-est_n0_vec_v4 = function(edge_time_mat_list, 
+est_n0_vec_v4.1 = function(edge_time_mat_list, 
                          clusters_list, center_cdf_array=NULL, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          t_vec=seq(0,200,length.out=1000), step_size=0.02,
@@ -13,7 +15,7 @@ est_n0_vec_v4 = function(edge_time_mat_list,
   N_subj = length(edge_time_mat_list)
   N_node_vec = sapply(edge_time_mat_list, nrow)
   N_clus = length(clusters_list[[1]])
-  
+
   if (is.null(n0_vec_list)) {
     res = get_init_v2(edge_time_mat_list=edge_time_mat_list, N_clus=N_clus, t_vec=t_vec)
     n0_vec_list = res$n0_vec_list
@@ -26,7 +28,7 @@ est_n0_vec_v4 = function(edge_time_mat_list,
                                                n0_mat_list = n0_mat_list, t_vec = t_vec)
   }
   
-  
+  # browser(); mean(center_cdf_array)
   
   # Update time shifts and connecting patterns alternatively ----------------
   n_iter = 1
@@ -98,9 +100,13 @@ est_n0_vec_v4 = function(edge_time_mat_list,
                                                      n0_min = n0_min, n0_max = n0_max)$n0
           }
           else{
+            n0_max = min(edge_time_mat_list[[m]][i,])/t_unit
+            n0_max = round(n0_max)
+            n0_max = min(n0_max, length(t_vec)-1)
             n0_vec_tmp[i] = align_multi_curves_gd_v2(f_origin_list = f_origin_list, f_target_list = f_target_list,
                                                      step_size = step_size,
-                                                     t_unit = t_unit, weights = weights)$n0
+                                                     t_unit = t_unit, weights = weights,
+                                                     n0_max = n0_max)$n0
             
           }
           
@@ -132,7 +138,9 @@ est_n0_vec_v4 = function(edge_time_mat_list,
     center_cdf_array_current = center_cdf_array_update
   }
   
-  
+  if (n_iter>max_iter) {
+    message("[est_n0_vec_v4.1]: Reached maximum iteration number ", max_iter)
+  }
   
   ### Compute time shift matrix and connecting patterns
   n0_vec_list = n0_vec_list_current
@@ -144,6 +152,8 @@ est_n0_vec_v4 = function(edge_time_mat_list,
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
                                              n0_mat_list = n0_mat_list, t_vec = t_vec)
+  
+  # browser(); mean(n0_vec_list[[1]])
   
   return(list(center_cdf_array=center_cdf_array, 
               n0_vec_list=n0_vec_list, n0_mat_list=n0_mat_list,
