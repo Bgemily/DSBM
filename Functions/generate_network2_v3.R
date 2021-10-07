@@ -1,8 +1,8 @@
 
-
-generate_network2_v2 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_vec=seq(0,total_time,length.out=1000), 
+### Force the minimum time shifts to be zero.
+generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_vec=seq(0,total_time,length.out=1000), 
                                 clus_size_mat=matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
-                                conn_patt_var=1, conn_patt_sep=2, conn_prob_mean=0.8, conn_prob_rad=0.1, 
+                                conn_patt_var=1, conn_patt_sep=2, conn_prob_mean=0.8, conn_prob_rad=0, 
                                 time_shift_mean_vec=rep(10,N_clus), time_shift_rad=min(time_shift_mean_vec), 
                                 time_shift_struc=max, 
                                 SEED=NULL, const=40)
@@ -42,6 +42,8 @@ generate_network2_v2 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
       time_shift_tmp = unlist(time_shift_tmp)
     }
     time_shift_tmp = c(time_shift_tmp)
+    
+    time_shift_tmp = time_shift_tmp - min(time_shift_tmp)
     
     time_shift_list[[m]] = time_shift_tmp
   }
@@ -180,7 +182,7 @@ generate_network2_v2 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
     
     
     edge_time_mat_tmp = edge_time_mat_tmp + time_shift_mat_tmp # add time shifts 
-    # edge_time_mat_tmp[ edge_time_mat_tmp>total_time ] = Inf
+    edge_time_mat_tmp[ edge_time_mat_tmp>total_time ] = Inf
     
     edge_time_mat_list[[m]] = edge_time_mat_tmp
   }

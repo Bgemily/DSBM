@@ -1,11 +1,17 @@
 
 
 ### main algorithm
-### First estimate params for each individual subject. Then put all subjects together, and update params.
-do_cluster_v4 = function(edge_time_mat_list, N_clus, 
+### Based on v7
+### Update time shifts at each iteration
+do_cluster_v8 = function(edge_time_mat_list, N_clus, 
+                         clusters_list_init, n0_vec_list_init, n0_mat_list_init,
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
-                         MaxIter=10, conv_thres=5e-3, order_list=NULL, ...)
+                         MaxIter=10, conv_thres=5e-3, ...)
 {
+  print("####################")
+  print("[do_cluster_v8]: Update time shifts at each iteration.")
+  print("####################")
+  
   t_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
   N_node_vec = sapply(edge_time_mat_list, nrow)
@@ -14,14 +20,13 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
   loss_history = c()
   cluster_time = align_time = 0
   
-# Initialize clusters and time shifts -------------------------------------
+  # Initialize clusters and time shifts -------------------------------------
   
-  res = get_init_v2(edge_time_mat_list=edge_time_mat_list, N_clus=N_clus, 
-                    t_vec=t_vec, order_list=NULL)
-  clusters_list = res$clusters_list
-  n0_vec_list = res$n0_vec_list
-  n0_mat_list = n0_vec2mat(n0_vec = n0_vec_list)
- 
+  clusters_list = clusters_list_init
+  n0_vec_list = n0_vec_list_init
+  n0_mat_list = n0_mat_list_init
+  order_list = lapply(n0_vec_list, function(n0_vec)order(n0_vec))
+  
   clusters_history = c(clusters_history, list(clusters_list))
   
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
@@ -37,10 +42,10 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
                       center_cdf_array = center_cdf_array, t_vec = t_vec)$loss
   loss_history = c(loss_history, loss)
   
- 
-
-# Update clusters and connecting patterns separately for each subject ---------------------
-
+  
+  
+  # Update clusters and connecting patterns separately for each subject ---------------------
+  
   
   clusters_list_update = clusters_list_current = clusters_list
   n0_vec_list_update = n0_vec_list_current = n0_vec_list
@@ -48,10 +53,11 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
   v_vec_list_update = v_vec_list_current = list()
   center_cdf_array_list = list()
   
-  ### Estimate params for each subject
+  ### Estimate parameters for each subject
   for (m in 1:N_subj) {
     n_iter = 1
     stopping = FALSE
+    loss_history_tmp = c()
     
     ### Initialize connecting patterns
     center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list[m], 
@@ -63,7 +69,7 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
     while (!stopping & n_iter<=MaxIter){
       
       ### Update clusters, time shifts and connecting patterns
-      res = cluster_kmeans_v2(edge_time_mat_list=edge_time_mat_list[m], 
+      res = cluster_kmeans_v3(edge_time_mat_list=edge_time_mat_list[m], 
                               clusters_list=clusters_list_current[m], 
                               n0_vec_list=n0_vec_list_current[m], n0_mat_list=n0_mat_list_current[m], 
                               center_cdf_array = center_cdf_array_current,
@@ -87,7 +93,7 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
       clusters_update = clusters_list_update[[m]]
       clusters_current = clusters_list_current[[m]]
       delta_clusters = 1 - get_one_ARI(memb_est_vec = clus2mem(clusters_update), 
-                                  memb_true_vec = clus2mem(clusters_current))
+                                       memb_true_vec = clus2mem(clusters_current))
       
       
       delta_center_cdf = tryCatch(sum((center_cdf_array_update-center_cdf_array_current)^2) / 
@@ -95,6 +101,7 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
                                   error=function(x)1)
       
       stopping = mean(c(delta_center_cdf,delta_clusters,delta_n0_vec)) < conv_thres
+      
       
       
       ### *update -> *current
@@ -105,7 +112,17 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
       v_vec_list_update[m] -> v_vec_list_current[m]
       center_cdf_array_update -> center_cdf_array_current 
       
+      
+      ### Test: Evaluate loss
+      # loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list[m], 
+      #                     n0_mat_list = n0_mat_list_current[m], 
+      #                     clusters_list = clusters_list_current[m], 
+      #                     center_cdf_array = center_cdf_array_current, t_vec = t_vec)$loss
+      # loss_history_tmp = c(loss_history_tmp, loss)
+      
     }
+    
+    
     
     center_cdf_array_list[[m]] = center_cdf_array_current
     
@@ -113,9 +130,9 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
   
   
   
-
-# Match clusters across subjects ------------------------------------------
-
+  
+  # Match clusters across subjects ------------------------------------------
+  
   if (N_subj>1) {
     ### Find permutation
     res = match_clusters(center_cdf_array_list = center_cdf_array_list)
@@ -147,9 +164,9 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
   loss_history = c(loss_history, loss)
   
   
-
-# Combine all subjects and update params ----------------------------
-
+  
+  # Combine all subjects and update params ----------------------------
+  
   if (N_subj>1) {
     n_iter = 1
     stopping = FALSE
@@ -158,7 +175,7 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
     while (!stopping & n_iter<=MaxIter){
       
       ### Update clusters, time shifts and connecting patterns
-      res = cluster_kmeans_v2(edge_time_mat_list=edge_time_mat_list, 
+      res = cluster_kmeans_v3(edge_time_mat_list=edge_time_mat_list, 
                               clusters_list=clusters_list_current, 
                               n0_vec_list=n0_vec_list_current, n0_mat_list=n0_mat_list_current, 
                               center_cdf_array = center_cdf_array_current,
@@ -216,12 +233,16 @@ do_cluster_v4 = function(edge_time_mat_list, N_clus,
     }
     
     
+    if (n_iter>MaxIter) {
+      message("[do_cluster_v8]: Reached maximum iteration number.")
+    }
+    
   }
   
   
-
-# Get final result --------------------------------------------------------
-
+  
+  # Get final result --------------------------------------------------------
+  
   clusters_list_current -> clusters_list
   n0_vec_list_current -> n0_vec_list
   n0_mat_list_current -> n0_mat_list

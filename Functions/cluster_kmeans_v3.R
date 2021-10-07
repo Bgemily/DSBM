@@ -1,7 +1,9 @@
 
 
 # k-means clustering
-cluster_kmeans_v2 = function(edge_time_mat_list, 
+### Normalize node_cdf_array when updating clusters
+### Normalize node_cdf_array when updating time shifts
+cluster_kmeans_v3 = function(edge_time_mat_list, 
                              clusters_list, n0_vec_list=NULL, n0_mat_list=NULL, center_cdf_array=NULL, 
                              t_vec=seq(0,200,length.out=1000), order_list=NULL, ...)
 {
@@ -58,7 +60,7 @@ cluster_kmeans_v2 = function(edge_time_mat_list,
     weights = matrix(nrow=N_node, ncol=N_clus)
     flag_obs_mat = matrix(data=1, nrow=N_node, ncol=N_node) - diag(nrow=N_node, ncol=N_node)
     for (q in 1:N_clus) {
-      N_obs = rowSums(flag_obs_mat[,clusters[[q]]])
+      N_obs = rowSums(as.matrix(flag_obs_mat[,clusters[[q]]]))
       weights[,q] = N_obs / (N_node-1)
     }
 
@@ -67,6 +69,11 @@ cluster_kmeans_v2 = function(edge_time_mat_list,
     dist_array = array(dim=c(N_node,N_clus,N_clus))
     for (q in 1:N_clus) {
       for (k in 1:N_clus) {
+        ### Normalize (match connecting probabilities)
+        node_cdf_array[,k,] = node_cdf_array[,k,] / (node_cdf_array[,k,dim(node_cdf_array)[3]] + 1e-10)
+        center_cdf_array[q,k,] = center_cdf_array[q,k,] / max(max(center_cdf_array[q,k,]), 1e-6)
+        
+        ### Compute distance
         tmp = rowSums( ( node_cdf_array[,k,] - matrix(data=center_cdf_array[q,k,],
                                                     nrow=N_node, ncol=length(t_vec), byrow = TRUE) )^2 )
         dist_array[,q,k] = tmp
@@ -120,7 +127,7 @@ cluster_kmeans_v2 = function(edge_time_mat_list,
   
   align_start_time = Sys.time()
   
-  res = est_n0_vec_v2(edge_time_mat_list = edge_time_mat_list, 
+  res = est_n0_vec_v4(edge_time_mat_list = edge_time_mat_list, 
                       clusters_list = clusters_list, 
                       n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list,
                       center_cdf_array = center_cdf_array,

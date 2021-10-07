@@ -1,10 +1,13 @@
 
 ### Update time shifts and connecting patterns alternatively
-est_n0_vec_v2 = function(edge_time_mat_list, 
+
+### Normalize node_cdf_array when estimating time shifts
+
+est_n0_vec_v4 = function(edge_time_mat_list, 
                          clusters_list, center_cdf_array=NULL, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          t_vec=seq(0,200,length.out=1000), step_size=0.02,
-                         max_iter=1, epsilon=0.001, order_list=NULL)
+                         max_iter=5, epsilon=0.001, order_list=NULL)
 {
   t_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
@@ -16,15 +19,15 @@ est_n0_vec_v2 = function(edge_time_mat_list,
     n0_vec_list = res$n0_vec_list
     n0_mat_list = n0_vec2mat(n0_vec = n0_vec_list)
   }
-
+  
   if (is.null(center_cdf_array)) {
     center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                clusters_list = clusters_list, 
                                                n0_mat_list = n0_mat_list, t_vec = t_vec)
   }
-    
   
-
+  
+  
   # Update time shifts and connecting patterns alternatively ----------------
   n_iter = 1
   converge = FALSE
@@ -41,7 +44,7 @@ est_n0_vec_v2 = function(edge_time_mat_list,
       ### Get order matrix with (i,j)-th entry being 1 if v_j<=v_i and NA otherwise
       n0_vec_tmp[which.min(n0_vec_tmp)] = min(n0_vec_tmp[-which.min(n0_vec_tmp)])
       order_mat_current = matrix(n0_vec_tmp, nrow=N_node, ncol=N_node) - 
-                            matrix(n0_vec_tmp, nrow=N_node, ncol=N_node, byrow=TRUE) >= 0
+        matrix(n0_vec_tmp, nrow=N_node, ncol=N_node, byrow=TRUE) >= 0
       order_mat_current = order_mat_current*1 ### Convert logical entries to numeric
       diag(order_mat_current) = 0
       order_mat_current[order_mat_current==0] = NA
@@ -51,13 +54,13 @@ est_n0_vec_v2 = function(edge_time_mat_list,
       clusters_tmp = clusters_list[[m]]
       n0_mat_tmp = n0_mat_list_current[[m]]
       node_cdf_array = get_node_cdf_array_v2(edge_time_mat = edge_time_mat_tmp, clusters = clusters_tmp, 
-                                          n0_mat = n0_mat_tmp*0, t_vec = t_vec)
+                                             n0_mat = n0_mat_tmp*0, t_vec = t_vec)
       
       ### Get weight matrix N_node*N_clus, (i,l)-th entry is proportional to |{j: v_j<=v_i && z_j==l}|
       order_mat_current[is.na(order_mat_current)] = 0
       weight_mat = matrix(nrow=N_node, ncol=N_clus)
       for (q in 1:N_clus) {
-        weight_mat[,q] = rowSums(order_mat_current[,clusters_tmp[[q]],drop=FALSE])
+        weight_mat[,q] = rowSums(as.matrix(order_mat_current[,clusters_tmp[[q]]]))
       }
       
       ### Update time shifts
@@ -67,12 +70,13 @@ est_n0_vec_v2 = function(edge_time_mat_list,
           f_origin_list = lapply(1:N_clus, function(l) center_cdf_array_current[q,l, ])
           
           ##### V1: Eliminate the difference between the constant values at the right end of curves.
-          # f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]*
-          #                    max(f_target_list[[l]])/max(max(f_origin_list[[l]]), 1e-6))
+          f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6))
+          f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/max(max(f_target_list[[l]]), 1e-6))
+          
           ##### V2
           # blank
           ####################
-
+          
           weights = weight_mat[i,]
           if(sum(weights)==0)
             weights = NULL
@@ -105,21 +109,21 @@ est_n0_vec_v2 = function(edge_time_mat_list,
       
       n0_vec_tmp = n0_vec_tmp - min(n0_vec_tmp)
       n0_vec_list_update[[m]] = n0_vec_tmp
-    
+      
     }
     ### Debug
     # browser()
     # plot(n0_vec_list_current[[1]], n0_vec_list_update[[1]])
-
+    
     ### Update connecting patterns 
     n0_mat_list_update = n0_vec2mat(n0_vec = n0_vec_list_update)
     
     center_cdf_array_update = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-                                               clusters_list = clusters_list, 
-                                               n0_mat_list = n0_mat_list_update, t_vec = t_vec)
+                                                      clusters_list = clusters_list, 
+                                                      n0_mat_list = n0_mat_list_update, t_vec = t_vec)
     ### Evaluate stopping criterion
     converge = sqrt(sum((unlist(center_cdf_array_update)-unlist(center_cdf_array_current))^2))/
-                sqrt(sum((unlist(center_cdf_array_current)+.Machine$double.eps)^2)) < epsilon
+      sqrt(sum((unlist(center_cdf_array_current)+.Machine$double.eps)^2)) < epsilon
     
     ### *update -> *current
     n_iter = n_iter + 1
@@ -162,18 +166,9 @@ est_n0_vec_v2 = function(edge_time_mat_list,
 # time_shift_list = res$time_shift_list
 # truth = (time_shift_list[[1]])
 # 
-# tmp = est_n0_vec_v2(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list)
+# tmp = est_n0_vec_v4(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list)
 # tmp$v_vec_list
 # plot(truth, tmp$v_vec_list[[1]])
 # 
 # est = est_n0_vec(edge_time_mat = edge_time_mat_list[[1]], clusters = clusters_list[[1]], t_vec = seq(0,200,length.out=1000))
 # plot(truth, est)
-# 
-# library(tictoc)
-# tic("est_no_vec_v2")
-# replicate(10, expr = est_n0_vec_v2(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list, max_iter = 1))
-# toc()
-# 
-# tic("est_n0_vec")
-# replicate(10, expr = est_n0_vec(edge_time_mat = edge_time_mat_list[[1]], clusters = clusters_list[[1]], t_vec = seq(0,200,length.out=1000)))
-# toc()
