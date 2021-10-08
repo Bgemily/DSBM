@@ -1,14 +1,16 @@
 
 
 # k-means clustering
-### Based on v6.1
-### Switch from cdf to pdf
-### Input: center_fft_array. Output: center_fft_array
-cluster_kmeans_v9 = function(edge_time_mat_list, clusters_list, 
+### Based on v9
+### When aligning pdfs, optimization region's radius is controlled by a tuning parameter. 
+
+cluster_kmeans_v9.2 = function(edge_time_mat_list, clusters_list, 
                              n0_vec_list=NULL, n0_mat_list=NULL, 
                              center_fft_array=NULL, 
                              freq_trun=5, 
-                             t_vec=seq(0,200,length.out=1000), order_list=NULL, ...)
+                             t_vec=seq(0,200,length.out=1000), order_list=NULL, 
+                             opt_radius=max(t_vec)/2,
+                             ...)
 {
   
   t_unit = t_vec[2]-t_vec[1]
@@ -125,10 +127,12 @@ cluster_kmeans_v9 = function(edge_time_mat_list, clusters_list,
   
   align_start_time = Sys.time()
   
-  res = est_n0_vec_v7(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
+  res = est_n0_vec_v7.1(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
                       n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list, 
                       freq_trun = freq_trun, 
-                      t_vec = t_vec, order_list=order_list, ...)
+                      t_vec = t_vec, order_list=order_list, 
+                      opt_radius=opt_radius,
+                      ...)
   n0_vec_list = res$n0_vec_list
   n0_mat_list = res$n0_mat_list
   v_vec_list = res$v_vec_list

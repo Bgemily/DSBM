@@ -1,8 +1,9 @@
 
 ### Generate network_list, run our algorithm, and output measurements of errors.
-### Based on v3.1.1
-### Change cdf to pdf
-main_v3.4 = function(### Parameters for generative model
+### Based on v3.4
+### When aligning pdfs, optimization region's radius is controlled by a tuning parameter. 
+
+main_v3.4.2 = function(### Parameters for generative model
                       SEED, N_subj=1, N_node_vec = rep(90,N_subj),
                       N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                       total_time=200, 
@@ -14,6 +15,7 @@ main_v3.4 = function(### Parameters for generative model
                       freq_trun=10, bw=5, 
                       conv_thres=1e-2, MaxIter=5,
                       jitter_time_rad = 10, max_iter=10,
+                      opt_radius=total_time/2,
                       ...)
 {
   
@@ -57,13 +59,14 @@ main_v3.4 = function(### Parameters for generative model
   # Apply algorithm ---------------------------------------------------------
   
   
-  ### V14 
-  res = do_cluster_v14(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
+  ### V14.2
+  res = do_cluster_v14.2(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
                        clusters_list_init = clusters_list_init,
                        n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
                        total_time = total_time, max_iter=max_iter, t_vec=t_vec,
                        freq_trun=freq_trun, 
                        conv_thres=conv_thres, MaxIter=MaxIter,
+                       opt_radius=opt_radius,
                        ...)
   
   

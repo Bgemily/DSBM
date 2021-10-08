@@ -1,17 +1,18 @@
 
 ### Update time shifts and connecting patterns alternatively
 
-### Based on v4.1
-### Switch from cdf to pdf: simultaneous estimation of all time shifts
-### Automatically adapt step_size
+### Based on v7
+### When aligning pdfs, optimization region's radius is controlled by a tuning parameter. 
 ### [WARNING: The gradient might be WRONG when there are multiple subjects!]
 
-est_n0_vec_v7 = function(edge_time_mat_list, 
+est_n0_vec_v7.1 = function(edge_time_mat_list, 
                          clusters_list, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          freq_trun=5,
                          t_vec=seq(0,200,length.out=1000), step_size=NULL,
-                         max_iter=50, epsilon=0.001, shrink=0.5, order_list=NULL, ...)
+                         max_iter=50, epsilon=0.001, shrink=0.5, order_list=NULL, 
+                         opt_radius=max(t_vec)/2,
+                         ...)
 {
   t_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
@@ -121,8 +122,6 @@ est_n0_vec_v7 = function(edge_time_mat_list,
   n0_vec_list_current = n0_vec_list_update
   n0_mat_list_current = n0_mat_list_update
 
-
-  
   
   ### Evaluate loss 
   loss_history = c()
@@ -132,6 +131,25 @@ est_n0_vec_v7 = function(edge_time_mat_list,
                       freq_trun = freq_trun,
                       t_vec = t_vec)$loss
   loss_history = c(loss_history, loss)
+  
+  
+  ### Set n0_min and n0_max
+  n0_max_vec_list = n0_min_vec_list = list()
+  for (m in 1:N_subj) {
+    diag(edge_time_mat_list[[m]]) = Inf
+    n0_max_vec = apply(edge_time_mat_list[[m]], 1, min)/t_unit
+    n0_max_vec = pmin(n0_max_vec, n0_vec_list_current[[m]] + opt_radius/t_unit )
+    n0_max_vec = round(n0_max_vec)
+    
+    
+    n0_min_vec = 0*n0_max_vec
+    n0_min_vec = pmax(n0_min_vec, n0_vec_list_current[[m]] - opt_radius/t_unit )
+    n0_min_vec = round(n0_min_vec)
+    
+    
+    n0_max_vec_list[[m]] = n0_max_vec
+    n0_min_vec_list[[m]] = n0_min_vec
+  }
   
   
   ### Set initial learning rate
@@ -162,13 +180,10 @@ est_n0_vec_v7 = function(edge_time_mat_list,
       n0_vec_list_update[[m]] = n0_vec_list_current[[m]] - step_size*gradient_vec_list[[m]]  
       n0_vec_list_update[[m]] = round(n0_vec_list_update[[m]])
       
-      ### Set n0_min and n0_max
-      diag(edge_time_mat_list[[m]]) = Inf
-      n0_max_vec = apply(edge_time_mat_list[[m]], 1, min)/t_unit
-      n0_max_vec = round(n0_max_vec)
+      ### Get n0_min and n0_max
+      n0_max_vec = n0_max_vec_list[[m]]
+      n0_min_vec = n0_min_vec_list[[m]]
       
-      n0_min_vec = 0*n0_max_vec
-        
       ### Force time shifts be between n0_min and n0_max
       for (i in 1:length(n0_vec_list_update[[m]])) {
         if(n0_vec_list_update[[m]][i] < n0_min_vec[i]){
@@ -207,12 +222,9 @@ est_n0_vec_v7 = function(edge_time_mat_list,
         n0_vec_list_update[[m]] = n0_vec_list_current[[m]] - step_size*gradient_vec_list[[m]]  
         n0_vec_list_update[[m]] = round(n0_vec_list_update[[m]])
         
-        ### Set n0_min and n0_max
-        diag(edge_time_mat_list[[m]]) = Inf
-        n0_max_vec = apply(edge_time_mat_list[[m]], 1, min)/t_unit
-        n0_max_vec = round(n0_max_vec)
-        
-        n0_min_vec = 0*n0_max_vec
+        ### Get n0_min and n0_max
+        n0_max_vec = n0_max_vec_list[[m]]
+        n0_min_vec = n0_min_vec_list[[m]]
         
         ### Force time shifts be between n0_min and n0_max
         for (i in 1:length(n0_vec_list_update[[m]])) {
@@ -240,7 +252,7 @@ est_n0_vec_v7 = function(edge_time_mat_list,
     }
     
     if (N_shrink>10) {
-      message("[est_n0_vec_v7]: Reached maximum shrinkage number.")
+      message("[est_n0_vec_v7.1]: Reached maximum shrinkage number.")
     }
     
     
@@ -274,7 +286,7 @@ est_n0_vec_v7 = function(edge_time_mat_list,
   }
   
   if (n_iter>max_iter) {
-    message("[est_n0_vec_v7]: Reached maximum iteration number.")
+    message("[est_n0_vec_v7.1]: Reached maximum iteration number.")
   }
   
   ### Debug
