@@ -1,10 +1,9 @@
 
 ### Generate network_list, run our algorithm, and output measurements of errors.
-### Force the true min(time shifts) to be zero.
-### Use jittered true time shifts as initialization
-### At the step of matching subjects, F is given as F_true
+### Based on v3.3
+### Initialize time shifts by earliest edge time.
 
-main_v3.3 = function(### Parameters for generative model
+main_v3.3.1 = function(### Parameters for generative model
   SEED, N_subj=1, N_node_vec = rep(90,N_subj),
   N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
   total_time=200, 
@@ -39,8 +38,7 @@ main_v3.3 = function(### Parameters for generative model
   
   
   # Get initialization ------------------------------------------------------
-  res = get_init_v3(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus, 
-                    v_true_list = v_true_list, jitter_time_rad = jitter_time_rad, 
+  res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus, 
                     t_vec = t_vec)
   
   clusters_list_init = res$clusters_list
