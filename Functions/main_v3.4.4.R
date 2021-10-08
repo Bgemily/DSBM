@@ -1,9 +1,9 @@
 
 ### Generate network_list, run our algorithm, and output measurements of errors.
-### Based on v3.4
-### When aligning pdfs, optimization region's radius is controlled by a tuning parameter. 
+### Based on v3.4.2 and v3.1.1.1
+### Phase I: based on cdf; Phase II: use pdf for clustering, use cdf(one iteration)+pdf for aligning
 
-main_v3.4.2 = function(### Parameters for generative model
+main_v3.4.4 = function(### Parameters for generative model
                       SEED, N_subj=1, N_node_vec = rep(90,N_subj),
                       N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                       total_time=200, 
@@ -59,10 +59,25 @@ main_v3.4.2 = function(### Parameters for generative model
   # Apply algorithm ---------------------------------------------------------
   
   
+  ### Estimation z,v,f based on cdf
+  res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
+                        total_time = total_time, max_iter=max_iter, t_vec=t_vec,
+                        clusters_list_init = clusters_list_init,
+                        n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
+                        ...)
+  
+  res$clusters_list -> clusters_list_est
+  res$v_vec_list -> v_vec_list_est
+  res$n0_vec_list -> n0_vec_list_est
+  res$n0_mat_list -> n0_mat_list_est
+  res$center_cdf_array -> center_cdf_array_est
+  
+  
+  
   ### V14.2
   res = do_cluster_v14.2(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
-                       clusters_list_init = clusters_list_init,
-                       n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
+                       clusters_list_init = clusters_list_est,
+                       n0_vec_list_init = n0_vec_list_est, n0_mat_list_init = n0_mat_list_est,
                        total_time = total_time, max_iter=max_iter, t_vec=t_vec,
                        freq_trun=freq_trun, 
                        conv_thres=conv_thres, MaxIter=MaxIter,
