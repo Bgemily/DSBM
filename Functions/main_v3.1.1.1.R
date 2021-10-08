@@ -1,8 +1,9 @@
 
 ### Generate network_list, run our algorithm, and output measurements of errors.
-### Based on v3.1
-### Initialize time shifts by earliest edge time.
-main_v3.1.1 = function(### Parameters for generative model
+### Based on v3.1.1
+### Calculate F_mse using pdf (rather than cdf), and including dt into calculation.
+
+main_v3.1.1.1 = function(### Parameters for generative model
                    SEED, N_subj=1, N_node_vec = rep(90,N_subj),
                    N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                    total_time=200, 
@@ -11,7 +12,9 @@ main_v3.1.1 = function(### Parameters for generative model
                    time_shift_rad = min(time_shift_mean_vec),
                    t_vec = seq(0,total_time,length.out=1000),
                    ### Parameters for algorithms
-                   jitter_time_rad = 10, max_iter=1,
+                   jitter_time_rad = 10, max_iter=10,
+                   ### Parameters for calculating measurements
+                   bw=5, 
                    ...)
 {
   
@@ -55,7 +58,6 @@ main_v3.1.1 = function(### Parameters for generative model
 
 # Apply algorithm ---------------------------------------------------------
 
-  
   ### V8
   res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
                       total_time = total_time, max_iter=max_iter, t_vec=t_vec,
@@ -94,32 +96,32 @@ main_v3.1.1 = function(### Parameters for generative model
   
 # Compute errors of conn patts, i.e. F ------------------------------------
 
-  ### Match clusters
-  res = find_permn(center_cdf_array_from = center_cdf_array_est, 
-             center_cdf_array_to = cdf_true_array)
+  ### Get estimated pdf using kernel smoothing
+  v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list_est)
+  n0_mat_list_est = lapply(v_mat_list_est, function(v_mat)round(v_mat/(t_vec[2]-t_vec[1])))
+  center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
+                                                 clusters_list = clusters_list_est, 
+                                                 n0_mat_list = n0_mat_list_est, 
+                                                 t_vec = t_vec, bw=bw)
+  
+  ### Match clusters [WARNING: This dooes not work for multiple subjects.]
+  res = find_permn(center_cdf_array_from = center_pdf_array_est,
+                   center_cdf_array_to = pdf_true_array)
   permn = res$permn
-  center_cdf_array_est_permn = center_cdf_array_est[permn, permn, ]
   
   
-  ### Calculate distance
-  normed_dist_mat = matrix(nrow=N_clus, ncol=N_clus)
-  unnormed_dist_mat = matrix(nrow=N_clus, ncol=N_clus)
-  conn_prob_err_mat = matrix(nrow=N_clus, ncol=N_clus)
+  center_pdf_array_est_permn = center_pdf_array_est[permn, permn, ]
+  
+  
+  ### Calculate distance 
+  dist_mat = matrix(nrow=N_clus, ncol=N_clus)
   for (q in 1:N_clus) {
     for (k in 1:N_clus) {
-      conn_prob_est = tail(center_cdf_array_est_permn[q,k,], 1)
-      conn_prob_true = tail(cdf_true_array[q,k,], 1)
-      
-      cdf_est_normed = center_cdf_array_est_permn[q,k,] / conn_prob_est
-      cdf_true_normed = cdf_true_array[q,k,] / conn_prob_true
-      
-      normed_dist_mat[q,k] = sqrt(sum( (cdf_est_normed - cdf_true_normed)^2 ))
-      unnormed_dist_mat[q,k] = sqrt(sum( (center_cdf_array_est_permn[q,k,] - cdf_true_array[q,k,])^2 ))
-      conn_prob_err_mat[q,k] = abs(conn_prob_est - conn_prob_true)
+      dist_mat[q,k] = sqrt(sum( (center_pdf_array_est_permn[q,k,] - pdf_true_array[q,k,])^2 * 
+                                  (t_vec[2]-t_vec[1]) ))
     }
   }
-  F_mean_sq_err = mean(unnormed_dist_mat[upper.tri(unnormed_dist_mat, diag=TRUE)]^2)
-  F_shape_mean_sq_err = mean(normed_dist_mat[upper.tri(normed_dist_mat, diag=TRUE)]^2)
+  F_mean_sq_err = mean(dist_mat[upper.tri(dist_mat, diag=TRUE)]^2)
   
   
 # Compute error of time shifts, i.e. v --------------------------------------------
@@ -218,8 +220,7 @@ main_v3.1.1 = function(### Parameters for generative model
   return(list(network_param=network_param, N_node_vec_entropy=N_node_vec_entropy,
               Lambda_mean_sq_err = Lambda_mean_sq_err,
               ARI_vec=ARI_vec, ARI_mean=ARI_mean, 
-              normed_dist_mat=normed_dist_mat, unnormed_dist_mat=unnormed_dist_mat, conn_prob_err_mat=conn_prob_err_mat,
-              F_mean_sq_err=F_mean_sq_err, F_shape_mean_sq_err=F_shape_mean_sq_err,
+              F_mean_sq_err=F_mean_sq_err, 
               spearman_corr_vec_mean_init = spearman_corr_vec_mean_init,
               spearman_corr_vec=spearman_corr_vec, spearman_corr_vec_mean=spearman_corr_vec_mean,
               pearson_corr_vec=pearson_corr_vec, pearson_corr_vec_mean=pearson_corr_vec_mean,
