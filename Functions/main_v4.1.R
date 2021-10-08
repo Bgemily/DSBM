@@ -2,8 +2,8 @@
 ### Generate network_list, run our algorithm, and output measurements of errors.
 ### Force the true min(time shifts) to be zero.
 ### Use jittered true time shifts as initialization
-### Use do_cluster_v7: fixed time shift order.
-main_v4 = function(### Parameters for generative model
+### Use do_cluster_v7.1: fixed time shift order.
+main_v4.1 = function(### Parameters for generative model
                    SEED, N_subj=1, N_node_vec = rep(90,N_subj),
                    N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                    total_time=200, 
@@ -59,7 +59,7 @@ main_v4 = function(### Parameters for generative model
 # Apply algorithm ---------------------------------------------------------
 
   ### V7
-  res = do_cluster_v7(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
+  res = do_cluster_v7.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
                       total_time = total_time, max_iter=max_iter, t_vec=t_vec,
                       clusters_list_init = clusters_list_init,
                       n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
