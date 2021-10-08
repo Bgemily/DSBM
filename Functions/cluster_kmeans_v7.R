@@ -1,11 +1,10 @@
 
 
 # k-means clustering
-### Based on v3
+### Based on v6.1
 ### The clustering task considers both conn_prob and shape. No need to specify the weight.
-### Use est_n0_vec_v4.1: force n0 to be less than earliest edge time
-### Normalize node_cdf_array when updating time shifts.
-cluster_kmeans_v6.1 = function(edge_time_mat_list, 
+### Force n0 to be all zero, i.e. time shifts are given as zero.
+cluster_kmeans_v7 = function(edge_time_mat_list, 
                              clusters_list, n0_vec_list=NULL, n0_mat_list=NULL, center_cdf_array=NULL, 
                              t_vec=seq(0,200,length.out=1000), order_list=NULL, ...)
 {
@@ -107,7 +106,7 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
       membership[i] = which.min(dist_vec)
       dist_to_centr_vec[i] = min(dist_vec)
     }
-    clusters = mem2clus(membership = membership, N_clus_min = N_clus)
+    clusters = mem2clus(membership)
 
     ################ V2: clustering. Use pairwise distance, do not need estimated centers
     # pdist_array = array(0, dim=c(N_node, N_node, N_clus))
@@ -137,7 +136,7 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
                                              n0_mat_list = n0_mat_list, t_vec = t_vec)
-  # browser(); mean(clusters_list[[1]][[1]])
+  
   
   clustering_end_time = Sys.time()
   cluster_time = clustering_end_time - clustering_start_time
@@ -147,16 +146,15 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
   
   align_start_time = Sys.time()
   
-  res = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, 
-                      clusters_list = clusters_list, 
-                      n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list,
-                      center_cdf_array = center_cdf_array,
-                      t_vec = t_vec, order_list=order_list, ...)
-  n0_vec_list = res$n0_vec_list
-  n0_mat_list = res$n0_mat_list
-  v_vec_list = res$v_vec_list
-  v_mat_list = res$v_mat_list
-  center_cdf_array = res$center_cdf_array
+  ### Time shifts are all zero
+  n0_vec_list = lapply(N_node_vec, numeric)
+  n0_mat_list = n0_vec2mat(n0_vec = n0_vec_list)
+  v_vec_list = lapply(N_node_vec, numeric)
+  v_mat_list = n0_vec2mat(n0_vec = v_vec_list)
+  center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
+                                             clusters_list = clusters_list, 
+                                             n0_mat_list = n0_mat_list,
+                                             t_vec = t_vec)
   
   
   align_end_time = Sys.time()
