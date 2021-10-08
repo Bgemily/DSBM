@@ -1,8 +1,8 @@
 
 ### Generate network_list, run our algorithm, and output measurements of errors.
-### Based on v3.1.1
-### Change cdf to pdf
-main_v3.4 = function(### Parameters for generative model
+### Based on v3.4
+### True time shifts are given
+main_v3.4.1 = function(### Parameters for generative model
                       SEED, N_subj=1, N_node_vec = rep(90,N_subj),
                       N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                       total_time=200, 
@@ -11,9 +11,8 @@ main_v3.4 = function(### Parameters for generative model
                       time_shift_rad = min(time_shift_mean_vec),
                       t_vec = seq(0,total_time,length.out=1000),
                       ### Parameters for algorithms
-                      freq_trun=10, bw=5, 
-                      conv_thres=1e-2, MaxIter=5,
-                      jitter_time_rad = 10, max_iter=10,
+                      freq_trun=10, bw=5,
+                      jitter_time_rad = 10, max_iter=50,
                       ...)
 {
   
@@ -38,7 +37,8 @@ main_v3.4 = function(### Parameters for generative model
   
   
   # Get initialization ------------------------------------------------------
-  res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus, 
+  res = get_init_v5(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus, 
+                    v_true_list = v_true_list,
                     t_vec = t_vec)
   
   clusters_list_init = res$clusters_list
@@ -46,11 +46,7 @@ main_v3.4 = function(### Parameters for generative model
   n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
   
   ### Evaluate accuracy of initial time shifts
-  spearman_corr_vec = numeric(length = N_subj)
-  for (m in 1:N_subj) {
-    spearman_corr_vec[m] = cor(v_true_list[[m]], n0_vec_list_init[[m]], method = "spearman")
-  }
-  spearman_corr_vec_mean_init = mean(spearman_corr_vec)
+  spearman_corr_vec_mean_init = NULL
   
   
   
@@ -58,20 +54,15 @@ main_v3.4 = function(### Parameters for generative model
   
   
   ### V14 
-  res = do_cluster_v14(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
+  res = do_cluster_v14.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
                        clusters_list_init = clusters_list_init,
                        n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
                        total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                       freq_trun=freq_trun, 
-                       conv_thres=conv_thres, MaxIter=MaxIter,
+                       freq_trun=freq_trun,
                        ...)
-  
   
   res$clusters_list -> clusters_list_est
   res$v_vec_list -> v_vec_list_est
-  res$loss_history -> loss_history
-  res$align_time -> align_time
-  res$cluster_time -> cluster_time
   # res$center_pdf_array -> center_pdf_array_est
   
   
@@ -79,9 +70,10 @@ main_v3.4 = function(### Parameters for generative model
   v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list_est)
   n0_mat_list_est = lapply(v_mat_list_est, function(v_mat)round(v_mat/(t_vec[2]-t_vec[1])))
   center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-                                             clusters_list = clusters_list_est, 
-                                             n0_mat_list = n0_mat_list_est, 
-                                             t_vec = t_vec, bw=bw)
+                                                 clusters_list = clusters_list_est, 
+                                                 n0_mat_list = n0_mat_list_est, 
+                                                 t_vec = t_vec, bw=bw)
+  
   
   
   # Compute errors of clusters, i.e. Z ------------------------------------
@@ -102,7 +94,10 @@ main_v3.4 = function(### Parameters for generative model
   res = find_permn(center_cdf_array_from = center_pdf_array_est,
                    center_cdf_array_to = pdf_true_array)
   permn = res$permn
-  
+  # membership_est_vec = clus2mem(clusters_list_est[[1]])
+  # z_hat = t(dummies::dummy(membership_est_vec))
+  # z_true = t(dummies::dummy(membership_true_list[[1]]))
+  # permn = ppsbm::permuteZEst(z = z_true, hat.z = z_hat)
   
   center_pdf_array_est_permn = center_pdf_array_est[permn, permn, ]
   
@@ -219,8 +214,6 @@ main_v3.4 = function(### Parameters for generative model
               Lambda_mean_sq_err = Lambda_mean_sq_err,
               ARI_vec=ARI_vec, ARI_mean=ARI_mean, 
               F_mean_sq_err=F_mean_sq_err, 
-              loss_history=loss_history, 
-              cluster_time=cluster_time, align_time=align_time,
               spearman_corr_vec_mean_init = spearman_corr_vec_mean_init,
               spearman_corr_vec=spearman_corr_vec, spearman_corr_vec_mean=spearman_corr_vec_mean,
               pearson_corr_vec=pearson_corr_vec, pearson_corr_vec_mean=pearson_corr_vec_mean,
@@ -231,91 +224,7 @@ main_v3.4 = function(### Parameters for generative model
 
 # Test --------------------------------------------------------------------
 
-# data = data.frame(ARI=c(),f_mse=c(),MaxIter=c())
-# for (MaxIter in c(2,4,6,8,10)) {
-#   for(. in 1:8){
-#     SEED=sample(1:10^5,1)
-    # main_v3.4(SEED=SEED, conn_prob_mean = 0.7, N_node_vec = c(30),
-    #           conn_patt_sep = 1.5, time_shift_mean_vec = rep(40,3),
-    #           freq_trun = 10, max_iter = 10,
-    #           conv_thres=1e-2, MaxIter = 5,
-    #           t_vec = seq(0,200,length.out=1000))->tmp.1;
-    # print(tmp.1$F_mean_sq_err)
-#     data = rbind(data, c(ARI=tmp.1$ARI_mean, f_mse=tmp.1$F_mean_sq_err, MaxIter=MaxIter))
-#   }
-# }
-# colnames(data) = c("ARI","f_mse",'MaxIter')
-# data %>%
-#   ggplot(aes(x=as.factor(MaxIter), y=1-ARI)) +
-#   geom_boxplot()
-# 
-# data %>%
-#   ggplot(aes(x=as.factor(MaxIter), y=f_mse)) +
-#   geom_boxplot()
+# results2$conn_patt_sep_1.5[[1]]$network_param->param
+# invoke(main_v3.4.1, param)
 
-# SEED=sample(1:10^5,1)
-# start = Sys.time()
-# main_v3.4(SEED=SEED, conn_prob_mean = 0.7, N_node_vec = c(30),
-#           conn_patt_sep = 1.5, time_shift_mean_vec = rep(40,3),
-#           freq_trun = 10, max_iter = 10,
-#           conv_thres=1e-2, MaxIter = 5,
-#           t_vec = seq(0,200,length.out=200))->tmp.1;
-# end = Sys.time()
-# end-start
-# 
-# tmp.1$ARI_mean
-# tmp.1$F_mean_sq_err
-# tmp.1$v_mean_sq_err
-# tmp.1$loss_history
-# tmp.1$align_time
-# tmp.1$cluster_time
-#   # 
-#   # 
-#   start = Sys.time()
-#   apply_ppsbm_v2(SEED=SEED, conn_prob_mean = 0.7, N_node_vec = c(30),
-#             conn_patt_sep = 1.5, time_shift_mean_vec = rep(40,3),
-#             t_vec = seq(0,200,length.out=200))->tmp.3;
-#   end = Sys.time()
-#   end-start
-#   
-# 
-#   network_list = generate_network2_v3(SEED = tmp.1$network_param$SEED, 
-#                                       N_subj = tmp.1$network_param$N_subj, 
-#                                       N_node_vec = tmp.1$network_param$N_node_vec, 
-#                                       N_clus = tmp.1$network_param$N_clus, 
-#                                       clus_size_mat = tmp.1$network_param$clus_size_mat,
-#                                       total_time = tmp.1$network_param$total_time, 
-#                                       t_vec = tmp.1$network_param$t_vec, 
-#                                       conn_patt_var = tmp.1$network_param$conn_patt_var, 
-#                                       conn_patt_sep = tmp.1$network_param$conn_patt_sep, 
-#                                       const = tmp.1$network_param$const,
-#                                       conn_prob_mean = tmp.1$network_param$conn_prob_mean, 
-#                                       conn_prob_rad = tmp.1$network_param$conn_prob_rad, 
-#                                       time_shift_struc = tmp.1$network_param$time_shift_struc,
-#                                       time_shift_mean_vec = tmp.1$network_param$time_shift_mean_vec, 
-#                                       time_shift_rad = tmp.1$network_param$time_shift_rad)
-#   edge_time_mat_list = network_list$edge_time_mat_list
-#   v_vec_list_est = tmp.1$v_vec_list_est
-#   clusters_list_est = tmp.1$clusters_list_est
-#   pdf_true_array = tmp.1$pdf_true_array
-#   t_vec = tmp.1$t_vec
-#   v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list_est)
-#   n0_mat_list_est = lapply(v_mat_list_est, function(v_mat)round(v_mat/(t_vec[2]-t_vec[1])))
-#   center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-#                                                  clusters_list = clusters_list_est, 
-#                                                  n0_mat_list = n0_mat_list_est, 
-#                                                  t_vec = t_vec, bw=5)
-#   res = find_permn(center_cdf_array_from = center_pdf_array_est, 
-#                    center_cdf_array_to = pdf_true_array)
-#   permn = res$permn
-#   center_pdf_array_est_permn = center_pdf_array_est[permn, permn, ]
-#   
-#   plot_pdf_array(pdf_array_list = list(center_pdf_array_est_permn), 
-#                  pdf_true_array = pdf_true_array, t_vec = t_vec)
-#   
-#   
-  # main_v3.1.1(SEED=SEED, conn_prob_mean = 0.7, N_node_vec = c(30),
-  #           conn_patt_sep = 1.5, time_shift_mean_vec = rep(20,3),
-  #           t_vec = seq(0,200,1))->tmp.2;
-  # print(tmp.2$ARI_vec)
-# }
+

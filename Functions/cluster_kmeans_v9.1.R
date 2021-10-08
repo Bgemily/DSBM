@@ -1,10 +1,9 @@
 
 
 # k-means clustering
-### Based on v6.1
-### Switch from cdf to pdf
-### Input: center_fft_array. Output: center_fft_array
-cluster_kmeans_v9 = function(edge_time_mat_list, clusters_list, 
+### Based on v9
+### True time shifts are given 
+cluster_kmeans_v9.1 = function(edge_time_mat_list, clusters_list, 
                              n0_vec_list=NULL, n0_mat_list=NULL, 
                              center_fft_array=NULL, 
                              freq_trun=5, 
@@ -125,16 +124,20 @@ cluster_kmeans_v9 = function(edge_time_mat_list, clusters_list,
   
   align_start_time = Sys.time()
   
-  res = est_n0_vec_v7(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
-                      n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list, 
-                      freq_trun = freq_trun, 
-                      t_vec = t_vec, order_list=order_list, ...)
-  n0_vec_list = res$n0_vec_list
-  n0_mat_list = res$n0_mat_list
-  v_vec_list = res$v_vec_list
-  v_mat_list = res$v_mat_list
-  center_fft_array = res$center_fft_array
-  
+  # res = est_n0_vec_v7(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
+  #                     n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list, 
+  #                     freq_trun = freq_trun, 
+  #                     t_vec = t_vec, order_list=order_list, ...)
+  n0_vec_list = n0_vec_list
+  n0_mat_list = n0_mat_list
+  v_vec_list = lapply(n0_vec_list, function(n0_vec)n0_vec*t_unit)
+  v_mat_list = lapply(n0_mat_list, function(n0_mat)n0_mat*t_unit)
+  center_fft_array = get_center_fft_array(edge_time_mat_list = edge_time_mat_list, 
+                                          clusters_list = clusters_list, 
+                                          freq_trun = freq_trun, 
+                                          n0_mat_list = n0_mat_list, 
+                                          t_vec = t_vec)
+
   
   align_end_time = Sys.time()
   align_time = align_end_time - align_start_time

@@ -1,10 +1,13 @@
 ### Initialization of clusters and n0_mat
 ### Initialize time shifts by earliest edge time.
-get_init_v4 = function(edge_time_mat_list, N_clus, 
+### Based on v4
+### Time shifts are set as ground truth
+get_init_v5 = function(edge_time_mat_list, N_clus, 
+                       v_true_list=lapply(edge_time_mat_list, function(mat)rep(0,nrow(mat))),
                        t_vec=seq(0, 200, length.out=1000))
 {
   # print("####################")
-  # print("get_init_v4: Initialize time shifts by the earliest edge time.")
+  # print("get_init_v5: Time shifts are set as ground truth.")
   # print("####################")
   
   time_unit = t_vec[2] - t_vec[1]
@@ -19,15 +22,11 @@ get_init_v4 = function(edge_time_mat_list, N_clus,
     
     # Initialize time shifts -------------------------------------------------------
     
-    edge_time_mat = edge_time_mat_list[[m]]
-    earliest_edge_time = apply(edge_time_mat, 1, function(row) min(row[which(row>1)]))
+    n0_vec_list[[m]] = v_true_list[[m]]/time_unit
+    n0_vec_list[[m]] = round(n0_vec_list[[m]])
+    n0_vec_list[[m]] -> n0_vec
     
-    n0_vec = (earliest_edge_time)/time_unit
-    n0_vec = round(n0_vec)
-    
-    n0_vec = n0_vec - min(n0_vec)
-    n0_vec_list[[m]] = n0_vec
-    v_vec_list[[m]] = n0_vec*time_unit
+    v_vec_list[[m]] = v_true_list[[m]]
     
     
     
