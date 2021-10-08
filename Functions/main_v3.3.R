@@ -2,30 +2,31 @@
 ### Generate network_list, run our algorithm, and output measurements of errors.
 ### Force the true min(time shifts) to be zero.
 ### Use jittered true time shifts as initialization
-### Use do_cluster_v8.1: adaptive time shift order.
-main_v3.1 = function(### Parameters for generative model
-                   SEED, N_subj=1, N_node_vec = rep(90,N_subj),
-                   N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
-                   total_time=200, 
-                   conn_patt_var=1, conn_patt_sep = 1.5, const=40, conn_prob_mean = 1, conn_prob_rad = 0, 
-                   time_shift_struc=max, time_shift_mean_vec = rep(20,N_clus), 
-                   time_shift_rad = min(time_shift_mean_vec),
-                   ### Parameters for algorithms
-                   t_vec = seq(0,total_time,length.out=1000),
-                   jitter_time_rad = 10, max_iter=1,
-                   ...)
+### At the step of matching subjects, F is given as F_true
+
+main_v3.3 = function(### Parameters for generative model
+  SEED, N_subj=1, N_node_vec = rep(90,N_subj),
+  N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
+  total_time=200, 
+  conn_patt_var=1, conn_patt_sep = 1.5, const=40, conn_prob_mean = 1, conn_prob_rad = 0, 
+  time_shift_struc=max, time_shift_mean_vec = rep(20,N_clus), 
+  time_shift_rad = min(time_shift_mean_vec),
+  ### Parameters for algorithms
+  t_vec = seq(0,total_time,length.out=1000),
+  jitter_time_rad = 10, max_iter=1,
+  ...)
 {
   
-# Generate networks -------------------------------------------------------
+  # Generate networks -------------------------------------------------------
   
   network_list = generate_network2_v3(SEED = SEED, N_subj = N_subj, N_node_vec = N_node_vec, 
-                             N_clus = N_clus, clus_size_mat = clus_size_mat,
-                             total_time = total_time, 
-                             conn_patt_var = conn_patt_var, conn_patt_sep = conn_patt_sep, const = const,
-                             conn_prob_mean = conn_prob_mean, conn_prob_rad = conn_prob_rad, 
-                             time_shift_struc = time_shift_struc,
-                             time_shift_mean_vec = time_shift_mean_vec, time_shift_rad = time_shift_rad)
-
+                                      N_clus = N_clus, clus_size_mat = clus_size_mat,
+                                      total_time = total_time, 
+                                      conn_patt_var = conn_patt_var, conn_patt_sep = conn_patt_sep, const = const,
+                                      conn_prob_mean = conn_prob_mean, conn_prob_rad = conn_prob_rad, 
+                                      time_shift_struc = time_shift_struc,
+                                      time_shift_mean_vec = time_shift_mean_vec, time_shift_rad = time_shift_rad)
+  
   edge_time_mat_list = network_list$edge_time_mat_list
   cdf_true_array = network_list$cdf_true_array
   pdf_true_array = network_list$pdf_true_array
@@ -33,15 +34,15 @@ main_v3.1 = function(### Parameters for generative model
   clus_true_list = network_list$clus_true_list
   v_true_list = network_list$time_shift_list
   order_true_list = lapply(v_true_list, function(v_vec)order(v_vec))
-
   
   
-
-# Get initialization ------------------------------------------------------
+  
+  
+  # Get initialization ------------------------------------------------------
   res = get_init_v3(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus, 
                     v_true_list = v_true_list, jitter_time_rad = jitter_time_rad, 
                     t_vec = t_vec)
-
+  
   clusters_list_init = res$clusters_list
   n0_vec_list_init = res$n0_vec_list
   n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
@@ -52,18 +53,19 @@ main_v3.1 = function(### Parameters for generative model
     spearman_corr_vec[m] = cor(v_true_list[[m]], n0_vec_list_init[[m]], method = "spearman")
   }
   spearman_corr_vec_mean_init = mean(spearman_corr_vec)
-
-    
-
-# Apply algorithm ---------------------------------------------------------
-
   
-  ### V8
-  res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
-                      total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                      clusters_list_init = clusters_list_init,
-                      n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
-                      ...)
+  
+  
+  # Apply algorithm ---------------------------------------------------------
+  
+  
+  ### V13
+  res = do_cluster_v13(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus,
+                       true_center_cdf_array = cdf_true_array,
+                        total_time = total_time, max_iter=max_iter, t_vec=t_vec,
+                        clusters_list_init = clusters_list_init,
+                        n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
+                        ...)
   
   ### Test: evaluate loss function with true parameters
   # t_vec = seq(0,200,length.out=1000)
@@ -74,7 +76,7 @@ main_v3.1 = function(### Parameters for generative model
   #                     n0_mat_list = n0_mat_list_true,
   #                     clusters_list = clus_true_list,
   #                     center_cdf_array = cdf_true_array, t_vec = t_vec)$loss
-
+  
   
   res$clusters_list -> clusters_list_est
   res$v_vec_list -> v_vec_list_est
@@ -82,7 +84,7 @@ main_v3.1 = function(### Parameters for generative model
   
   
   
-# Compute errors of clusters, i.e. Z ------------------------------------
+  # Compute errors of clusters, i.e. Z ------------------------------------
   
   ARI_vec = numeric(length = N_subj)
   for (m in 1:N_subj) {
@@ -94,11 +96,11 @@ main_v3.1 = function(### Parameters for generative model
   ARI_mean = sum(ARI_vec*weights)
   
   
-# Compute errors of conn patts, i.e. F ------------------------------------
-
+  # Compute errors of conn patts, i.e. F ------------------------------------
+  
   ### Match clusters
   res = find_permn(center_cdf_array_from = center_cdf_array_est, 
-             center_cdf_array_to = cdf_true_array)
+                   center_cdf_array_to = cdf_true_array)
   permn = res$permn
   center_cdf_array_est_permn = center_cdf_array_est[permn, permn, ]
   
@@ -124,8 +126,8 @@ main_v3.1 = function(### Parameters for generative model
   F_shape_mean_sq_err = mean(normed_dist_mat[upper.tri(normed_dist_mat, diag=TRUE)]^2)
   
   
-# Compute error of time shifts, i.e. v --------------------------------------------
-
+  # Compute error of time shifts, i.e. v --------------------------------------------
+  
   spearman_corr_vec = numeric(length = N_subj)
   pearson_corr_vec = numeric(length = N_subj)
   for (m in 1:N_subj) {
@@ -136,7 +138,7 @@ main_v3.1 = function(### Parameters for generative model
   pearson_corr_vec_mean = mean(pearson_corr_vec)
   
   v_mean_sq_err = mean((unlist(v_true_list)-unlist(v_vec_list_est))^2) 
-    
+  
   ### Debug
   # n0_mat_list_est = lapply(v_vec_list_est, function(v_vec)n0_vec2mat(n0_vec = v_vec/t_vec[2]))
   # center_cdf_array_est = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
@@ -145,7 +147,7 @@ main_v3.1 = function(### Parameters for generative model
   #                                                n0_mat_list = n0_mat_list_est)
   
   
-# Compute error of event rates of all counting processes, i.e. Lambda ----------
+  # Compute error of event rates of all counting processes, i.e. Lambda ----------
   
   ### Warning: Be cautious about the following vectorization - the column order are compatible only for symmetric cdf_true_array.
   ### Compute F
@@ -201,8 +203,8 @@ main_v3.1 = function(### Parameters for generative model
   
   
   
-# Extract network related parameters -----------------------------------------
-
+  # Extract network related parameters -----------------------------------------
+  
   network_param = list(SEED = SEED, N_subj = N_subj, N_node_vec = N_node_vec, 
                        N_clus = N_clus, clus_size_mat = clus_size_mat,
                        total_time = total_time, 
@@ -213,10 +215,10 @@ main_v3.1 = function(### Parameters for generative model
   freqs = N_node_vec
   freqs = freqs/sum(freqs) 
   N_node_vec_entropy = -sum(ifelse(freqs>0, freqs*log(freqs),0)) / log(N_subj)
-
   
-# Output ------------------------------------------------------------------
-
+  
+  # Output ------------------------------------------------------------------
+  
   return(list(network_param=network_param, N_node_vec_entropy=N_node_vec_entropy,
               Lambda_mean_sq_err = Lambda_mean_sq_err,
               ARI_vec=ARI_vec, ARI_mean=ARI_mean, 
