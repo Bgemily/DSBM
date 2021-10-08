@@ -1,15 +1,17 @@
 
 
 ### main algorithm
-### Based on v7
-### Update time shifts at each iteration
-do_cluster_v8 = function(edge_time_mat_list, N_clus, 
+### Based on v5
+### First estimate params for each individual subject. Then put all subjects together, and update params.
+### Normalize node_cdf_array when updating clusters and time shifts.
+### Fix the time shift order. Require initialization of time shifts.
+do_cluster_v7 = function(edge_time_mat_list, N_clus, 
                          clusters_list_init, n0_vec_list_init, n0_mat_list_init,
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
                          MaxIter=10, conv_thres=5e-3, ...)
 {
   print("####################")
-  print("[do_cluster_v8]: Update time shifts at each iteration.")
+  print("[do_cluster_v7]: Require initialization of time shifts. Fix the time shift order.")
   print("####################")
   
   t_unit = t_vec[2] - t_vec[1]
@@ -20,13 +22,13 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
   loss_history = c()
   cluster_time = align_time = 0
   
-  # Initialize clusters and time shifts -------------------------------------
+# Initialize clusters and time shifts -------------------------------------
   
   clusters_list = clusters_list_init
   n0_vec_list = n0_vec_list_init
   n0_mat_list = n0_mat_list_init
   order_list = lapply(n0_vec_list, function(n0_vec)order(n0_vec))
-  
+ 
   clusters_history = c(clusters_history, list(clusters_list))
   
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
@@ -42,10 +44,10 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
                       center_cdf_array = center_cdf_array, t_vec = t_vec)$loss
   loss_history = c(loss_history, loss)
   
-  
-  
-  # Update clusters and connecting patterns separately for each subject ---------------------
-  
+ 
+
+# Update clusters and connecting patterns separately for each subject ---------------------
+
   
   clusters_list_update = clusters_list_current = clusters_list
   n0_vec_list_update = n0_vec_list_current = n0_vec_list
@@ -73,7 +75,7 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
                               clusters_list=clusters_list_current[m], 
                               n0_vec_list=n0_vec_list_current[m], n0_mat_list=n0_mat_list_current[m], 
                               center_cdf_array = center_cdf_array_current,
-                              t_vec=t_vec, order_list=NULL, ...)
+                              t_vec=t_vec, order_list=order_list[m], ...)
       clusters_list_update[m] = res$clusters_list
       n0_vec_list_update[m] = res$n0_vec_list
       n0_mat_list_update[m] = res$n0_mat_list
@@ -93,7 +95,7 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
       clusters_update = clusters_list_update[[m]]
       clusters_current = clusters_list_current[[m]]
       delta_clusters = 1 - get_one_ARI(memb_est_vec = clus2mem(clusters_update), 
-                                       memb_true_vec = clus2mem(clusters_current))
+                                  memb_true_vec = clus2mem(clusters_current))
       
       
       delta_center_cdf = tryCatch(sum((center_cdf_array_update-center_cdf_array_current)^2) / 
@@ -122,7 +124,7 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
       
     }
     
-    
+  
     
     center_cdf_array_list[[m]] = center_cdf_array_current
     
@@ -130,9 +132,9 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
   
   
   
-  
-  # Match clusters across subjects ------------------------------------------
-  
+
+# Match clusters across subjects ------------------------------------------
+
   if (N_subj>1) {
     ### Find permutation
     res = match_clusters(center_cdf_array_list = center_cdf_array_list)
@@ -164,9 +166,9 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
   loss_history = c(loss_history, loss)
   
   
-  
-  # Combine all subjects and update params ----------------------------
-  
+
+# Combine all subjects and update params ----------------------------
+
   if (N_subj>1) {
     n_iter = 1
     stopping = FALSE
@@ -179,7 +181,7 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
                               clusters_list=clusters_list_current, 
                               n0_vec_list=n0_vec_list_current, n0_mat_list=n0_mat_list_current, 
                               center_cdf_array = center_cdf_array_current,
-                              t_vec=t_vec, order_list=NULL, ...)
+                              t_vec=t_vec, order_list=order_list, ...)
       clusters_list_update = res$clusters_list
       n0_vec_list_update = res$n0_vec_list
       n0_mat_list_update = res$n0_mat_list
@@ -234,15 +236,15 @@ do_cluster_v8 = function(edge_time_mat_list, N_clus,
     
     
     if (n_iter>MaxIter) {
-      message("[do_cluster_v8]: Reached maximum iteration number.")
+      message("[do_cluster_v7]: Reached maximum iteration number.")
     }
     
   }
   
   
-  
-  # Get final result --------------------------------------------------------
-  
+
+# Get final result --------------------------------------------------------
+
   clusters_list_current -> clusters_list
   n0_vec_list_current -> n0_vec_list
   n0_mat_list_current -> n0_mat_list
