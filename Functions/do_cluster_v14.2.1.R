@@ -1,9 +1,9 @@
 
 ### main algorithm
-### Based on v14 
-### When aligning pdfs, optimization region's radius is controlled by a tuning parameter. 
+### Based on v14.2
+### When getting rough estimates by aligning cdf's, iterate several times rather than only once.
 
-do_cluster_v14.2 = function(edge_time_mat_list, N_clus, 
+do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus, 
                           clusters_list_init, n0_vec_list_init, n0_mat_list_init,
                           freq_trun=5, step_size=0.5,
                           total_time = 200, t_vec=seq(0,total_time,length.out=1000),
@@ -73,7 +73,7 @@ do_cluster_v14.2 = function(edge_time_mat_list, N_clus,
     while (!stopping & n_iter<=MaxIter){
       
       ### Update clusters, time shifts and connecting patterns 
-      res = cluster_kmeans_v9.2(edge_time_mat_list=edge_time_mat_list[m], 
+      res = cluster_kmeans_v9.2.1(edge_time_mat_list=edge_time_mat_list[m], 
                                 clusters_list=clusters_list_current[m], 
                                 n0_vec_list=n0_vec_list_current[m], n0_mat_list=n0_mat_list_current[m], 
                                 center_fft_array = center_fft_array_current,
@@ -194,7 +194,7 @@ do_cluster_v14.2 = function(edge_time_mat_list, N_clus,
     while (!stopping & n_iter<=MaxIter){
       
       ### Update clusters, time shifts and connecting patterns
-      res = cluster_kmeans_v9.2(edge_time_mat_list=edge_time_mat_list, 
+      res = cluster_kmeans_v9.2.1(edge_time_mat_list=edge_time_mat_list, 
                                 clusters_list=clusters_list_current, 
                                 n0_vec_list=n0_vec_list_current, n0_mat_list=n0_mat_list_current, 
                                 center_pdf_array = center_pdf_array_current,

@@ -1,11 +1,11 @@
 
 ### Update time shifts and connecting patterns alternatively
 
-### Based on v7
-### When aligning pdfs, optimization region's radius is controlled by a tuning parameter. 
+### Based on v7.1
+### When getting rough estimates by aligning cdf's, iterate several times rather than only once.
 ### [WARNING: The gradient might be WRONG when there are multiple subjects!]
 
-est_n0_vec_v7.1 = function(edge_time_mat_list, 
+est_n0_vec_v7.1.1 = function(edge_time_mat_list, 
                          clusters_list, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          freq_trun=5,
@@ -38,85 +38,19 @@ est_n0_vec_v7.1 = function(edge_time_mat_list,
   center_cdf_array_update = center_cdf_array_current
   
 
+  # browser(); mean(clusters_list[[1]][[1]])
   ### Get rough estimation of time shifts using cdf
-  for (m in 1:N_subj) {
-    n0_vec_tmp = n0_vec_list_current[[m]]
-    N_node = N_node_vec[[m]]
-
-    ### Get order matrix with (i,j)-th entry being 1 if v_j<=v_i and NA otherwise
-    n0_vec_tmp[which.min(n0_vec_tmp)] = min(n0_vec_tmp[-which.min(n0_vec_tmp)])
-    order_mat_current = matrix(n0_vec_tmp, nrow=N_node, ncol=N_node) -
-      matrix(n0_vec_tmp, nrow=N_node, ncol=N_node, byrow=TRUE) >= 0
-    order_mat_current = order_mat_current*1 ### Convert logical entries to numeric
-    diag(order_mat_current) = 0
-    order_mat_current[order_mat_current==0] = NA
-
-    ### Get aggregated counting processes \bar N_{m,i,k}
-    edge_time_mat_tmp = edge_time_mat_list[[m]] * order_mat_current
-    clusters_tmp = clusters_list[[m]]
-    n0_mat_tmp = n0_mat_list_current[[m]]
-    node_cdf_array = get_node_cdf_array_v2(edge_time_mat = edge_time_mat_tmp, clusters = clusters_tmp,
-                                           n0_mat = n0_mat_tmp*0, t_vec = t_vec)
-
-    ### Get weight matrix N_node*N_clus, (i,l)-th entry is proportional to |{j: v_j<=v_i && z_j==l}|
-    order_mat_current[is.na(order_mat_current)] = 0
-    weight_mat = matrix(nrow=N_node, ncol=N_clus)
-    for (q in 1:N_clus) {
-      weight_mat[,q] = rowSums(as.matrix(order_mat_current[,clusters_tmp[[q]]]))
-    }
-
-    ### Update time shifts
-    for (q in 1:N_clus) {
-      for (i in clusters_tmp[[q]]) {
-        f_target_list = lapply(1:N_clus, function(l) node_cdf_array[i,l, ])
-        f_origin_list = lapply(1:N_clus, function(l) center_cdf_array_current[q,l, ])
-
-        ##### V1: Eliminate the difference between the constant values at the right end of curves.
-        f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6))
-        f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/max(max(f_target_list[[l]]), 1e-6))
-
-        ##### V2
-        # blank
-        ####################
-
-        weights = weight_mat[i,]
-        if(sum(weights)==0)
-          weights = NULL
-        else
-          weights = weights/sum(weights)
-
-
-        if (!is.null(order_list)) {
-          position = which(order_list[[m]]==i)
-          n0_min = ifelse(test = position>=2,
-                          yes = n0_vec_tmp[order_list[[m]][position-1]],
-                          no = 0)
-          n0_max = ifelse(test = position<=(N_node-1),
-                          yes = n0_vec_tmp[order_list[[m]][position+1]],
-                          no = length(t_vec))
-          n0_vec_tmp[i] = align_multi_curves_gd_v2(f_origin_list = f_origin_list, f_target_list = f_target_list,
-                                                   step_size = 0.02,
-                                                   t_unit = t_unit, weights = weights,
-                                                   n0_min = n0_min, n0_max = n0_max)$n0
-        }
-        else{
-          n0_max = min(edge_time_mat_list[[m]][i,])/t_unit
-          n0_max = round(n0_max)
-          n0_max = min(n0_max, length(t_vec)-1)
-          n0_vec_tmp[i] = align_multi_curves_gd_v2(f_origin_list = f_origin_list, f_target_list = f_target_list,
-                                                   step_size = 0.02,
-                                                   t_unit = t_unit, weights = weights,
-                                                   n0_max = n0_max)$n0
-
-        }
-
-      }
-    }
-
-    # n0_vec_tmp = n0_vec_tmp - min(n0_vec_tmp)
-    n0_vec_list_update[[m]] = n0_vec_tmp
-
-  }
+  res = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, 
+                        clusters_list = clusters_list,
+                        n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list, 
+                        center_cdf_array = center_cdf_array_current,
+                        t_vec = t_vec, order_list=order_list, 
+                        max_iter = max_iter,
+                        ...)
+  n0_vec_list_update = res$n0_vec_list
+  n0_mat_list_update = res$n0_mat_list
+  
+  # browser(); mean(n0_vec_list_update[[1]])
 
   ### *update -> *current
   n0_vec_list_current = n0_vec_list_update
@@ -286,7 +220,7 @@ est_n0_vec_v7.1 = function(edge_time_mat_list,
   }
   
   if (n_iter>max_iter) {
-    message("[est_n0_vec_v7.1]: Reached maximum iteration number.")
+    message("[est_n0_vec_v7.1.1]: Reached maximum iteration number ", max_iter)
   }
   
   ### Debug
