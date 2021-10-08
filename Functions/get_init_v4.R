@@ -1,39 +1,34 @@
 ### Initialization of clusters and n0_mat
-### Initialize time shifts by jittering true time shifts.
-get_init_v3 = function(edge_time_mat_list, N_clus, v_true_list, 
-                       jitter_time_rad = 0,
+### Initialize time shifts by earliest edge time.
+get_init_v4 = function(edge_time_mat_list, N_clus, 
                        t_vec=seq(0, 200, length.out=1000))
 {
   # print("####################")
-  # print("get_init_v3: Initialize time shifts by jittering true time shifts.")
+  # print("get_init_v4: Initialize time shifts by the earliest edge time.")
   # print("####################")
   
   time_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
   N_node_vec = sapply(edge_time_mat_list, nrow)
   
-
+  v_vec_list = list()
   n0_vec_list = list()
   membership_list = list()
   clusters_list = list()
   for (m in 1:N_subj) {
     
     # Initialize time shifts -------------------------------------------------------
-    v_vec = v_true_list[[m]]
     
-    ### Jitter time shifts
-    v_vec = v_vec + stats::runif(length(v_vec), -jitter_time_rad, jitter_time_rad)
-    if (sd(v_vec)!=0) {
-      v_vec = v_vec / sd(v_vec) * sd(v_true_list[[m]]) ### Rescale
-    }
-    v_vec = v_vec - min(v_vec)
+    edge_time_mat = edge_time_mat_list[[m]]
+    earliest_edge_time = apply(edge_time_mat, 1, function(row) min(row[which(row>1)]))
     
-    n0_vec = v_vec / time_unit
+    n0_vec = (earliest_edge_time)/time_unit
     n0_vec = round(n0_vec)
-    n0_vec = n0_vec - min(n0_vec)
-    # n0_mat = n0_vec2mat(n0_vec = n0_vec)
     
+    n0_vec = n0_vec - min(n0_vec)
     n0_vec_list[[m]] = n0_vec
+    v_vec_list[[m]] = n0_vec*time_unit
+    
     
     
     # Initialize clusters -----------------------------------------------------
@@ -56,7 +51,8 @@ get_init_v3 = function(edge_time_mat_list, N_clus, v_true_list,
   
   return(list(membership_list=membership_list, 
               clusters_list=clusters_list, 
-              n0_vec_list=n0_vec_list))
+              n0_vec_list=n0_vec_list,
+              v_vec_list=v_vec_list))
 }
 
 ### Test

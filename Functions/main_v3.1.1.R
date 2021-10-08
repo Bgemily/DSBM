@@ -1,17 +1,16 @@
 
 ### Generate network_list, run our algorithm, and output measurements of errors.
-### Force the true min(time shifts) to be zero.
-### Use jittered true time shifts as initialization
-### Use do_cluster_v8.1: adaptive time shift order.
-main_v3.1 = function(### Parameters for generative model
+### Based on v3.1
+### Initialize time shifts by earliest edge time.
+main_v3.1.1 = function(### Parameters for generative model
                    SEED, N_subj=1, N_node_vec = rep(90,N_subj),
                    N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                    total_time=200, 
                    conn_patt_var=1, conn_patt_sep = 1.5, const=40, conn_prob_mean = 1, conn_prob_rad = 0, 
                    time_shift_struc=max, time_shift_mean_vec = rep(20,N_clus), 
                    time_shift_rad = min(time_shift_mean_vec),
-                   ### Parameters for algorithms
                    t_vec = seq(0,total_time,length.out=1000),
+                   ### Parameters for algorithms
                    jitter_time_rad = 10, max_iter=1,
                    ...)
 {
@@ -20,7 +19,7 @@ main_v3.1 = function(### Parameters for generative model
   
   network_list = generate_network2_v3(SEED = SEED, N_subj = N_subj, N_node_vec = N_node_vec, 
                              N_clus = N_clus, clus_size_mat = clus_size_mat,
-                             total_time = total_time, 
+                             total_time = total_time, t_vec = t_vec,
                              conn_patt_var = conn_patt_var, conn_patt_sep = conn_patt_sep, const = const,
                              conn_prob_mean = conn_prob_mean, conn_prob_rad = conn_prob_rad, 
                              time_shift_struc = time_shift_struc,
@@ -38,8 +37,7 @@ main_v3.1 = function(### Parameters for generative model
   
 
 # Get initialization ------------------------------------------------------
-  res = get_init_v3(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus, 
-                    v_true_list = v_true_list, jitter_time_rad = jitter_time_rad, 
+  res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus, 
                     t_vec = t_vec)
 
   clusters_list_init = res$clusters_list
