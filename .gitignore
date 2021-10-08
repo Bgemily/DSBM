@@ -1,5 +1,6 @@
 *alias
 *.DS_Store
+*.Rhistory
 
 Functions copy/
 *.mat
