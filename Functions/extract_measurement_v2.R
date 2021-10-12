@@ -11,8 +11,16 @@ extract_measurement_v2 = function(folder_path, measurement=c("ARI_mean", "F_mean
     file_name_vec = list.files(path = paste0(folder_path,"/",param_value), full.names = T, recursive = TRUE)
     for (file in file_name_vec) {
       load(file)
-      meas_value_mat = t(sapply(results, function(one_trial) tryCatch(unlist(one_trial[measurement]), 
-                                                                      error=function(x)NA)))
+
+      # Size of meas_value_mat: N_meas*N_trial
+      meas_value_mat = sapply(results, function(one_trial) tryCatch(unlist(one_trial[measurement]), 
+                                                                    error=function(x)NA))  
+      if (is.vector(meas_value_mat)) {
+        meas_value_mat = matrix(meas_value_mat)
+      }
+      else{
+        meas_value_mat = t(meas_value_mat)
+      }
       colnames(meas_value_mat) = measurement
       meas_value_df = as.data.frame(cbind("param_value"=as.numeric(param_value), meas_value_mat))
       measurement_df = dplyr::bind_rows(measurement_df, meas_value_df)

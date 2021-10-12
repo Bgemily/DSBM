@@ -11,16 +11,19 @@
 # Import all functions ----------------------------------------------------
 
 rm(list=ls())
-file_path = "./functions"
+file_path = "./Functions"
 file.sources = list.files(path = file_path, pattern = "*.R$", full.names = TRUE)
 sapply(file.sources, source)
 
- 
 
-# Simulation setup --------------------------------------------------------
-
+# Load libraries ----------------------------------------------------------
 
 library("optparse")
+library(foreach)
+library(doParallel)
+
+
+# User input setup --------------------------------------------------------
 
 option_list = list(
   make_option(c("-n", "--N_trial"), type="integer", default=20, 
@@ -37,13 +40,13 @@ split = opt$split
 N_trial = N_trial_total/split
 
 
+# Parallel computing setup ------------------------------------------------
 
-### Parallel computing setup
-library(foreach)
-library(doParallel)
 N_cores = 10
 registerDoParallel(cores=N_cores)
 
+
+# Simulation setup --------------------------------------------------------
 
 ### Common parameters
 N_clus = 3
@@ -55,7 +58,6 @@ max_iter = 3 ### number of iterations when updating time shifts
 ### Simulation-specific parameters
 N_subj = 3 
 N_subj_list = list(1,2,3,4,5)
-
 
 jitter_time_rad_list = list(2,4,6,8,10,12,14,16,18,20,22,24,26,28,30)
 
@@ -85,27 +87,25 @@ conn_prob_mean_list = list(1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1)
 # Run simulations ---------------------------------------------------------
 
 
-### SNR, V!=0 ------
-### Various signal-to-noise ratio: n, beta, clus_size_vec, V!=0, alpha, p
-### main_v3.1.1.1 (cdf) / main_v3.4 (pdf)
+### Setup: SNR, V!=0 ------
+###   i.e. Various signal-to-noise ratio: n, beta, clus_size_vec, V!=0, alpha, p
+### Default setting: TODO: Add content.
+### Parameters' possible values: 
+  ### n
+  N_node_persubj_list = list(30,36,42,48,54,60,66,72,78,84,90)
+  ### beta
+  conn_patt_sep_list = list(1.5,1.55,1.6,1.65,1.7,1.75,1.8,1.85,1.9,1.95,2.0)
+  ### V
+  time_shift_mean_vec_list = list(rep(0,N_clus), rep(2.5,N_clus),
+                                  rep(5,N_clus), rep(7.5,N_clus),
+                                  rep(10,N_clus), rep(12.5,N_clus),
+                                  rep(15,N_clus), rep(17.5,N_clus),
+                                  rep(20,N_clus), rep(22.5,N_clus),
+                                  rep(25,N_clus), rep(27.5,N_clus),
+                                  rep(30,N_clus), rep(32.5,N_clus),
+                                  rep(35,N_clus), rep(37.5,N_clus), rep(40,N_clus))
 
-### Setup: n
-N_node_persubj_list = list(30,36,42,48,54,60,66,72,78,84,90)
-### beta
-conn_patt_sep_list = list(1.5,1.55,1.6,1.65,1.7,1.75,1.8,1.85,1.9,1.95,2.0)
-### V
-time_shift_mean_vec_list = list(rep(0,N_clus), rep(2.5,N_clus),
-                                rep(5,N_clus), rep(7.5,N_clus),
-                                rep(10,N_clus), rep(12.5,N_clus),
-                                rep(15,N_clus), rep(17.5,N_clus),
-                                rep(20,N_clus), rep(22.5,N_clus),
-                                rep(25,N_clus), rep(27.5,N_clus),
-                                rep(30,N_clus), rep(32.5,N_clus),
-                                rep(35,N_clus), rep(37.5,N_clus), rep(40,N_clus))
-
-
-
-##### pdf with opt_radius ###----
+##### Method: pdf with opt_radius ###----
 
 for (opt_radius in seq(0,100,length.out=5)) {
   top_level_folder = "../Results/Rdata"
@@ -195,7 +195,7 @@ for (opt_radius in seq(0,100,length.out=5)) {
 
 
 
-##### pdf ###----
+##### Method: pdf ###----
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0'
 method = 'our_v3.4'
@@ -276,7 +276,7 @@ for (. in 1:split) {
 
 
 
-##### cdf ###----
+##### Method: cdf ###----
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0'
 method = 'our_v3.1.1.1'

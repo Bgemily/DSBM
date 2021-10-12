@@ -4,7 +4,7 @@
 # Import all functions ----------------------------------------------------
 
 rm(list=ls())
-file_path = "./functions"
+file_path = "./Functions"
 file.sources = list.files(path = file_path, pattern = "*.R$", full.names = TRUE)
 sapply(file.sources, source)
 
@@ -79,6 +79,12 @@ conn_prob_mean_list = list(1,0.9,0.8,0.5,0.6,0.5,0.4,0.3,0.2,0.1)
 
 # Run simulations ---------------------------------------------------------
 
+
+### Test cluster number estimation using ICL
+res = apply_ppsbm_ICL(SEED = sample(1e4), N_node_vec = rep(30,1),
+                conn_prob_mean = 1, conn_patt_sep = 1.5,
+                time_shift_mean_vec = rep(0,3),
+                Qmin = 1, Qmax = 5)
 
 
 
@@ -293,7 +299,7 @@ for (. in 1:split) {
   
 }
 
-# 
+
 # 
 # ### Unbalanced clusters, single subj
 # ##### unbalancedness
