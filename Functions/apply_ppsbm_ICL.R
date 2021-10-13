@@ -93,7 +93,11 @@ apply_ppsbm_ICL = function(### Parameters for generative model
   
   return(list(network_param=network_param, 
               N_clus_est=N_clus_est,
-              correct_N_clus=I(N_clus_est==N_clus)))
+              correct_N_clus=I(N_clus_est==N_clus)*1,
+              ICL_vec = sol.selec_Q$all.ICL,
+              J_vec = sol.selec_Q$all.J,
+              compl_log_lik_vec = sol.selec_Q$all.compl.log.likelihood,
+              penalty_vec = sol.selec_Q$all.pen))
 }
 
 

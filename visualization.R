@@ -20,7 +20,7 @@ library(ggplot2)
 
 
 
-path_vec = rep(0,2)
+path_vec = rep(0,1)
 
 path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL/pr=0.4,n=30,beta=1.3/"
 # path_vec[2] = "../Results/Rdata/SNR_Vis0/our_v3.2.1/pr=0.4,n=30,beta=1.3"
@@ -42,7 +42,7 @@ for (param_name in param_name_vec) {
                                                            decreasing = param_name=="V")) ) 
   
   ### Plot ARI/F_mse vs n/beta/V
-  for (measurement in c("correct_N_clus")) {
+  for (measurement in c("incorrect_N_clus")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
                     switch(param_name, "beta"="Beta", "n"="N_node", "V"="V"), '_', 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
@@ -50,7 +50,7 @@ for (param_name in param_name_vec) {
     g = results_df %>% 
       ggplot(aes(x=param_value, 
                  y=switch(measurement,
-                          "correct_N_clus" = correct_N_clus,
+                          "incorrect_N_clus" = 1-correct_N_clus,
                           "1-ARI" = 1-ARI_mean,
                           "f_mse" = F_mean_sq_err,
                           "V_mse" = v_mean_sq_err), 
@@ -58,13 +58,14 @@ for (param_name in param_name_vec) {
       stat_summary(aes(group=method), position = position_dodge(.2),
                    geom="pointrange",
                    fun = mean,
-                   fun.min = function(x)quantile(x,0.25),
-                   fun.max = function(x)quantile(x,0.75)) +
+                   fun.min = function(x) mean(x)-sd(x),
+                   fun.max = function(x) mean(x)+sd(x) ) +
       stat_summary(aes(group=method),position = position_dodge(.2),
                    geom="line",
                    fun = "mean") +
       # theme(legend.position = "none") +
       scale_y_continuous(limits = switch(measurement,
+                                         # "incorrect_N_clus" = c(0,1),
                                          "1-ARI" = c(0,1),
                                          "f_mse" = c(0.0,0.006))) +
       ylab(measurement) +
