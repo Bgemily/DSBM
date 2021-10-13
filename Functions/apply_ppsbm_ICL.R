@@ -57,7 +57,7 @@ apply_ppsbm_ICL = function(### Parameters for generative model
   Nijk = statistics(data, nrow(edge_time_mat), K=2^6, directed = FALSE)
   
   res = mainVEM(data=list(Nijk=Nijk, Time=total_time), n=nrow(edge_time_mat), d_part=5, 
-                Qmin=Qmin, Qmax=Qmax, directed=FALSE, method="hist")
+                Qmin=Qmin, Qmax=Qmax, directed=FALSE, sparse=TRUE, method="hist")
   
   
   # Select best cluster number using ICL ------------------------------------
@@ -69,7 +69,7 @@ apply_ppsbm_ICL = function(### Parameters for generative model
                                   Qmin=Qmin,
                                   Qmax=Qmax,
                                   directed=FALSE,
-                                  sparse=FALSE,
+                                  sparse=TRUE,
                                   sol.hist.sauv=res)
   
   # best number Q of clusters:
@@ -98,6 +98,7 @@ apply_ppsbm_ICL = function(### Parameters for generative model
               J_vec = sol.selec_Q$all.J,
               compl_log_lik_vec = sol.selec_Q$all.compl.log.likelihood,
               penalty_vec = sol.selec_Q$all.pen))
+  
 }
 
 
