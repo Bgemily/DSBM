@@ -86,6 +86,7 @@ conn_prob_mean_list = list(1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1)
 
 # Run simulations ---------------------------------------------------------
 
+main_v5(831, N_node_vec = c(30), N_clus_min=4, N_clus_max = 5)
 
 ### Setup: SNR, V!=0 ------
 ###   i.e. Various signal-to-noise ratio: n, beta, clus_size_vec, V!=0, alpha, p
