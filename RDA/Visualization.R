@@ -10,6 +10,51 @@ file.sources = list.files(path = file_path, pattern = "*.R$", full.names = TRUE)
 sapply(file.sources, source)
 
 
+# Visualization (NeuIPS submission) -----------------------------------------------------------
+
+### Read in data analysis results
+data_folder = "../Results/Rdata/RDA/do_cluster_v14.2.1/"
+path_vec = list.files(data_folder, full.names = TRUE, recursive = TRUE)
+
+res_list = vector(mode = "list", length = length(path_vec))
+
+for(m in 1:length(path_vec)){ 
+  path = path_vec[m]
+  ### Read in results from data
+  load(path)
+  res_list[[m]] = res
+}
+
+
+### Collect from all subjects: clusters_list, center_pdf_array
+clusters_list = lapply(res_list, function(res) res$clusters_list)
+center_pdf_array_list = lapply(res_list, function(res) res$center_pdf_array)
+
+
+### Align clusters and intensities
+clusters_list[[1]] = clusters_list[[1]][c(2,3,1)]
+clusters_list[[2]] = clusters_list[[2]][c(2,1,3)]
+center_pdf_array_list[[1]] = center_pdf_array_list[[1]][c(2,3,1),c(2,3,1),]
+center_pdf_array_list[[2]] = center_pdf_array_list[[2]][c(2,1,3),c(2,1,3),]
+
+N_clus = length(clusters_list[[1]])
+for (q in 1:N_clus) {
+  for (k in 1:N_clus) {
+    center_pdf_array_list[[1]][q,k,] = shift_v2(center_pdf_array_list[[1]][q,k,], n0 = -17)
+  }
+}
+
+
+### Visualize estimated connecting intensities (Figure 3 in DynamicNetworks.pdf) ----
+clus_size_vec = rowSums(sapply(clusters_list, function(clusters)sapply(clusters,length)))
+print(plot_pdf_array_v2(pdf_array_list = center_pdf_array_list, 
+                        pdf_true_array = (center_pdf_array_list[[1]]+center_pdf_array_list[[2]])/2,
+                        clus_size_vec = clus_size_vec,
+                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list)))))
+
+
+
+
 # Visualization -----------------------------------------------------------
 
 max_time = max(sapply(edge_time_mat_list, function(edge_time_mat)max(edge_time_mat[which(edge_time_mat<Inf)])))
