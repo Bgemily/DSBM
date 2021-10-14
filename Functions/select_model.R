@@ -24,9 +24,11 @@ select_model = function(edge_time_mat_list, N_node_vec,
     for (q in 1:N_clus_tmp) {
       for (k in q:N_clus_tmp) {
         log_lik_qk_vec = log(center_pdf_array_tmp[q,k,])
-        adjst_edge_time_qk_vec = c(mapply(function(clus_list, mat1, mat2) (mat1-mat2)[clus_list[[q]],clus_list[[k]]], 
-                                          clusters_list_tmp, edge_time_mat_list, v_mat_list_tmp))
-        browser()
+        adjst_edge_time_qk_vec = c(unlist(mapply(function(clus_list, mat1, mat2) (mat1-mat2)[clus_list[[q]],clus_list[[k]]], 
+                                          clusters_list_tmp, edge_time_mat_list, v_mat_list_tmp)))
+        if(length(adjst_edge_time_qk_vec)==0){
+          next
+        }
         if (min(adjst_edge_time_qk_vec)<0) {
           adjst_edge_time_qk_vec = adjst_edge_time_qk_vec - min(adjst_edge_time_qk_vec)
         }

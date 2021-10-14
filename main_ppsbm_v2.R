@@ -79,7 +79,7 @@ for (. in 1:split) {
     N_node = N_node_persubj_list[[i]]
     results <- foreach(j = 1:N_trial) %dopar% {
       SEED = sample(1:1e7,1)
-      tryCatch(apply_ppsbm_ICL(SEED = sample(1e4), 
+      tryCatch(apply_ppsbm_ICL(SEED = SEED, 
                                N_node_vec = rep(N_node,1),
                                conn_prob_mean = 0.4, 
                                conn_patt_sep = 1.3,
@@ -105,7 +105,7 @@ for (. in 1:split) {
     conn_patt_sep = conn_patt_sep_list[[i]]
     results <- foreach(j = 1:N_trial) %dopar% {
       SEED = sample(1:1e7,1)
-      tryCatch(apply_ppsbm_ICL(SEED = sample(1e4), 
+      tryCatch(apply_ppsbm_ICL(SEED = SEED, 
                                N_node_vec = rep(30,1),
                                conn_prob_mean = 0.4, 
                                conn_patt_sep = conn_patt_sep,
@@ -132,7 +132,7 @@ for (. in 1:split) {
 
 
 
-### TODO: modity the saving format of result.
+### TODO: modify the following saving format of result.
 # ### Various signal-to-noise ratio: n, beta, clus_size_vec, V!=0, alpha, p ----
 # ### Setup: n
 # N_node_persubj_list = list(30,36,42,48,54,60,66,72,78,84,90)
