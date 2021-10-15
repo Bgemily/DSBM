@@ -16,14 +16,77 @@ library(ggplot2)
 
 
 
-# Cluster number selection (V==0) -----------------------------------------
+# ICL/log_like/penalty vs N_clus -----------------------------------------
 
-
-
-path_vec = rep(0,1)
+path_vec = rep(0,2)
 
 path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL/pr=0.4,n=30,beta=1.3/"
-# path_vec[2] = "../Results/Rdata/SNR_Vis0/our_v3.2.1/pr=0.4,n=30,beta=1.3"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5/pr=0.4,n=30,beta=1.3/"
+
+
+# param_name_vec = list.files(path_vec[1])
+param_name_vec = c("beta_1.8")
+
+### For each parameter (n/beta/V), extract results and visualize results
+for (param_name in param_name_vec) {
+  
+  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | correct_N_clus | method
+  func_tmp = function(folder_path, param_name) {
+    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
+                           measurement = c("ICL_vec","compl_log_lik_vec", "penalty_vec"))
+  }
+  results_list = lapply(path_vec, func_tmp, param_name=param_name)
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="ppsbm"),
+                         bind_cols(results_list[[2]],"method"="main_v5"),) %>% 
+    pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
+    pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_log_lik", values_to = "log_lik") %>% 
+    pivot_longer(cols = starts_with("penalty_vec"), names_to = "N_clus_penalty", values_to = "penalty")
+  
+  ### Plot ICL vs N_clus
+  for (measurement in c("ICL","log_lik","penalty")) {
+    pdf(file=paste0("../Results/Plots/Temp/", 
+                    switch(param_name, "beta"="Beta", "n"="N_node", "V"="V", 
+                           "n_90"="N_node_90", "beta_1.8"="Beta_1.8"), '_', 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
+        width = 4, height = 2.5)
+    g = results_df %>% 
+      ggplot(aes(x=switch(measurement,
+                          "ICL" = N_clus_ICL,
+                          "log_lik" = N_clus_log_lik,
+                          "penalty" = N_clus_penalty), 
+                 y=switch(measurement,
+                          "ICL" = ICL,
+                          "log_lik" = log_lik,
+                          "penalty" = penalty), 
+                 color=method)) +
+      stat_summary(aes(group=method), position = position_dodge(.2),
+                   geom="pointrange",
+                   fun = mean,
+                   fun.min = function(x) mean(x)-sd(x),
+                   fun.max = function(x) mean(x)+sd(x) ) +
+      stat_summary(aes(group=method),position = position_dodge(.2),
+                   geom="line",
+                   fun = "mean") +
+      # theme(legend.position = "none") +
+      scale_y_continuous() +
+      ylab(measurement) +
+      xlab(ifelse(param_name=="n", yes="p", no=param_name))
+    
+    print(g)
+    dev.off()
+  }
+}
+
+
+
+
+
+# Cluster number selection (V==0) -----------------------------------------
+
+path_vec = rep(0,2)
+
+path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL_nonsparse/pr=0.4,n=30,beta=1.3/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL_sparse/pr=0.4,n=30,beta=1.3/"
 
 
 param_name_vec = list.files(path_vec[1])
@@ -34,7 +97,8 @@ for (param_name in param_name_vec) {
   ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | correct_N_clus | method
   results_list = lapply(path_vec, function(folder_path) extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
                                                                                measurement = "correct_N_clus"))
-  results_df = bind_rows(bind_cols(results_list[[1]],"method"="ppsbm"),)
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="ppsbm_nonsparse"),
+                         bind_cols(results_list[[2]],"method"="ppsbm_sparse"),)
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
@@ -74,13 +138,7 @@ for (param_name in param_name_vec) {
     print(g)
     dev.off()
   }
-  
-  
-  
-  
 }
-
-
 
 
 # cdf vs pdf (V!=0) ------------------------------------------------------------

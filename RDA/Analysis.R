@@ -44,7 +44,7 @@ for(m in 1:length(path_vec)){
 
 method = "ppsbm"
 
-N_clus_min = 2
+N_clus_min = 1 # There might be errors if N_clus_min is not 1, due to bugs in ppsbm package.
 N_clus_max = 5
 max_time = max(sapply(edge_time_mat_list, function(edge_time_mat)max(edge_time_mat[which(edge_time_mat<Inf)])))
 total_time = max_time + 10 # Total observation length
@@ -69,15 +69,18 @@ for (subj in 1:length(edge_time_mat_list)) {
   }
   data = list(time.seq=time.seq, type.seq=type.seq, Time=total_time)
   Nijk = statistics(data, nrow(edge_time_mat_tmp), K=2^8, directed = FALSE)
+  data_ppsbm = list(Nijk=Nijk, Time=total_time)
   
   ### Apply ppsbm
-  res = mainVEM(data=list(Nijk=Nijk, Time=total_time), n=nrow(edge_time_mat_tmp), d_part=8, 
-                Qmin=N_clus_min, Qmax=N_clus_max, directed=FALSE, method="hist")
+  res = mainVEM(data=data_ppsbm, n=nrow(edge_time_mat_tmp), 
+                d_part=8, Qmin=N_clus_min, Qmax=N_clus_max, 
+                directed=FALSE, method="hist")
   if (N_clus_min == N_clus_max) {
     res = res[[1]]
   }
   else {
-    sol.selec_Q = modelSelection_Q(data=data,n=nrow(edge_time_mat_tmp),
+    browser()
+    sol.selec_Q = modelSelection_Q(data=data_ppsbm,n=nrow(edge_time_mat_tmp),
                                     Qmin=N_clus_min, Qmax=N_clus_max,
                                     directed=FALSE, sol.hist.sauv=res)
     res = sol.selec_Q$sol.Qbest
