@@ -18,7 +18,9 @@ select_model = function(edge_time_mat_list, N_node_vec,
     
     ### Compute log likelihood
     # First term of log likelihood: \sum_{i,j}( -Lambda_{i,j}(T) )
-    compl_log_lik_tmp = -sum(unlist(edge_time_mat_list)<Inf) 
+    compl_log_lik_tmp = -sum(unlist(edge_time_mat_list)<Inf)
+    # Set this term to zero in order to align with ppsbm::modelSelection_Q()
+    compl_log_lik_tmp = 0
     
     # Second term of log likelihood: \sum_{i,j}{\log f_{z_i,z_j}(t_{i,j}-\max(v_i,v_j))}
     for (q in 1:N_clus_tmp) {

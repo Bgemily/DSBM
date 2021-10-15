@@ -65,7 +65,7 @@ apply_ppsbm_v2 = function(### Parameters for generative model
   
   clusters_list_est = list(res$clusters)
   
-
+  ### TODO: Modify the way for extracting estimated intensities (refer to RDA/Analysis.R)
   center_cdf_array_est = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                  clusters_list = clusters_list_est, 
                                                  n0_mat_list = list(edge_time_mat*0), 

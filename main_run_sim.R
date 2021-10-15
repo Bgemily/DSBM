@@ -98,7 +98,7 @@ conn_patt_sep_list = list(1.3,1.4,1.5,1.6,1.7,1.8)
 
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vis0'
-method = 'main_v5'
+method = 'main_v5_v2'
 default_setting = 'pr=0.4,n=30,beta=1.3'
 
 for (. in 1:split) {
