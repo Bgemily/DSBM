@@ -147,16 +147,13 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
   
   align_start_time = Sys.time()
   
-  res = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, 
-                      clusters_list = clusters_list, 
-                      n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list,
-                      center_cdf_array = center_cdf_array,
-                      t_vec = t_vec, order_list=order_list, ...)
-  n0_vec_list = res$n0_vec_list
-  n0_mat_list = res$n0_mat_list
-  v_vec_list = res$v_vec_list
-  v_mat_list = res$v_mat_list
-  center_cdf_array = res$center_cdf_array
+  n0_vec_list = n0_vec_list
+  n0_mat_list = n0_mat_list
+  v_vec_list = lapply(n0_vec_list, function(n0_vec)n0_vec*t_unit)
+  v_mat_list = lapply(n0_mat_list, function(n0_mat)n0_mat*t_unit)
+  center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
+                                             clusters_list = clusters_list, 
+                                             n0_mat_list = n0_mat_list, t_vec = t_vec)
   
   
   align_end_time = Sys.time()

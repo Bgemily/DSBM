@@ -153,8 +153,6 @@ est_n0_vec_v4.1 = function(edge_time_mat_list,
                                              clusters_list = clusters_list, 
                                              n0_mat_list = n0_mat_list, t_vec = t_vec)
   
-  # browser(); mean(n0_vec_list[[1]])
-  
   return(list(center_cdf_array=center_cdf_array, 
               n0_vec_list=n0_vec_list, n0_mat_list=n0_mat_list,
               v_vec_list=v_vec_list, v_mat_list=v_mat_list))
