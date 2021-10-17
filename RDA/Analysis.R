@@ -79,7 +79,6 @@ for (subj in 1:length(edge_time_mat_list)) {
     res = res[[1]]
   }
   else {
-    browser()
     sol.selec_Q = modelSelection_Q(data=data_ppsbm,n=nrow(edge_time_mat_tmp),
                                     Qmin=N_clus_min, Qmax=N_clus_max,
                                     directed=FALSE, sol.hist.sauv=res)
@@ -87,7 +86,7 @@ for (subj in 1:length(edge_time_mat_list)) {
   }
   
   ### Extract estimated clusters 
-  clusters_list_est = mem2clus(apply(res$tau, 2, which.max)) 
+  clusters_list_est = mem2clus(apply(res$tau, 2, which.max),N_clus_min=1) 
   
   ### Extract estimated intensities
   N_clus_est = length(clusters_list_est)

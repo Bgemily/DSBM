@@ -21,7 +21,7 @@ library(ggplot2)
 path_vec = rep(0,2)
 
 path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL/pr=0.4,n=30,beta=1.3/"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5/pr=0.4,n=30,beta=1.3/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v2/pr=0.4,n=30,beta=1.3/"
 
 
 # param_name_vec = list.files(path_vec[1])
