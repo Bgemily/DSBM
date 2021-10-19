@@ -21,11 +21,11 @@ library(ggplot2)
 path_vec = rep(0,2)
 
 path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL/pr=0.4,n=30,beta=1.3/"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v2/pr=0.4,n=30,beta=1.3/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v4_adap_freq/pr=0.4,n=30,beta=1.3/"
 
 
 # param_name_vec = list.files(path_vec[1])
-param_name_vec = c("beta_1.8")
+param_name_vec = c("beta","n")
 
 ### For each parameter (n/beta/V), extract results and visualize results
 for (param_name in param_name_vec) {
@@ -38,6 +38,7 @@ for (param_name in param_name_vec) {
   results_list = lapply(path_vec, func_tmp, param_name=param_name)
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="ppsbm"),
                          bind_cols(results_list[[2]],"method"="main_v5"),) %>% 
+    filter(param_value == switch(param_name, "beta"=1.8, "n"=90)) %>%
     pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
     pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_log_lik", values_to = "log_lik") %>% 
     pivot_longer(cols = starts_with("penalty_vec"), names_to = "N_clus_penalty", values_to = "penalty")
@@ -45,7 +46,7 @@ for (param_name in param_name_vec) {
   ### Plot ICL vs N_clus
   for (measurement in c("ICL","log_lik","penalty")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
-                    switch(param_name, "beta"="Beta", "n"="N_node", "V"="V", 
+                    switch(param_name, "beta"="Beta_1.8", "n"="N_node_90", "V"="V", 
                            "n_90"="N_node_90", "beta_1.8"="Beta_1.8"), '_', 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
         width = 4, height = 2.5)
@@ -83,10 +84,10 @@ for (param_name in param_name_vec) {
 
 # Cluster number selection (V==0) -----------------------------------------
 
-path_vec = rep(0,2)
+path_vec = rep(0,1)
 
-path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL_nonsparse/pr=0.4,n=30,beta=1.3/"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL_sparse/pr=0.4,n=30,beta=1.3/"
+path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL/pr=0.4,n=30,beta=1.3/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v4_adap_freq/pr=0.4,n=30,beta=1.3/"
 
 
 param_name_vec = list.files(path_vec[1])
@@ -97,8 +98,8 @@ for (param_name in param_name_vec) {
   ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | correct_N_clus | method
   results_list = lapply(path_vec, function(folder_path) extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
                                                                                measurement = "correct_N_clus"))
-  results_df = bind_rows(bind_cols(results_list[[1]],"method"="ppsbm_nonsparse"),
-                         bind_cols(results_list[[2]],"method"="ppsbm_sparse"),)
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="ppsbm"),
+                         bind_cols(results_list[[2]],"method"="our"),)
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
@@ -224,8 +225,8 @@ for (param_name in param_name_vec) {
 
 path_vec = rep(0,2)
 
-path_vec[1] = "../Results/Rdata/SNR_Vis0/our_v3.4.1/pr=0.4,n=30,beta=1.3"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/our_v3.2.1/pr=0.4,n=30,beta=1.3"
+path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_v2/pr=0.4,n=30,beta=1.3"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v3_adap_freq/pr=0.4,n=30,beta=1.3"
 
 
 param_name_vec = list.files(path_vec[1])
@@ -235,8 +236,8 @@ for (param_name in param_name_vec) {
   
   ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
   results_list = lapply(path_vec, function(folder_path)extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name)))
-  results_df = bind_rows(bind_cols(results_list[[1]],"method"="pdf"), 
-                         bind_cols(results_list[[2]],"method"="cdf"))
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="Fixed_freq_trun"), 
+                         bind_cols(results_list[[2]],"method"="Adaptive_freq_trun"))
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 

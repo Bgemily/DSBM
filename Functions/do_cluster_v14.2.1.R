@@ -5,7 +5,7 @@
 
 do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus, 
                           clusters_list_init, n0_vec_list_init, n0_mat_list_init,
-                          freq_trun=5, step_size=0.5,
+                          freq_trun=15, step_size=0.5,
                           total_time = 200, t_vec=seq(0,total_time,length.out=1000),
                           MaxIter=10, conv_thres=5e-3, 
                           opt_radius=max(t_vec)/2,
@@ -276,6 +276,14 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
                                           clusters_list = clusters_list, 
                                           freq_trun = freq_trun, 
                                           n0_mat_list = n0_mat_list, t_vec = t_vec)
+  ### Get freq_trun_mat from center_fft_array
+  freq_trun_mat = matrix(data = 0, nrow=N_clus, ncol=N_clus)
+  for (q in 1:N_clus) {
+    for (k in 1:N_clus) {
+      freq_trun_mat[q,k] = sum(center_fft_array[q,k,]!=0)
+    }
+  }
+  
   ### Convert fourier series back to the (smoothed) pdf
   center_pdf_array = array(dim=c(N_clus, N_clus, length(t_vec)))
   for (q in 1:N_clus) {
@@ -301,7 +309,9 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
               loss_history=loss_history,
               clusters_history=clusters_history, n0_mat_list_history=n0_mat_list_history,
               v_vec_list=v_vec_list,
-              center_pdf_array=center_pdf_array, center_fft_array=center_pdf_array,
+              center_pdf_array=center_pdf_array, 
+              center_fft_array=center_pdf_array,
+              freq_trun_mat=freq_trun_mat,
               cluster_time=cluster_time, align_time=align_time))
   
 }

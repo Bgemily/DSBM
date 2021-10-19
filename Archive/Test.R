@@ -5,11 +5,11 @@ sapply(file.sources, source)
 
 library(ppsbm)
 
-ppsbm_vec = c()
-our_vec = c()
+ppsbm_vec = ppsbm_pen_vec = c()
+our_vec = our_pen_vec = c()
 SEED_vec = c()
 
-for (trial in 1:50) {
+for (trial in 1:10) {
   
   SEED=sample(1e4,1)
   SEED_vec = c(SEED_vec,SEED)
@@ -55,7 +55,7 @@ for (trial in 1:50) {
                                   sparse=FALSE,
                                   sol.hist.sauv=res)
   log_lik_vec = sol.selec_Q$all.compl.log.likelihood
-  
+  pen_vec = sol.selec_Q$all.pen
   
   
   
@@ -86,6 +86,10 @@ for (trial in 1:50) {
   }
   res_reformat$center_pdf_array = center_pdf_array_est
   
+  ### Convert adaptive d to freq_trun_tmp
+  sol.hist = sol.selec_Q$sol.Qbest
+  sum.d.ql <- sum(sol.hist$best.d)
+  freq_trun_tmp = sum.d.ql / N_clus_est^2
   
   
   res_list = list(res_reformat)
@@ -95,22 +99,30 @@ for (trial in 1:50) {
                              N_clus_max = 1, 
                              result_list = res_list, 
                              t_vec = seq(0,200,length.out=200), 
-                             freq_trun = 10)
+                             freq_trun = freq_trun_tmp)
   
-  compl_log_lik_vec = sel_mod_res$compl_log_lik_vec 
+  compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+  pen_vec_tmp = sel_mod_res$penalty_vec
   
   
   ppsbm_vec = c(ppsbm_vec, log_lik_vec)
   our_vec = c(our_vec, compl_log_lik_vec)
   
+  ppsbm_pen_vec = c(ppsbm_pen_vec, pen_vec)
+  our_pen_vec = c(our_pen_vec, pen_vec_tmp)
+  
+  
   
 }
 
-pdf(file="../Results/Plots/Temp/log_lik_our_vs_ppsbm.pdf", 
+pdf(file="../Results/Plots/Temp/log_lik_our_vs_ppsbm.pdf",
     width = 4, height = 4)
 plot(ppsbm_vec,our_vec)
 dev.off()
 
 mean(our_vec) - mean(ppsbm_vec)
+
+
+plot(ppsbm_pen_vec,our_pen_vec)
 
 

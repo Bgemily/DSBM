@@ -24,16 +24,17 @@ get_adaptive_fft = function(event_time_vec, freq_trun_max, t_vec){
                        fft_vec,
                        rep(0,freq_trun_max-freq_trun))
     bias = sum(abs(fft_vec_max-fft_vec_extend)^2)
-    
-    variance = 
+    variance = 2*(2*freq_trun+1)*(sum(event_time_vec<max(t_vec))/(length(event_time_vec))^2)
+    loss = bias + variance
     
     # Update best frequency truncation and fft
     if (loss < loss_min) {
+      loss_min = loss
       freq_trun_best = freq_trun
-      fft_vec_best = fft_vec
+      fft_vec_best = fft_vec_extend
     }
   }
   
-  return(freq_trun_best = freq_trun_best, 
-         fft_vec_best = fft_vec_best)
+  return(list(freq_trun_best = freq_trun_best, 
+         fft_vec_best = fft_vec_best))
 }

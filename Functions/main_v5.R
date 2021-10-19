@@ -16,7 +16,7 @@ main_v5 = function(### Parameters for generative model
   time_shift_rad = min(time_shift_mean_vec),
   t_vec = seq(0,total_time,length.out=1000),
   ### Parameters for algorithms
-  freq_trun=10, bw=5, 
+  freq_trun=15, bw=5, 
   conv_thres=1e-2, MaxIter=5,
   jitter_time_rad = 10, max_iter=10,
   opt_radius=total_time/2,
@@ -128,8 +128,7 @@ main_v5 = function(### Parameters for generative model
                              N_clus_min = N_clus_min, 
                              N_clus_max = N_clus_max, 
                              result_list = res_list, 
-                             t_vec = t_vec, 
-                             freq_trun = freq_trun)
+                             t_vec = t_vec)
   
   N_clus_est = sel_mod_res$N_clus_est
   ICL_vec = sel_mod_res$ICL_vec 

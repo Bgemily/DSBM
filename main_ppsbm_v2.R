@@ -57,7 +57,6 @@ max_iter = 3 ### number of iterations when updating time shifts
 
 # Run simulations ---------------------------------------------------------
 
-
 ### N_clus_est, V==0 -----
 
 ### Parameters' possible values: 
