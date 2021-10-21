@@ -45,7 +45,7 @@ apply_ppsbm_ICL = function(### Parameters for generative model
   type.seq = numeric(sum(edge_time_mat<Inf))
   current_ind = 1
   for (i in 1:nrow(edge_time_mat)) {
-    for (j in 1:ncol(edge_time_mat)) {
+    for (j in i:ncol(edge_time_mat)) {
       if (edge_time_mat[i,j]<Inf){
         time.seq[current_ind] = edge_time_mat[i,j]
         type.seq[current_ind] = convertNodePair(i, j, n = nrow(edge_time_mat), directed = FALSE)

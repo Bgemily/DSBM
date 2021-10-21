@@ -16,11 +16,21 @@ select_model = function(edge_time_mat_list, N_node_vec,
     v_mat_list_tmp = n0_vec2mat(n0_vec = v_vec_list_tmp)
     center_pdf_array_tmp = result_list[[i]]$center_pdf_array
     freq_trun_mat = result_list[[i]]$freq_trun_mat
+    pi_vec = result_list[[i]]$pi_vec
     
     ### Compute log likelihood
     # First term of log likelihood: \sum_{i,j}( -Lambda_{i,j}(T) )
-    compl_log_lik_tmp = -sum(unlist(edge_time_mat_list)<Inf)
-    # Set this term to zero in order to align with ppsbm::modelSelection_Q()
+    t_vec = seq(0,200,length.out=dim(center_pdf_array_tmp)[3])
+    F_qk_T = apply(center_pdf_array_tmp, c(1,2), sum)*(t_vec[2]-t_vec[1])
+    clus_size_vec = sapply(clusters_list_tmp[[1]], length)
+    if (length(clus_size_vec)>1) {
+      N_nodepair_qk = clus_size_vec %*% t(clus_size_vec) - diag(clus_size_vec)
+    }
+    else
+      N_nodepair_qk = clus_size_vec^2 - clus_size_vec
+    
+    compl_log_lik_tmp = -sum(F_qk_T*N_nodepair_qk)
+    # Set compl_log_lik_tmp to zero in order to align with ppsbm::modelSelection_Q()
     compl_log_lik_tmp = 0
     
     # Second term of log likelihood: \sum_{i,j}{\log f_{z_i,z_j}(t_{i,j}-\max(v_i,v_j))}
@@ -36,8 +46,10 @@ select_model = function(edge_time_mat_list, N_node_vec,
           adjst_edge_time_qk_vec = adjst_edge_time_qk_vec - min(adjst_edge_time_qk_vec)
         }
         ### counts: number of edges whose (adjusted) edge time is close to each breakpoint in t_vec
-        counts = hist(adjst_edge_time_qk_vec, breaks=t_vec, plot=FALSE)$counts
-        counts = c(0, counts)
+        counts = hist(adjst_edge_time_qk_vec, breaks=t_vec, plot=FALSE, right=FALSE)$counts
+        counts = c(counts,0)
+        counts = counts / 2 ### Every finite edge time is counted twice
+        
         
         ### Add compl_log_lik_tmp by \sum_{i,j:z_i=q,z_j=k}{\log f_{q,k}(t_{i,j}-\max(v_i,v_j))}
         ind_tmp = which(counts > 0)
@@ -47,6 +59,13 @@ select_model = function(edge_time_mat_list, N_node_vec,
         compl_log_lik_tmp = compl_log_lik_tmp + sum(log_lik_qk_vec[ind_tmp]*counts[ind_tmp])
       }
     }
+    
+    ### Third term of log likelihood: \sum_{q} |z^{-1}(q)| * \log(\pi_q)
+    if (is.null(pi_vec)){
+      pi_vec = clus_size_vec / sum(clus_size_vec)
+    }
+    compl_log_lik_tmp = compl_log_lik_tmp + sum(clus_size_vec * log(pi_vec))
+    
     compl_log_lik_vec[i] = compl_log_lik_tmp
     
     ### Compute penalty
@@ -73,5 +92,6 @@ select_model = function(edge_time_mat_list, N_node_vec,
               res_best = res, 
               ICL_vec = ICL_vec, 
               compl_log_lik_vec = compl_log_lik_vec, 
-              penalty_vec = penalty_vec))
+              penalty_vec = penalty_vec,
+              counts = counts))
 }
