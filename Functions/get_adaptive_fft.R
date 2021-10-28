@@ -1,5 +1,5 @@
 ### Choose adaptive frequency truncation parameter to smooth a vector of event times
-get_adaptive_fft = function(event_time_vec, freq_trun_max, t_vec){
+get_adaptive_fft = function(event_time_vec, freq_trun_max, t_vec, freq_trun_min=1){
   if (length(t_vec)<2*freq_trun_max+1) {
     stop("Length of t_vec should be no less than 2*freq_trun_max+1.")
   }
@@ -14,7 +14,7 @@ get_adaptive_fft = function(event_time_vec, freq_trun_max, t_vec){
   fft_vec_max = c(tail(emp_intens_fft, freq_trun_max),
                   head(emp_intens_fft, freq_trun_max+1))
   
-  for (freq_trun in 1:freq_trun_max) {
+  for (freq_trun in freq_trun_min:freq_trun_max) {
     ### Get fft_vec
     fft_vec = c(tail(emp_intens_fft, freq_trun),
                 head(emp_intens_fft, freq_trun+1))
