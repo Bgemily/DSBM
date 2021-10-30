@@ -8,10 +8,6 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
                          MaxIter=10, conv_thres=5e-3, ...)
 {
-  print("####################")
-  print("[do_cluster_v8.1]: Update time shifts at each iteration.")
-  print("####################")
-  
   t_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
   N_node_vec = sapply(edge_time_mat_list, nrow)
