@@ -45,21 +45,14 @@ N_subj = network_param$N_subj
 res_list = list()
 for (N_clus_tmp in N_clus_min:N_clus_max) {
   ### Get initialization -----------
-  res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
+  res = get_init_v3(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
+                    v_true_list = v_true_list, 
+                    jitter_time_rad = 0,
                     t_vec = t_vec)
   
   clusters_list_init = res$clusters_list
   n0_vec_list_init = res$n0_vec_list
   n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
-  
-  ### Evaluate accuracy of initial time shifts
-  spearman_corr_vec = numeric(length = N_subj)
-  for (m in 1:N_subj) {
-    spearman_corr_vec[m] = cor(v_true_list[[m]], n0_vec_list_init[[m]], method = "spearman")
-  }
-  spearman_corr_vec_mean_init = mean(spearman_corr_vec)
-  
-  
   
   # Apply algorithm ---------
   
@@ -97,24 +90,15 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
   res$cluster_time -> cluster_time
   res$center_pdf_array -> center_pdf_array_est
   
-  
-  # ### Get estimated pdf using kernel smoothing
-  # v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list_est)
-  # n0_mat_list_est = lapply(v_mat_list_est, function(v_mat)round(v_mat/(t_vec[2]-t_vec[1])))
-  # center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-  #                                                clusters_list = clusters_list_est, 
-  #                                                n0_mat_list = n0_mat_list_est, 
-  #                                                t_vec = t_vec, bw=bw)
-  # res$center_pdf_array = center_pdf_array_est
-  
-  
   # Save results of N_clus_tmp ----------------------------------------------
   
   res_list = c(res_list, list(res))
   
 }
 
-save(res_list, network_param, file = '../Results/Rdata/SNR_Vis0/main_v5_v5_adap_freq/pr=0.4,n=90,beta=1.3,one_instance.Rdata')
+save(res_list, network_param,
+     file = '../Results/Rdata/SNR_Vis0/main_v5_timeshift_given/pr=0.4,n=90,beta=1.3,one_instance.Rdata')
+
 
 # Check clustering result -------------------------------------------------
 

@@ -46,7 +46,7 @@ get_init_v3 = function(edge_time_mat_list, N_clus, v_true_list,
     membership = cluster::pam(x=aligned_cdf_mat, k=N_clus, diss=FALSE, cluster.only=TRUE)
     membership_list[[m]] = membership
 
-    clusters = mem2clus(membership)
+    clusters = mem2clus(membership, N_clus_min = N_clus)
     clusters_list[[m]] = clusters
     
   }
