@@ -44,38 +44,29 @@ select_model = function(edge_time_mat_list, N_node_vec,
     
     
     # Second term of log likelihood: \sum_{q,k}{ \sum_{i<j} \log f_{q,k}(t_{i,j}-\max(v_i,v_j))*tau_{i,q}*tau_{j,k} }
-    adjst_edge_time_mat = edge_time_mat_list[[1]] - v_mat_list_tmp[[1]]
-    if (min(adjst_edge_time_mat)<0) {
-      adjst_edge_time_mat = adjst_edge_time_mat - min(adjst_edge_time_mat)
-    }               
-    counts_array = array(0, dim=c(N_node_vec[1],N_node_vec[1],length(t_vec)))
-    for (ii in 1:N_node_vec[1]){
-      for (jj in 1:N_node_vec[1]){
-        counts = hist(adjst_edge_time_mat[ii,jj], breaks=t_vec, plot=FALSE, right=FALSE)$counts
-        counts_array[ii,jj,-length(t_vec)] = counts
-      }
-    }
-    
     for (q in 1:N_clus_tmp) {
       for (k in 1:N_clus_tmp) {
-        ### Calculate $\log f_{q,k}(t_{i,j}-\max(v_i,v_j))*tau_{i,q}*tau_{j,k}$ for all (i,j)
         log_lik_qk_vec = log(center_pdf_array_tmp[q,k,])
-        log_lik_qk_vec[log_lik_qk_vec==-Inf] = 0
-        log_lik_qk_mat = matrix(0, nrow=N_node_vec[1], ncol=N_node_vec[1])               
-        for (ii in 1:N_node_vec[1]){
-          for (jj in 1:N_node_vec[1]){
-            ind_tmp = which(counts_array[ii,jj,]>0)
-            if (length(ind_tmp)==0)
-              next
-            log_lik_qk_mat[ii,jj] = sum(counts_array[ii,jj,ind_tmp]*log_lik_qk_vec[ind_tmp])
-          }
+        log_lik_qk_vec[is.na(log_lik_qk_vec)] = 0
+        adjst_edge_time_qk_vec = c(unlist(mapply(function(clus_list, mat1, mat2) (mat1-mat2)[clus_list[[q]],clus_list[[k]]], 
+                                                 clusters_list_tmp, edge_time_mat_list, v_mat_list_tmp)))
+        if(length(adjst_edge_time_qk_vec)==0){
+          next
         }
-        mat_tmp = log_lik_qk_mat * (tau_mat[,q]%*%t(tau_mat[,k])) 
+        if (min(adjst_edge_time_qk_vec)<0) {
+          adjst_edge_time_qk_vec = adjst_edge_time_qk_vec - min(adjst_edge_time_qk_vec)
+        }
+        ### counts: number of edges whose (adjusted) edge time is close to each breakpoint in t_vec
+        counts = hist(adjst_edge_time_qk_vec, breaks=t_vec, plot=FALSE, right=FALSE)$counts
+        counts = c(counts,0)
+        counts = counts / 2 ### Every finite edge time will be counted twice
         
-        
-        ### Add compl_log_lik_tmp by \sum_{i<j} \log f_{q,k}(t_{i,j}-\max(v_i,v_j))*tau_{i,q}*tau_{j,k}        
-        compl_log_lik_tmp = compl_log_lik_tmp + sum(mat_tmp[upper.tri(mat_tmp)])
-        
+        ### Add compl_log_lik_tmp by \sum_{i,j:z_i=q,z_j=k}{\log f_{q,k}(t_{i,j}-\max(v_i,v_j))}
+        ind_tmp = which(counts > 0)
+        if (sum(log_lik_qk_vec[ind_tmp]*counts[ind_tmp]) == -Inf) {
+          next
+        }
+        compl_log_lik_tmp = compl_log_lik_tmp + sum(log_lik_qk_vec[ind_tmp]*counts[ind_tmp])
       }
     }
     

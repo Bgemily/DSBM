@@ -62,14 +62,48 @@ max_iter = 3 ### number of iterations when updating time shifts
 ### Parameters' possible values: 
 ### n
 N_node_persubj_list = list(30,42,54,66,78,90)
+# N_node_persubj_list = list(90)
 ### beta
 conn_patt_sep_list = list(1.3,1.4,1.5,1.6,1.7,1.8)
+# conn_patt_sep_list = list(1.8)
 
 
 ### Method: apply_ppsbm_ICL ###
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vis0'
 method = 'apply_ppsbm_ICL'
+
+default_setting = 'pr=0.4,n=30,beta=1.8'
+
+for (. in 1:split) {
+  ### N_node
+  for (i in 1:length(N_node_persubj_list)) {
+    N_node = N_node_persubj_list[[i]]
+    results <- foreach(j = 1:N_trial) %dopar% {
+      SEED = sample(1:1e7,1)
+      tryCatch(apply_ppsbm_ICL(SEED = SEED, 
+                               N_node_vec = rep(N_node,1),
+                               conn_prob_mean = 0.4, 
+                               conn_patt_sep = 1.8,
+                               time_shift_mean_vec = rep(0,3),
+                               t_vec = seq(0,200,length.out=200),
+                               Qmin = 1, Qmax = 5),
+               error = function(x) print(SEED))
+    }
+    param_name = "n"
+    param_value = N_node
+    folder_path = paste0(top_level_folder, '/', setup, '/', method, '/',
+                         default_setting, '/', param_name, '/', param_value)
+    dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+    
+    now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+    save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+    rm(results)
+  }
+  
+  
+}
+
 default_setting = 'pr=0.4,n=30,beta=1.3'
 
 for (. in 1:split) {
@@ -123,7 +157,6 @@ for (. in 1:split) {
     save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
     rm(results)
   }
-
 
 
 }

@@ -101,18 +101,19 @@ main_v5 = function(### Parameters for generative model
     res$loss_history -> loss_history
     res$align_time -> align_time
     res$cluster_time -> cluster_time
+    res$center_pdf_array -> center_pdf_array_est
     
     
-    
-    ### Get estimated pdf using kernel smoothing
-    v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list_est)
-    n0_mat_list_est = lapply(v_mat_list_est, function(v_mat)round(v_mat/(t_vec[2]-t_vec[1])))
-    center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-                                                   clusters_list = clusters_list_est, 
-                                                   n0_mat_list = n0_mat_list_est, 
-                                                   t_vec = t_vec, bw=bw)
-    res$center_pdf_array = center_pdf_array_est
+    # ### Get estimated pdf using kernel smoothing
+    # v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list_est)
+    # n0_mat_list_est = lapply(v_mat_list_est, function(v_mat)round(v_mat/(t_vec[2]-t_vec[1])))
+    # center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
+    #                                                clusters_list = clusters_list_est, 
+    #                                                n0_mat_list = n0_mat_list_est, 
+    #                                                t_vec = t_vec, bw=bw)
+    # res$center_pdf_array = center_pdf_array_est
 
+    
     # Save results of N_clus_tmp ----------------------------------------------
 
     res_list = c(res_list, list(res))
@@ -128,7 +129,7 @@ main_v5 = function(### Parameters for generative model
                              N_clus_min = N_clus_min, 
                              N_clus_max = N_clus_max, 
                              result_list = res_list, 
-                             t_vec = t_vec)
+                             total_time = total_time)
   
   N_clus_est = sel_mod_res$N_clus_est
   ICL_vec = sel_mod_res$ICL_vec 

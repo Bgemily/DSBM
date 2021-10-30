@@ -280,7 +280,8 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
   freq_trun_mat = matrix(data = 0, nrow=N_clus, ncol=N_clus)
   for (q in 1:N_clus) {
     for (k in 1:N_clus) {
-      freq_trun_mat[q,k] = sum(center_fft_array[q,k,]!=0)
+      N_basis = sum(center_fft_array[q,k,]!=0)
+      freq_trun_mat[q,k] = (N_basis-1)/2
     }
   }
   
@@ -296,13 +297,13 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
     }
   }
   
-  ### Get estimated pdf using kernel smoothing
-  v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list)
-  n0_mat_list_est = lapply(v_mat_list_est, function(v_mat)round(v_mat/(t_vec[2]-t_vec[1])))
-  center_pdf_array = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-                                             clusters_list = clusters_list, 
-                                             n0_mat_list = n0_mat_list_est, 
-                                             t_vec = t_vec)
+  # ### Get estimated pdf using kernel smoothing
+  # v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list)
+  # n0_mat_list_est = lapply(v_mat_list_est, function(v_mat)round(v_mat/(t_vec[2]-t_vec[1])))
+  # center_pdf_array = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
+  #                                            clusters_list = clusters_list, 
+  #                                            n0_mat_list = n0_mat_list_est, 
+  #                                            t_vec = t_vec)
   
   
   return(list(clusters_list=clusters_list, 
