@@ -5,7 +5,7 @@ select_model = function(edge_time_mat_list, N_node_vec,
                         total_time)
 {
   # Select best cluster number using ICL ------------------------------------
-  ICL_vec = compl_log_lik_vec = penalty_vec = numeric(length = length(N_clus_min:N_clus_max))
+  ICL_vec = compl_log_lik_vec = penalty_vec = penalty_2_vec = numeric(length = length(N_clus_min:N_clus_max))
   
   for (i in 1:length(ICL_vec)) {
     N_clus_tmp = c(N_clus_min:N_clus_max)[i]
@@ -69,11 +69,12 @@ select_model = function(edge_time_mat_list, N_node_vec,
         compl_log_lik_tmp = compl_log_lik_tmp + sum(log_lik_qk_vec[ind_tmp]*counts[ind_tmp])
       }
     }
-    
-    ### Third term of log likelihood: \sum_{i}\sum_{q} \tau^{i,q} * \log(\pi_q)
-    compl_log_lik_tmp = compl_log_lik_tmp + sum(tau_mat %*% log(pi_vec))
-    
     compl_log_lik_vec[i] = compl_log_lik_tmp
+    
+    
+    ### Second penalty: \sum_{i}\sum_{q} \tau^{i,q} * \log(\pi_q)
+    penalty_tmp_2 = -sum(tau_mat %*% log(pi_vec))
+    penalty_2_vec[i] = penalty_tmp_2
     
     ### Compute penalty
     penalty_tmp = (N_clus_tmp-1)/2*sum(log(N_node_vec)) + 
@@ -81,7 +82,7 @@ select_model = function(edge_time_mat_list, N_node_vec,
     penalty_vec[i] = penalty_tmp
     
     ### Compute ICL
-    ICL_vec[i] = compl_log_lik_vec[i] - penalty_vec[i]
+    ICL_vec[i] = compl_log_lik_vec[i] - penalty_vec[i] - penalty_2_vec[i]
     
   }
   
@@ -100,5 +101,6 @@ select_model = function(edge_time_mat_list, N_node_vec,
               ICL_vec = ICL_vec, 
               compl_log_lik_vec = compl_log_lik_vec, 
               penalty_vec = penalty_vec,
+              penalty_2_vec = penalty_2_vec,
               counts = counts))
 }

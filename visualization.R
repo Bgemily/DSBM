@@ -16,6 +16,73 @@ library(ggplot2)
 
 
 
+# ICL/log_lik/penalty vs N_clus and freq_trun -----------------------------
+
+path_vec = rep(0,1)
+
+path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_v8_multifreqtrun/pr=0.4,n=30,beta=1.3/"
+param_name_vec = list.files(path_vec[1])
+param_name_vec = c("beta/1.8/freqtrun", "n/90/freqtrun")
+
+val_n = 90 # 30, 42, 54, 66, 78, 90
+val_beta = 1.8
+### For each parameter (n/beta/V), extract results and visualize results
+for (param_name in param_name_vec) {
+  
+  ### Extract results for n/beta/V. Output: freq_trun | ICL | log-lik | penalty
+  func_tmp = function(folder_path, param_name) {
+    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
+                           measurement = c("ICL_vec","compl_log_lik_vec", "penalty_vec", "penalty_2_vec"))
+  }
+  results_list = lapply(path_vec, func_tmp, param_name=param_name)
+  results_df = results_list[[1]] %>% 
+    pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
+    pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_log_lik", values_to = "log_lik") %>% 
+    pivot_longer(cols = starts_with("penalty_vec"), names_to = "N_clus_penalty", values_to = "penalty") %>%
+    pivot_longer(cols = starts_with("penalty_2_vec"), names_to = "N_clus_penalty_2", values_to = "penalty_2")
+  
+  ### Plot ICL vs N_clus
+  for (measurement in c("ICL","log_lik","penalty","penalty_2")) {
+    pdf(file=paste0("../Results/Plots/Temp/", 
+                    switch(param_name, "beta/1.8/freqtrun"=paste0("Beta_",1.8), 
+                           "n/90/freqtrun"=paste0("N_node_",90), 
+                           "V"="V",""), '_', 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
+        width = 4, height = 2.5)
+    g = results_df %>% 
+      mutate(N_basis = 2*param_value+1) %>%
+      mutate(N_basis = as.factor(N_basis)) %>%
+      ggplot(aes(x=switch(measurement,
+                          "ICL" = N_clus_ICL,
+                          "log_lik" = N_clus_log_lik,
+                          "penalty_2" = N_clus_penalty_2,
+                          "penalty" = N_clus_penalty), 
+                 y=switch(measurement,
+                          "ICL" = ICL,
+                          "log_lik" = log_lik,
+                          "penalty_2" = penalty_2,
+                          "penalty" = penalty), 
+                 color=N_basis)) +
+      stat_summary(aes(group=N_basis), position = position_dodge(.2),
+                   geom="pointrange",
+                   fun = mean,
+                   fun.min = function(x) mean(x)-sd(x),
+                   fun.max = function(x) mean(x)+sd(x) ) +
+      stat_summary(aes(group=N_basis),position = position_dodge(.2),
+                   geom="line",
+                   fun = "mean") +
+      # theme(legend.position = "none") +
+      scale_y_continuous() +
+      ylab(measurement) +
+      scale_x_discrete(labels=1:5) +
+      xlab("Number of clusters")
+    
+    print(g)
+    dev.off()
+  }
+}
+
+
 # ICL/log_like/penalty vs N_clus -----------------------------------------
 
 path_vec = rep(0,2)
@@ -26,6 +93,9 @@ path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v5_adap_freq/pr=0.4,n=30,beta=1
 
 param_name_vec = list.files(path_vec[1])
 # param_name_vec = c("beta","n")
+
+val_n = 90 # 30, 42, 54, 66, 78, 90
+val_beta = 1.8
 
 ### For each parameter (n/beta/V), extract results and visualize results
 for (param_name in param_name_vec) {
@@ -38,7 +108,7 @@ for (param_name in param_name_vec) {
   results_list = lapply(path_vec, func_tmp, param_name=param_name)
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="ppsbm"),
                          bind_cols(results_list[[2]],"method"="main_v5"),) %>% 
-    filter(param_value == switch(param_name, "beta"=1.8, "n"=90)) %>%
+    filter(param_value == switch(param_name, "beta"=val_beta, "n"=val_n)) %>%
     pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
     pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_log_lik", values_to = "log_lik") %>% 
     pivot_longer(cols = starts_with("penalty_vec"), names_to = "N_clus_penalty", values_to = "penalty")
@@ -46,8 +116,9 @@ for (param_name in param_name_vec) {
   ### Plot ICL vs N_clus
   for (measurement in c("ICL","log_lik","penalty")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
-                    switch(param_name, "beta"="Beta_1.8", "n"="N_node_90", "V"="V", 
-                           "n_90"="N_node_90", "beta_1.8"="Beta_1.8"), '_', 
+                    switch(param_name, "beta"=paste0("Beta_",val_beta), 
+                           "n"=paste0("N_node_",val_n), 
+                           "V"="V"), '_', 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
         width = 4, height = 2.5)
     g = results_df %>% 
@@ -80,15 +151,12 @@ for (param_name in param_name_vec) {
 }
 
 
-
-
-
 # Cluster number selection (V==0) -----------------------------------------
 
 path_vec = rep(0,1)
 
-path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL/pr=0.4,n=30,beta=1.8/"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v5_adap_freq/pr=0.4,n=30,beta=1.8/"
+path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL/pr=0.4,n=30,beta=1.3/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v7_largefreqtrun/pr=0.4,n=30,beta=1.3/"
 
 
 param_name_vec = list.files(path_vec[1])
@@ -146,6 +214,9 @@ for (param_name in param_name_vec) {
 
 results_df %>% 
   filter(param_value==90, method=='ppsbm') %>% 
+  summarise(mean=mean(N_clus_est), sd=sd(N_clus_est))
+results_df %>% 
+  filter(param_value==90, method=='our') %>% 
   summarise(mean=mean(N_clus_est), sd=sd(N_clus_est))
 
 # cdf vs pdf (V!=0) ------------------------------------------------------------

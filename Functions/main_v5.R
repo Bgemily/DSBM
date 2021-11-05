@@ -135,6 +135,7 @@ main_v5 = function(### Parameters for generative model
   ICL_vec = sel_mod_res$ICL_vec 
   compl_log_lik_vec = sel_mod_res$compl_log_lik_vec 
   penalty_vec = sel_mod_res$penalty_vec
+  penalty_2_vec = sel_mod_res$penalty_2_vec
     
   # Retrieve estimation results of the best cluster number ------------------
 
@@ -293,6 +294,7 @@ main_v5 = function(### Parameters for generative model
               ICL_vec=ICL_vec, 
               compl_log_lik_vec=compl_log_lik_vec, 
               penalty_vec=penalty_vec,
+              penalty_2_vec=penalty_2_vec,
               # parameter estimates of best cluster number
               clusters_list_est=clusters_list_est,
               v_vec_list_est=v_vec_list_est,
