@@ -20,9 +20,9 @@ library(ggplot2)
 
 path_vec = rep(0,1)
 
-path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_v8_multifreqtrun/pr=0.4,n=30,beta=1.3/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_v4_multifreqtrun/pr=0.4,n=30,beta=1.3/"
 param_name_vec = list.files(path_vec[1])
-param_name_vec = c("beta/1.8/freqtrun", "n/90/freqtrun")
+param_name_vec = c("n/90/freqtrun")
 
 val_n = 90 # 30, 42, 54, 66, 78, 90
 val_beta = 1.8

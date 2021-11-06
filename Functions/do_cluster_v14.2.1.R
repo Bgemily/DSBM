@@ -280,8 +280,8 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
   freq_trun_mat = matrix(data = 0, nrow=N_clus, ncol=N_clus)
   for (q in 1:N_clus) {
     for (k in 1:N_clus) {
-      N_basis = sum(center_fft_array[q,k,]!=0)
-      freq_trun_mat[q,k] = (N_basis-1)/2
+      # N_basis = sum(center_fft_array[q,k,]!=0)
+      freq_trun_mat[q,k] = freq_trun
     }
   }
   
