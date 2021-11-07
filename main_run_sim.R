@@ -96,43 +96,38 @@ N_node_persubj_list = list(30,42,54,66,78,90)
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vis0'
 method = 'main_v5_cdf'
-default_setting = 'pr=1,n=30,beta=1.3'
+default_setting = 'pr=1,n=30,beta=1.05'
 
-for (freq_trun in c(9,7,5,3,1)) {
-  
-  for (. in 1:split) {
-    ### N_node
-    for (i in 1:length(N_node_persubj_list)) {
-      N_node = N_node_persubj_list[[i]]
-      results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
-        tryCatch(main_v5(SEED = SEED, 
-                         N_node_vec = rep(N_node,1),
-                         conn_prob_mean = 1, 
-                         conn_patt_sep = 1.3,
-                         time_shift_mean_vec = rep(0,N_clus),
-                         t_vec = seq(0,200,length.out=200),
-                         freq_trun=freq_trun,
-                         N_clus_min = N_clus, N_clus_max = N_clus),
-                 error = function(x) print(SEED))
-      }
-      param_name = "n"
-      param_value = N_node
-      folder_path = paste0(top_level_folder, '/', setup, '/', method, '/',
-                           default_setting, '/', param_name, '/', param_value,
-                           '/', 'freqtrun','/',freq_trun)
-      dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-      
-      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-      save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
-      rm(results)
+for (. in 1:split) {
+  ### N_node
+  for (i in 1:length(N_node_persubj_list)) {
+    N_node = N_node_persubj_list[[i]]
+    results <- foreach(j = 1:N_trial) %dopar% {
+      SEED = sample(1:1e7,1)
+      tryCatch(main_v5(SEED = SEED, 
+                       N_node_vec = rep(N_node,1),
+                       conn_prob_mean = 1, 
+                       conn_patt_sep = 1.05,
+                       time_shift_mean_vec = rep(0,N_clus),
+                       t_vec = seq(0,200,length.out=200),
+                       freq_trun=freq_trun,
+                       N_clus_min = N_clus, N_clus_max = N_clus),
+               error = function(x) print(SEED))
     }
+    param_name = "n"
+    param_value = N_node
+    folder_path = paste0(top_level_folder, '/', setup, '/', method, 
+                         '/', default_setting, 
+                         '/', param_name, '/', param_value)
+    dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
     
-   
+    now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+    save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+    rm(results)
   }
   
+  
 }
-
 
 
 
