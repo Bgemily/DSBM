@@ -118,9 +118,10 @@ for (freq_trun in c(9,7,5,3,1)) {
       }
       param_name = "n"
       param_value = N_node
-      folder_path = paste0(top_level_folder, '/', setup, '/', method, '/',
-                           default_setting, '/', param_name, '/', param_value,
-                           '/', 'freqtrun','/',freq_trun)
+      folder_path = paste0(top_level_folder, '/', setup, '/', method,
+                           '/', 'freqtrun','/',freq_trun,
+                           '/', default_setting, 
+                           '/', param_name, '/', param_value)
       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
       
       now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
