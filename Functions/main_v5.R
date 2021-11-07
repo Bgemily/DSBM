@@ -69,21 +69,9 @@ main_v5 = function(### Parameters for generative model
     
     # Apply algorithm ---------
     
-    
-    ### Estimation z,v,f based on cdf
-    res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
-                          total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                          clusters_list_init = clusters_list_init,
-                          n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
-                          ...)
-    
-    res$clusters_list -> clusters_list_est
-    res$v_vec_list -> v_vec_list_est
-    res$n0_vec_list -> n0_vec_list_est
-    res$n0_mat_list -> n0_mat_list_est
-    res$center_cdf_array -> center_cdf_array_est
-    
-    
+    clusters_list_init -> clusters_list_est
+    n0_vec_list_init -> n0_vec_list_est
+    n0_mat_list_init -> n0_mat_list_est
     
     ### Estimation z,v,f based on pdf
     res = do_cluster_v14.2.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,

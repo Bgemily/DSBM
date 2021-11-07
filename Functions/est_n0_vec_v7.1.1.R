@@ -37,26 +37,6 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
                                                        n0_mat_list = n0_mat_list, t_vec = t_vec)
   center_cdf_array_update = center_cdf_array_current
   
-
-  # browser(); mean(clusters_list[[1]][[1]])
-  ### Get rough estimation of time shifts using cdf
-  res = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, 
-                        clusters_list = clusters_list,
-                        n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list, 
-                        center_cdf_array = center_cdf_array_current,
-                        t_vec = t_vec, order_list=order_list, 
-                        max_iter = max_iter,
-                        ...)
-  n0_vec_list_update = res$n0_vec_list
-  n0_mat_list_update = res$n0_mat_list
-  
-  # browser(); mean(n0_vec_list_update[[1]])
-
-  ### *update -> *current
-  n0_vec_list_current = n0_vec_list_update
-  n0_mat_list_current = n0_mat_list_update
-
-  
   ### Evaluate loss 
   loss_history = c()
   loss = eval_loss_v4(edge_time_mat_list = edge_time_mat_list,
