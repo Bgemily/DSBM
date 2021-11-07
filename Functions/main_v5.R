@@ -51,7 +51,9 @@ main_v5 = function(### Parameters for generative model
   res_list = list()
   for (N_clus_tmp in N_clus_min:N_clus_max) {
     ### Get initialization -----------
-    res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
+    res = get_init_v3(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
+                      v_true_list = v_true_list, 
+                      jitter_time_rad = 0,
                       t_vec = t_vec)
     
     clusters_list_init = res$clusters_list
