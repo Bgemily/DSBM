@@ -15,6 +15,67 @@ library("dplyr")
 library(ggplot2)
 
 
+# cdf vs pdf (V==0) ------------------------------------------------------------
+
+path_vec = rep(0,2)
+
+path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_cdf/pr=1,n=30,beta=1.3/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/pr=1,n=30,beta=1.3/"
+
+
+param_name_vec = list.files(path_vec[1])
+
+### For each parameter (n/beta/V), extract results and visualize results
+for (param_name in param_name_vec) {
+  
+  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
+  results_list = lapply(path_vec, function(folder_path)extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name)))
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="Fixed_freq_trun"), 
+                         bind_cols(results_list[[2]],"method"="Adaptive_freq_trun"))
+  
+  ### Manipulate column "param_value"
+  results_df = results_df %>% 
+    mutate(param_value = factor(param_value, levels = sort(unique(param_value), 
+                                                           decreasing = param_name=="V")) ) 
+  
+  ### Plot ARI/F_mse vs n/beta/V
+  for (measurement in c("1-ARI","f_mse")) {
+    pdf(file=paste0("../Results/Plots/Temp/", 
+                    switch(param_name, "beta"="Beta", "n"="N_node", "V"="V"), '_', 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
+        width = 4, height = 2.5)
+    g = results_df %>% 
+      ggplot(aes(x=param_value, 
+                 y=switch(measurement,
+                          "1-ARI" = 1-ARI_mean,
+                          "f_mse" = F_mean_sq_err,
+                          "V_mse" = v_mean_sq_err), 
+                 color=method)) +
+      stat_summary(aes(group=method), position = position_dodge(.2),
+                   geom="pointrange",
+                   fun = mean,
+                   fun.min = function(x)quantile(x,0.25),
+                   fun.max = function(x)quantile(x,0.75)) +
+      stat_summary(aes(group=method),position = position_dodge(.2),
+                   geom="line",
+                   fun = "mean") +
+      # theme(legend.position = "none") +
+      scale_y_continuous(limits = switch(measurement,
+                                         "1-ARI" = c(0,1),
+                                         "f_mse" = c(0.0,0.006))) +
+      ylab(measurement) +
+      xlab(ifelse(param_name=="n", yes="p", no=param_name))
+    
+    print(g)
+    dev.off()
+  }
+  
+  
+  
+  
+}
+
+
 
 # ICL/log_lik/penalty vs N_clus and freq_trun -----------------------------
 
@@ -151,7 +212,7 @@ for (param_name in param_name_vec) {
 }
 
 
-# Cluster number selection (V==0) -----------------------------------------
+# Cluster number estimation correctness (V==0) -----------------------------------------
 
 path_vec = rep(0,1)
 
@@ -293,72 +354,6 @@ for (param_name in param_name_vec) {
   
   
 }
-
-
-
-
-# cdf vs pdf (V==0) ------------------------------------------------------------
-
-
-path_vec = rep(0,2)
-
-path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_v2/pr=0.4,n=30,beta=1.3"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v3_adap_freq/pr=0.4,n=30,beta=1.3"
-
-
-param_name_vec = list.files(path_vec[1])
-
-### For each parameter (n/beta/V), extract results and visualize results
-for (param_name in param_name_vec) {
-  
-  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
-  results_list = lapply(path_vec, function(folder_path)extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name)))
-  results_df = bind_rows(bind_cols(results_list[[1]],"method"="Fixed_freq_trun"), 
-                         bind_cols(results_list[[2]],"method"="Adaptive_freq_trun"))
-  
-  ### Manipulate column "param_value"
-  results_df = results_df %>% 
-    mutate(param_value = factor(param_value, levels = sort(unique(param_value), 
-                                                           decreasing = param_name=="V")) ) 
-  
-  ### Plot ARI/F_mse vs n/beta/V
-  for (measurement in c("1-ARI","f_mse")) {
-    pdf(file=paste0("../Results/Plots/Temp/", 
-                    switch(param_name, "beta"="Beta", "n"="N_node", "V"="V"), '_', 
-                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
-        width = 4, height = 2.5)
-    g = results_df %>% 
-      ggplot(aes(x=param_value, 
-                 y=switch(measurement,
-                          "1-ARI" = 1-ARI_mean,
-                          "f_mse" = F_mean_sq_err,
-                          "V_mse" = v_mean_sq_err), 
-                 color=method)) +
-      stat_summary(aes(group=method), position = position_dodge(.2),
-                   geom="pointrange",
-                   fun = mean,
-                   fun.min = function(x)quantile(x,0.25),
-                   fun.max = function(x)quantile(x,0.75)) +
-      stat_summary(aes(group=method),position = position_dodge(.2),
-                   geom="line",
-                   fun = "mean") +
-      # theme(legend.position = "none") +
-      scale_y_continuous(limits = switch(measurement,
-                                         "1-ARI" = c(0,1),
-                                         "f_mse" = c(0.0,0.006))) +
-      ylab(measurement) +
-      xlab(ifelse(param_name=="n", yes="p", no=param_name))
-    
-    print(g)
-    dev.off()
-  }
-  
-  
-  
-  
-}
-
-
 
 
 
