@@ -85,7 +85,7 @@ for (. in 1:split) {
                                N_node_vec = rep(N_node,1),
                                conn_prob_mean = 0.4, 
                                conn_patt_sep = 1.3,
-                               time_shift_mean_vec = rep(0,3),
+                               time_shift_mean_vec = rep(20,3),
                                t_vec = seq(0,200,length.out=200),
                                Qmin = 1, Qmax = 5),
                error = function(x) print(SEED))

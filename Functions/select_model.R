@@ -18,8 +18,10 @@ select_model = function(edge_time_mat_list, N_node_vec,
     center_pdf_array_tmp = result_list[[i]]$center_pdf_array
     freq_trun_mat = result_list[[i]]$freq_trun_mat
     N_basis_mat = result_list[[i]]$N_basis_mat
-    if (is.null(N_basis_mat)){
+    if (is.null(N_basis_mat) & !is.null(freq_trun_mat)){
       N_basis_mat = 1+2*freq_trun_mat
+    } else if (is.null(N_basis_mat) & is.null(freq_trun_mat)) {
+      N_basis_mat = matrix(0,N_clus_tmp,N_clus_tmp)
     }
     pi_vec = result_list[[i]]$pi_vec
     if (is.null(pi_vec)){

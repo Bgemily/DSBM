@@ -77,32 +77,6 @@ main_v5 = function(### Parameters for generative model
                           n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
                           ...)
     
-    res$clusters_list -> clusters_list_est
-    res$v_vec_list -> v_vec_list_est
-    res$n0_vec_list -> n0_vec_list_est
-    res$n0_mat_list -> n0_mat_list_est
-    res$center_cdf_array -> center_cdf_array_est
-    
-    
-    
-    ### Estimation z,v,f based on pdf
-    res = do_cluster_v14.2.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
-                             clusters_list_init = clusters_list_est,
-                             n0_vec_list_init = n0_vec_list_est, n0_mat_list_init = n0_mat_list_est,
-                             total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                             freq_trun=freq_trun, 
-                             conv_thres=conv_thres, MaxIter=MaxIter,
-                             opt_radius=opt_radius,
-                             ...)
-    
-    
-    res$clusters_list -> clusters_list_est
-    res$v_vec_list -> v_vec_list_est
-    res$loss_history -> loss_history
-    res$align_time -> align_time
-    res$cluster_time -> cluster_time
-    res$center_pdf_array -> center_pdf_array_est
-    
     
     # ### Get estimated pdf using kernel smoothing
     # v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list_est)
