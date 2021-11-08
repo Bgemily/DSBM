@@ -18,7 +18,7 @@ main_v5 = function(### Parameters for generative model
   ### Parameters for algorithms
   freq_trun=15, bw=5, 
   conv_thres=1e-2, MaxIter=5,
-  jitter_time_rad = 10, max_iter=10,
+  jitter_time_rad = 0, max_iter=10,
   opt_radius=total_time/2,
   N_clus_min=N_clus-2, N_clus_max=N_clus+2,
   ...)

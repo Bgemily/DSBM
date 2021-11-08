@@ -18,13 +18,10 @@ library(ggplot2)
 # cdf vs pdf (V==0) ------------------------------------------------------------
 
 
-path_vec = rep(0,5)
+path_vec = rep(0,2)
 
-path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_cdf/pr=1,n=30,beta=1.05/"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/5/pr=1,n=30,beta=1.05/"
-path_vec[3] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/7/pr=1,n=30,beta=1.05/"
-path_vec[4] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/9/pr=1,n=30,beta=1.05/"
-# path_vec[5] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/3/pr=1,n=30,beta=1.05/"
+path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v2/pr=1,n=30,beta=1.15/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_pdf_timeshift_jitter_v2/pr=1,n=90,beta=1.15/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -34,9 +31,7 @@ for (param_name in param_name_vec) {
   ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
   results_list = lapply(path_vec, function(folder_path)extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name)))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF+kernel_smth"), 
-                         bind_cols(results_list[[2]],"method"="PDF_N_basis_11"),
-                         bind_cols(results_list[[3]],"method"="PDF_N_basis_15"),
-                         bind_cols(results_list[[4]],"method"="PDF_N_basis_19"))
+                         bind_cols(results_list[[2]],"method"="PDF_N_basis_15"))
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
@@ -46,8 +41,8 @@ for (param_name in param_name_vec) {
   ### Plot ARI/F_mse vs n/beta/V
   for (measurement in c("1-ARI","f_mse")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
-                    switch(param_name, "beta"="Beta", "n"="N_node", "V"="V"), '_', 
-                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement),
+                    '_', 'vs', '_', "Jitter_level", ".pdf"), 
         width = 4, height = 4)
     g = results_df %>% 
       ggplot(aes(x=param_value, 
@@ -65,12 +60,12 @@ for (param_name in param_name_vec) {
                    geom="line",
                    fun = "median") +
       theme(legend.position = "bottom") +
-      guides(color=guide_legend(nrow=2,byrow=TRUE)) +
+      # guides(color=guide_legend(nrow=2,byrow=TRUE)) +
       scale_y_continuous(limits = switch(measurement,
                                          "1-ARI" = c(0,1),
                                          "f_mse" = c())) +
       ylab(measurement) +
-      xlab(ifelse(param_name=="n", yes="p", no=param_name))
+      xlab("Jitter radius")
     
     print(g)
     dev.off()
