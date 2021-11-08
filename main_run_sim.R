@@ -95,7 +95,7 @@ N_node_persubj_list = list(30,42,54,66,78,90)
 
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0'
-method = 'main_v5_pdf'
+method = 'main_v5_pdf_v2'
 default_setting = 'pr=1,n=30,beta=1.2'
 
 for (freq_trun in c(9,7,5,3)) {
