@@ -15,14 +15,88 @@ library("dplyr")
 library(ggplot2)
 
 
+# cdf vs pdf (V==0) ------------------------------------------------------------
+
+
+path_vec = rep(0,5)
+
+path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_cdf/pr=1,n=30,beta=1.05/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/5/pr=1,n=30,beta=1.05/"
+path_vec[3] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/7/pr=1,n=30,beta=1.05/"
+path_vec[4] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/9/pr=1,n=30,beta=1.05/"
+# path_vec[5] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/3/pr=1,n=30,beta=1.05/"
+
+param_name_vec = list.files(path_vec[1])
+
+### For each parameter (n/beta/V), extract results and visualize results
+for (param_name in param_name_vec) {
+  
+  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
+  results_list = lapply(path_vec, function(folder_path)extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name)))
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF+kernel_smth"), 
+                         bind_cols(results_list[[2]],"method"="PDF_N_basis_11"),
+                         bind_cols(results_list[[3]],"method"="PDF_N_basis_15"),
+                         bind_cols(results_list[[4]],"method"="PDF_N_basis_19"))
+  
+  ### Manipulate column "param_value"
+  results_df = results_df %>% 
+    mutate(param_value = factor(param_value, levels = sort(unique(param_value), 
+                                                           decreasing = param_name=="V")) ) 
+  
+  ### Plot ARI/F_mse vs n/beta/V
+  for (measurement in c("1-ARI","f_mse")) {
+    pdf(file=paste0("../Results/Plots/Temp/", 
+                    switch(param_name, "beta"="Beta", "n"="N_node", "V"="V"), '_', 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
+        width = 4, height = 4)
+    g = results_df %>% 
+      ggplot(aes(x=param_value, 
+                 y=switch(measurement,
+                          "1-ARI" = 1-ARI_mean,
+                          "f_mse" = F_mean_sq_err,
+                          "V_mse" = v_mean_sq_err), 
+                 color=method)) +
+      stat_summary(aes(group=method), position = position_dodge(.3),
+                   geom="pointrange",
+                   fun = median,
+                   fun.min = function(x)quantile(x,0.25),
+                   fun.max = function(x)quantile(x,0.75)) +
+      stat_summary(aes(group=method),position = position_dodge(.3),
+                   geom="line",
+                   fun = "median") +
+      theme(legend.position = "bottom") +
+      guides(color=guide_legend(nrow=2,byrow=TRUE)) +
+      scale_y_continuous(limits = switch(measurement,
+                                         "1-ARI" = c(0,1),
+                                         "f_mse" = c())) +
+      ylab(measurement) +
+      xlab(ifelse(param_name=="n", yes="p", no=param_name))
+    
+    print(g)
+    dev.off()
+  }
+  
+  
+  
+  
+}
+
+
+
+
+
+
 
 # ICL/log_lik/penalty vs N_clus and freq_trun -----------------------------
 
-path_vec = rep(0,1)
+path_vec = rep(0,4)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_v4_multifreqtrun/pr=0.4,n=30,beta=1.3/"
+path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/3/pr=1,n=30,beta=1.05/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/5/pr=1,n=30,beta=1.05/"
+path_vec[3] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/7/pr=1,n=30,beta=1.05/"
+path_vec[4] = "../Results/Rdata/SNR_Vis0/main_v5_pdf/freqtrun/9/pr=1,n=30,beta=1.05/"
+
 param_name_vec = list.files(path_vec[1])
-param_name_vec = c("n/90/freqtrun")
 
 val_n = 90 # 30, 42, 54, 66, 78, 90
 val_beta = 1.8
@@ -35,7 +109,10 @@ for (param_name in param_name_vec) {
                            measurement = c("ICL_vec","compl_log_lik_vec", "penalty_vec", "penalty_2_vec"))
   }
   results_list = lapply(path_vec, func_tmp, param_name=param_name)
-  results_df = results_list[[1]] %>% 
+  results_df = bind_rows(bind_cols(results_list[[1]],"freq_trun"="3"),
+                         bind_cols(results_list[[2]],"freq_trun"="5"),
+                         bind_cols(results_list[[3]],"freq_trun"="7"),
+                         bind_cols(results_list[[4]],"freq_trun"="9"),) %>% 
     pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
     pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_log_lik", values_to = "log_lik") %>% 
     pivot_longer(cols = starts_with("penalty_vec"), names_to = "N_clus_penalty", values_to = "penalty") %>%
@@ -48,34 +125,33 @@ for (param_name in param_name_vec) {
                            "n/90/freqtrun"=paste0("N_node_",90), 
                            "V"="V",""), '_', 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
-        width = 4, height = 2.5)
+        width = 4, height = 4)
     g = results_df %>% 
-      mutate(N_basis = 2*param_value+1) %>%
-      mutate(N_basis = as.factor(N_basis)) %>%
-      ggplot(aes(x=switch(measurement,
-                          "ICL" = N_clus_ICL,
-                          "log_lik" = N_clus_log_lik,
-                          "penalty_2" = N_clus_penalty_2,
-                          "penalty" = N_clus_penalty), 
+      # filter(param_value == 90) %>%
+      mutate(N_basis = 2*as.numeric(freq_trun)+1) %>%
+      mutate(N_basis = as_factor(N_basis)) %>%
+      mutate(param_value = as_factor(param_value)) %>%
+      ggplot(aes(x=N_basis, 
                  y=switch(measurement,
                           "ICL" = ICL,
                           "log_lik" = log_lik,
                           "penalty_2" = penalty_2,
                           "penalty" = penalty), 
-                 color=N_basis)) +
-      stat_summary(aes(group=N_basis), position = position_dodge(.2),
+                 color=param_value)) +
+      stat_summary(aes(group=param_value), position = position_dodge(.2),
                    geom="pointrange",
                    fun = mean,
                    fun.min = function(x) mean(x)-sd(x),
                    fun.max = function(x) mean(x)+sd(x) ) +
-      stat_summary(aes(group=N_basis),position = position_dodge(.2),
+      stat_summary(aes(group=param_value),position = position_dodge(.2),
                    geom="line",
                    fun = "mean") +
-      # theme(legend.position = "none") +
+      theme(axis.text.y = element_blank(),
+            axis.ticks = element_blank()) +
+      facet_wrap(~param_value, scales = 'free') +
       scale_y_continuous() +
       ylab(measurement) +
-      scale_x_discrete(labels=1:5) +
-      xlab("Number of clusters")
+      xlab("Number of basis")
     
     print(g)
     dev.off()
@@ -293,72 +369,6 @@ for (param_name in param_name_vec) {
   
   
 }
-
-
-
-
-# cdf vs pdf (V==0) ------------------------------------------------------------
-
-
-path_vec = rep(0,2)
-
-path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_v2/pr=0.4,n=30,beta=1.3"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v3_adap_freq/pr=0.4,n=30,beta=1.3"
-
-
-param_name_vec = list.files(path_vec[1])
-
-### For each parameter (n/beta/V), extract results and visualize results
-for (param_name in param_name_vec) {
-  
-  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
-  results_list = lapply(path_vec, function(folder_path)extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name)))
-  results_df = bind_rows(bind_cols(results_list[[1]],"method"="Fixed_freq_trun"), 
-                         bind_cols(results_list[[2]],"method"="Adaptive_freq_trun"))
-  
-  ### Manipulate column "param_value"
-  results_df = results_df %>% 
-    mutate(param_value = factor(param_value, levels = sort(unique(param_value), 
-                                                           decreasing = param_name=="V")) ) 
-  
-  ### Plot ARI/F_mse vs n/beta/V
-  for (measurement in c("1-ARI","f_mse")) {
-    pdf(file=paste0("../Results/Plots/Temp/", 
-                    switch(param_name, "beta"="Beta", "n"="N_node", "V"="V"), '_', 
-                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
-        width = 4, height = 2.5)
-    g = results_df %>% 
-      ggplot(aes(x=param_value, 
-                 y=switch(measurement,
-                          "1-ARI" = 1-ARI_mean,
-                          "f_mse" = F_mean_sq_err,
-                          "V_mse" = v_mean_sq_err), 
-                 color=method)) +
-      stat_summary(aes(group=method), position = position_dodge(.2),
-                   geom="pointrange",
-                   fun = mean,
-                   fun.min = function(x)quantile(x,0.25),
-                   fun.max = function(x)quantile(x,0.75)) +
-      stat_summary(aes(group=method),position = position_dodge(.2),
-                   geom="line",
-                   fun = "mean") +
-      # theme(legend.position = "none") +
-      scale_y_continuous(limits = switch(measurement,
-                                         "1-ARI" = c(0,1),
-                                         "f_mse" = c(0.0,0.006))) +
-      ylab(measurement) +
-      xlab(ifelse(param_name=="n", yes="p", no=param_name))
-    
-    print(g)
-    dev.off()
-  }
-  
-  
-  
-  
-}
-
-
 
 
 

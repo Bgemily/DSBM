@@ -23,9 +23,9 @@ get_init_v3 = function(edge_time_mat_list, N_clus, v_true_list,
     
     ### Jitter time shifts
     v_vec = v_vec + stats::runif(length(v_vec), -jitter_time_rad, jitter_time_rad)
-    if (sd(v_vec)!=0) {
-      v_vec = v_vec / sd(v_vec) * sd(v_true_list[[m]]) ### Rescale
-    }
+    # if (sd(v_vec)!=0) {
+    #   v_vec = v_vec / sd(v_vec) * sd(v_true_list[[m]]) ### Rescale
+    # }
     v_vec = v_vec - min(v_vec)
     
     n0_vec = v_vec / time_unit

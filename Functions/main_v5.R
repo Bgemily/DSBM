@@ -53,7 +53,7 @@ main_v5 = function(### Parameters for generative model
     ### Get initialization -----------
     res = get_init_v3(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
                       v_true_list = v_true_list, 
-                      jitter_time_rad = 0,
+                      jitter_time_rad = jitter_time_rad,
                       t_vec = t_vec)
     
     clusters_list_init = res$clusters_list
