@@ -99,7 +99,6 @@ method = 'main_v5_pdf_v2'
 default_setting = 'pr=1,n=30,beta=1.2'
 
 for (freq_trun in c(9,7,5,3)) {
-
   for (. in 1:split) {
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
@@ -128,16 +127,8 @@ for (freq_trun in c(9,7,5,3)) {
       save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
       rm(results)
     }
-
-
   }
-
 }
-
-
-
-
-
 
 
 # ### ARI vs Jitter_radius, V==0 -----
