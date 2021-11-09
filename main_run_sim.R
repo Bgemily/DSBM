@@ -90,26 +90,25 @@ conn_prob_mean_list = list(1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1)
 
 ### Parameters' possible values: 
 ### n
-# N_node_persubj_list = list(30,42,54,66,78,90)
-N_node_persubj_list = list(90)
+N_node_persubj_list = list(30,42,54,66,78,90)
+# N_node_persubj_list = list(90)
 
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vis0'
-method = 'main_v5_cdf_timeshift_jitter'
-default_setting = 'pr=1,n=30,beta=1.05'
+method = 'main_v5_cdf_timeshift_jitter_v4'
+default_setting = 'pr=1,n=30,beta=1.2'
 
-for (jitter_time_rad in c(0,5,10,15,20)) {
-  
-  for (. in 1:split) {
-    ### N_node
-    for (i in 1:length(N_node_persubj_list)) {
-      N_node = N_node_persubj_list[[i]]
+for (. in 1:split) {
+  ### N_node
+  for (i in 1:length(N_node_persubj_list)) {
+    N_node = N_node_persubj_list[[i]]
+    for (jitter_time_rad in c(0,5,10,15,20)) {
       results <- foreach(j = 1:N_trial) %dopar% {
         SEED = sample(1:1e7,1)
         tryCatch(main_v5(SEED = SEED, 
                          N_node_vec = rep(N_node,1),
                          conn_prob_mean = 1, 
-                         conn_patt_sep = 1.05,
+                         conn_patt_sep = 1.2,
                          time_shift_mean_vec = rep(0,N_clus),
                          t_vec = seq(0,200,length.out=200),
                          jitter_time_rad = jitter_time_rad,
@@ -128,12 +127,11 @@ for (jitter_time_rad in c(0,5,10,15,20)) {
       save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
       rm(results)
     }
-    
-    
+
   }
   
+  
 }
-
 
 
 
