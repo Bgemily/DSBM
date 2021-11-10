@@ -6,7 +6,7 @@ select_model = function(edge_time_mat_list, N_node_vec,
 {
   # Select best cluster number using ICL ------------------------------------
   ICL_vec = compl_log_lik_vec = penalty_vec = penalty_2_vec = numeric(length = length(N_clus_min:N_clus_max))
-  best_ind_freq_trun_vec = numeric(length = length(N_clus_min:N_clus_max))
+  ind_best_freq_trun_vec = numeric(length = length(N_clus_min:N_clus_max))
   
   for (ind_N_clus in 1:length(ICL_vec)) {
     N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
@@ -91,7 +91,7 @@ select_model = function(edge_time_mat_list, N_node_vec,
     
     ### Retrieve index of best freq_trun under current cluster number
     best_ind_freq_trun_tmp = which.max(ICL_tmp_vec)
-    best_ind_freq_trun_vec[ind_N_clus] = best_ind_freq_trun_tmp
+    ind_best_freq_trun_vec[ind_N_clus] = best_ind_freq_trun_tmp
     
     ### Retrieve best ICL,log lik,penalties under current cluster number
     ICL_vec[ind_N_clus] = ICL_tmp_vec[best_ind_freq_trun_tmp]
@@ -103,11 +103,13 @@ select_model = function(edge_time_mat_list, N_node_vec,
   
   
   ind_best_N_clus = which.max(ICL_vec)
+  ind_best_freq_trun = ind_best_freq_trun_vec[ind_best_N_clus]
+  
   N_clus_est = c(N_clus_min:N_clus_max)[ind_best_N_clus]
   
   
   ### Retrieve estimation results of the best cluster number
-  res = result_list[[ind_best_N_clus]]
+  res = result_list[[ind_best_N_clus]][[ind_best_freq_trun]]
   
   # Output ------------------------------------------------------------------
   

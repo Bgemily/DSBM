@@ -21,7 +21,7 @@ main_v5 = function(### Parameters for generative model
   jitter_time_rad = 10, max_iter=10,
   opt_radius=total_time/2,
   N_clus_min=N_clus-2, N_clus_max=N_clus+2,
-  freq_trun_min=NULL, freq_trun_max=NULL,
+  freq_trun_vec=NULL,
   ...)
 {
   
@@ -42,24 +42,19 @@ main_v5 = function(### Parameters for generative model
   v_true_list = network_list$time_shift_list
   order_true_list = lapply(v_true_list, function(v_vec)order(v_vec))
   
-  
-  
-  
-  
 
   # Fit model for various cluster number ------------------------------------
   
   res_list = list()
-  if(is.null(freq_trun_min) & is.null(freq_trun_max)){
-    freq_trun_min = freq_trun
-    freq_trun_max = freq_trun
+  if(is.null(freq_trun_vec)){
+    freq_trun_vec = c(freq_trun)
   }
   for (ind_N_clus in 1:length(N_clus_min:N_clus_max)) {
     res_list[[ind_N_clus]] = list()
     N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
     
-    for (ind_freq_trun in 1:length(freq_trun_min:freq_trun_max)) {
-      freq_trun = c(freq_trun_min:freq_trun_max)[ind_freq_trun]
+    for (ind_freq_trun in 1:length(freq_trun_vec)) {
+      freq_trun = freq_trun_vec[ind_freq_trun]
       
       ### Get initialization -----------
       res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
