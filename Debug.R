@@ -8,7 +8,7 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v2/freqtrun/7/pr=1,n=30,beta=1.2/n/90/N_trial5_20211108_154619.Rdata")
+load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v2/freqtrun/7/pr=1,n=30,beta=1.2/n/54/N_trial5_20211108_153516.Rdata")
 network_param = results[[1]]$network_param
 
 # Generate networks -------------------------------------------------------
@@ -24,6 +24,8 @@ order_true_list = lapply(v_true_list, function(v_vec)order(v_vec))
 
 
 # Set algorithm parameters ------------------------------------------------
+step_size = 0.02
+
 N_clus = network_param$N_clus
 N_clus_min=N_clus 
 N_clus_max=N_clus
@@ -73,7 +75,7 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
                            clusters_list_init = clusters_list_est,
                            n0_vec_list_init = n0_vec_list_est, n0_mat_list_init = n0_mat_list_est,
                            total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                           freq_trun=freq_trun, 
+                           freq_trun=freq_trun, step_size = step_size,
                            conv_thres=conv_thres, MaxIter=MaxIter,
                            opt_radius=opt_radius)
   
@@ -101,10 +103,6 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
   res_list = c(res_list, list(res))
   
 }
-
-# save(res_list, network_param,
-#      file = '../Results/Rdata/SNR_Vis0/main_v5_v7_largefreqtrun/pr=0.4,n=90,beta=1.3,one_instance.Rdata')
-
 
 
 # Plot estimated time shifts ----------------------------------------------

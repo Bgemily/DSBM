@@ -10,7 +10,8 @@ est_n0_vec_v8 = function(edge_time_mat_list,
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          freq_trun=5,
                          t_vec=seq(0,200,length.out=1000), step_size=0.02,
-                         max_iter=5, epsilon=0.001, order_list=NULL)
+                         max_iter=5, epsilon=0.001, order_list=NULL, 
+                         opt_radius=max(t_vec)/2,...)
 {
   t_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
@@ -32,7 +33,6 @@ est_n0_vec_v8 = function(edge_time_mat_list,
   }
   
   
-  
   # Update time shifts and connecting patterns alternatively ----------------
   n_iter = 1
   converge = FALSE
@@ -41,6 +41,24 @@ est_n0_vec_v8 = function(edge_time_mat_list,
   center_fft_array_update = center_fft_array_current = center_fft_array
   while(!converge && n_iter<= max_iter)
   {
+    ### Set n0_min and n0_max
+    n0_max_vec_list = n0_min_vec_list = list()
+    for (m in 1:N_subj) {
+      diag(edge_time_mat_list[[m]]) = Inf
+      n0_max_vec = apply(edge_time_mat_list[[m]], 1, min)/t_unit
+      n0_max_vec = pmin(n0_max_vec, n0_vec_list_current[[m]] + opt_radius/t_unit )
+      n0_max_vec = round(n0_max_vec)
+      
+      
+      n0_min_vec = 0*n0_max_vec
+      n0_min_vec = pmax(n0_min_vec, n0_vec_list_current[[m]] - opt_radius/t_unit )
+      n0_min_vec = round(n0_min_vec)
+      
+      
+      n0_max_vec_list[[m]] = n0_max_vec
+      n0_min_vec_list[[m]] = n0_min_vec
+    }
+    
     ### Update time shifts given connecting patterns and order of time shifts
     for (m in 1:N_subj) {
       n0_vec_tmp = n0_vec_list_current[[m]]
@@ -77,6 +95,17 @@ est_n0_vec_v8 = function(edge_time_mat_list,
           fft_target_list = lapply(1:N_clus, function(l) node_fft_array[i,l, ])
           fft_origin_list = lapply(1:N_clus, function(l) center_fft_array_current[q,l, ])
           
+          ### fft_target_list: tail-fft(freq_trun) + head-fft(freq_trun+1)
+          ### Need: head-fft(freq_trun+1) + rep(0,x) + tail-fft(freq_trun)
+          fft_target_list = lapply(fft_target_list, 
+                                   function(fft_vec)c(tail(fft_vec,freq_trun+1), 
+                                                      rep(0,length(t_vec)-2*freq_trun-1),
+                                                      head(fft_vec,freq_trun)))
+          fft_origin_list = lapply(fft_origin_list, 
+                                   function(fft_vec)c(tail(fft_vec,freq_trun+1), 
+                                                      rep(0,length(t_vec)-2*freq_trun-1),
+                                                      head(fft_vec,freq_trun)))
+          
           
           weights = weight_mat[i,]
           if(sum(weights)==0)
@@ -84,7 +113,7 @@ est_n0_vec_v8 = function(edge_time_mat_list,
           else
             weights = weights/sum(weights)
           
-          
+          ### TODO: add adaptive step size here. Refer to est_n0_vec_v7.1.1
           if (!is.null(order_list)) {
             position = which(order_list[[m]]==i)
             n0_min = ifelse(test = position>=2, 
@@ -93,7 +122,6 @@ est_n0_vec_v8 = function(edge_time_mat_list,
             n0_max = ifelse(test = position<=(N_node-1), 
                             yes = n0_vec_tmp[order_list[[m]][position+1]],
                             no = length(t_vec))
-            ### [TO DO: write this function]
             n0_vec_tmp[i] = align_multi_fft_gd(fft_origin_list = fft_origin_list, fft_target_list = fft_target_list,
                                                      step_size = step_size,
                                                      freq_trun = freq_trun,
@@ -101,15 +129,25 @@ est_n0_vec_v8 = function(edge_time_mat_list,
                                                      n0_min = n0_min, n0_max = n0_max)$n0
           }
           else{
-            n0_max = min(edge_time_mat_list[[m]][i,])/t_unit
-            n0_max = round(n0_max)
-            n0_max = min(n0_max, length(t_vec)-1)
-            n0_vec_tmp[i] = align_multi_fft_gd(fft_origin_list = fft_origin_list, fft_target_list = fft_target_list,
-                                                     step_size = step_size,
-                                                     freq_trun = freq_trun,
-                                                     weights = weights, t_vec=t_vec,
-                                                     n0_max = n0_max)$n0
+            n0_max = n0_max_vec_list[[m]][i]
+            n0_min = n0_min_vec_list[[m]][i]
+            # browser()
+            # n0_vec_tmp[i] = align_multi_fft_gd(fft_origin_list = fft_origin_list, 
+            #                                    fft_target_list = fft_target_list,
+            #                                    step_size = step_size,
+            #                                    freq_trun = freq_trun,
+            #                                    weights = weights, t_vec=t_vec,
+            #                                    n0_min = n0_min, n0_max = n0_max)$n0
             
+            f_origin_list = lapply(fft_origin_list,function(fft)Re(fft(fft, inverse=TRUE)) )
+            f_target_list = lapply(fft_target_list,function(fft)Re(fft(fft, inverse=TRUE)) )
+            n0_vec_tmp[i] = align_multi_curves_gd_v2(f_origin_list = f_origin_list,
+                                                     f_target_list = f_target_list,
+                                                     step_size = step_size,
+                                                     weights = weights,
+                                                     t_unit = t_vec[2]-t_vec[1],
+                                                     n0 = n0_vec_list_current[[m]][i],
+                                                     n0_min = 0, n0_max = n0_max)$n0
           }
           
         }
@@ -132,8 +170,8 @@ est_n0_vec_v8 = function(edge_time_mat_list,
                                                    n0_mat_list = n0_mat_list_update, 
                                                    t_vec = t_vec)
     ### Evaluate stopping criterion
-    converge = sqrt(sum((unlist(center_fft_array_update)-unlist(center_fft_array_current))^2))/
-      sqrt(sum((unlist(center_fft_array_current)+.Machine$double.eps)^2)) < epsilon
+    converge = sqrt(sum(abs(unlist(center_fft_array_update)-unlist(center_fft_array_current))^2))/
+      sqrt(sum(abs(unlist(center_fft_array_current)+.Machine$double.eps)^2)) < epsilon
     
     ### *update -> *current
     n_iter = n_iter + 1
@@ -158,7 +196,7 @@ est_n0_vec_v8 = function(edge_time_mat_list,
                                           t_vec = t_vec)
   
   
-  return(list(center_cdf_array=center_cdf_array, 
+  return(list(center_fft_array=center_fft_array, 
               n0_vec_list=n0_vec_list, n0_mat_list=n0_mat_list,
               v_vec_list=v_vec_list, v_mat_list=v_mat_list))
 }

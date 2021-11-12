@@ -127,7 +127,8 @@ cluster_kmeans_v9.2.1 = function(edge_time_mat_list, clusters_list,
   
   align_start_time = Sys.time()
   
-  res = est_n0_vec_v7.1.1(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
+  res = est_n0_vec_v8(edge_time_mat_list = edge_time_mat_list, 
+                      clusters_list = clusters_list,
                       n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list, 
                       freq_trun = freq_trun, 
                       t_vec = t_vec, order_list=order_list, 

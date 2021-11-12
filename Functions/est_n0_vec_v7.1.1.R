@@ -72,7 +72,7 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
                                    n0_vec_list = n0_vec_list_current, 
                                    n0_mat_list = n0_mat_list_current, 
                                    freq_trun = freq_trun, t_vec = t_vec)
-  step_size = length(t_vec) / mean(sapply(gradient_vec_list, function(vec) sqrt(sum(vec^2)) ))
+  step_size = (length(t_vec)/4) / mean(sapply(gradient_vec_list, function(vec) sqrt(sum(vec^2)) ))
   
   
   ### Refine estimation of time shifts using pdf
@@ -88,6 +88,8 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
                                      n0_vec_list = n0_vec_list_current, 
                                      n0_mat_list = n0_mat_list_current, 
                                      freq_trun = freq_trun, t_vec = t_vec)
+    ### Set initial learning rate
+    step_size = (length(t_vec)/4) / mean(sapply(gradient_vec_list, function(vec) sqrt(sum(vec^2)) ))
     
     ### Update n0_vec_list_update
     for (m in 1:N_subj) {

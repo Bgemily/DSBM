@@ -26,7 +26,7 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=10, 
+  make_option(c("-n", "--N_trial"), type="integer", default=20, 
               help="number of repeated trials"),
   make_option("--split", type="integer", default=2)
 ); 
@@ -90,12 +90,12 @@ conn_prob_mean_list = list(1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1)
 
 ### Parameters' possible values:
 ### n
-N_node_persubj_list = list(30,42,54,66,78,90)
+N_node_persubj_list = list(30,42,54,66,78,90,120,150,180,210)
 # N_node_persubj_list = list(90)
 
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0'
-method = 'main_v5_pdf_v3_select_freqtrun'
+method = 'main_v5_pdf_v4_pairwise_alignment'
 default_setting = 'pr=1,n=30,beta=1.2'
 
 for (. in 1:split) {

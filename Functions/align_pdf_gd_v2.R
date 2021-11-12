@@ -341,12 +341,33 @@ align_multi_curves_gd_v2 = function(f_origin_list, f_target_list, n0=0, step_siz
 }
 
 
+
 ### Test
-# samp1=c(rnorm(100,5,1), rnorm(30,500,1))
-# samp2=c(rnorm(0,25,1), rnorm(200,500,1))
-# f1=ecdf(samp1)(seq(0,50,0.1))
-# f2=ecdf(samp2)(seq(0,50,0.1))
-# plot(f1,type='l',ylim=c(0,1)); lines(f2,col="red")
+
+# t_vec=seq(0,200,length.out=1000)
+# freq_trun=5
+# 
+# samp1 = samp2 = rep(0,length(t_vec))
+# samp1[100:300+0] = 1
+# samp2[100:300+200] = 1
+# 
+# plot(samp1,type='l')
+# plot(samp2,type='l')
+# 
+# fft1 = fft(samp1)/length(t_vec)
+# fft2 = fft(samp2)/length(t_vec)
+# 
+# fft1_trun = c(head(fft1, freq_trun+1),
+#          rep(0,length(fft1)-2*freq_trun-1),
+#          tail(fft1, freq_trun))
+# fft2_trun = c(head(fft2, freq_trun+1),
+#          rep(0,length(fft2)-2*freq_trun-1),
+#          tail(fft2, freq_trun))
+# f1 = Re(fft( fft1_trun , inverse = TRUE))
+# f2 = Re(fft( fft2_trun , inverse = TRUE))
+# plot(f1,type='l')
+# lines(f2, col=2)
+# 
 # res = align_multi_curves_gd_v2(f1,f2,n0_min = 0)
 # res$n0
 # plot(shift_v2(f1, res$n0),type='l',ylim=c(0,1)); lines(f2,col="red")
