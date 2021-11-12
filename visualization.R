@@ -81,7 +81,7 @@ for (param_name in param_name_vec) {
 # pdf performance vs N_node (V!=0) ------------------------------------------------------------
 path_vec = rep(0,5)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v4_pairwise_alignment/pr=1,n=30,beta=1.2/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.8/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -208,7 +208,7 @@ for (param_name in param_name_vec) {
 path_vec = rep(0,2)
 
 path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.8/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.2/"
+# path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.2/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -218,121 +218,65 @@ for (param_name in param_name_vec) {
   ### Extract results for n/beta/V. Output: freq_trun | ICL | log-lik | penalty
   func_tmp = function(folder_path, param_name) {
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
-                           measurement = c("ICL_vec","compl_log_lik_vec", "penalty_vec", "penalty_2_vec"))
+                           measurement = c("ICL_vec","compl_log_lik_vec", 
+                                           # 'log_lik_vec',
+                                           "penalty_vec", "penalty_2_vec",
+                                           "N_clus_est"))
   }
   results_list = lapply(path_vec[1], func_tmp, param_name=param_name)
-  results_df = bind_rows(bind_cols(results_list[[1]],"beta"="1.8"), 
-                         bind_cols(results_list[[2]],"beta"="1.2"))
+  results_df = bind_rows(bind_cols(results_list[[1]],
+                                   "beta"="1.2",
+                                   'trial'=seq(nrow(results_list[[1]]))))
   results_df = results_df %>% 
+    mutate(trial = as_factor(trial)) %>%
     pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
-    pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_log_lik", values_to = "log_lik") %>% 
+    pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_compl_log_lik", values_to = "compl_log_lik") %>% 
     pivot_longer(cols = starts_with("penalty_vec"), names_to = "N_clus_penalty", values_to = "penalty") %>%
     pivot_longer(cols = starts_with("penalty_2_vec"), names_to = "N_clus_penalty_2", values_to = "penalty_2")
   
   ### Plot ICL vs N_clus
-  for (measurement in c("ICL","log_lik","penalty","penalty_2")) {
+  for (measurement in c("ICL","compl_log_lik","penalty","penalty_2")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
-                    switch(param_name, "beta/1.8/freqtrun"=paste0("Beta_",1.8), 
-                           "n/90/freqtrun"=paste0("N_node_",90), 
-                           "V"="V",""), '_', 
-                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), 
+                    '_', 'N_clus', ".pdf"), 
         width = 4, height = 2.5)
     g = results_df %>% 
-      mutate(N_basis = 2*param_value+1) %>%
-      mutate(N_basis = as.factor(N_basis)) %>%
       ggplot(aes(x=switch(measurement,
                           "ICL" = N_clus_ICL,
-                          "log_lik" = N_clus_log_lik,
+                          "compl_log_lik" = N_clus_compl_log_lik, 
                           "penalty_2" = N_clus_penalty_2,
-                          "penalty" = N_clus_penalty), 
+                          "penalty" = N_clus_penalty),
                  y=switch(measurement,
                           "ICL" = ICL,
-                          "log_lik" = log_lik,
+                          "compl_log_lik" = compl_log_lik,
                           "penalty_2" = penalty_2,
                           "penalty" = penalty), 
-                 color=N_basis)) +
-      stat_summary(aes(group=N_basis), position = position_dodge(.2),
-                   geom="pointrange",
-                   fun = mean,
-                   fun.min = function(x) mean(x)-sd(x),
-                   fun.max = function(x) mean(x)+sd(x) ) +
-      stat_summary(aes(group=N_basis),position = position_dodge(.2),
-                   geom="line",
+                 color=trial)) +
+      stat_summary(aes(group=trial),position = position_dodge(.0),
+                   geom="line",alpha=0.3,
                    fun = "mean") +
-      # theme(legend.position = "none") +
+      theme(legend.position = "none") +
       scale_y_continuous() +
       ylab(measurement) +
       scale_x_discrete(labels=1:5) +
       xlab("Number of clusters")
     
-    print(g)
-    dev.off()
-  }
-}
-
-
-# ICL/log_like/penalty vs N_clus -----------------------------------------
-
-path_vec = rep(0,2)
-
-path_vec[1] = "../Results/Rdata/SNR_Vis0/apply_ppsbm_ICL/pr=0.4,n=30,beta=1.3/"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_v5_adap_freq/pr=0.4,n=30,beta=1.3/"
-
-
-param_name_vec = list.files(path_vec[1])
-# param_name_vec = c("beta","n")
-
-val_n = 90 # 30, 42, 54, 66, 78, 90
-val_beta = 1.8
-
-### For each parameter (n/beta/V), extract results and visualize results
-for (param_name in param_name_vec) {
-  
-  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | correct_N_clus | method
-  func_tmp = function(folder_path, param_name) {
-    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
-                           measurement = c("ICL_vec","compl_log_lik_vec", "penalty_vec"))
-  }
-  results_list = lapply(path_vec, func_tmp, param_name=param_name)
-  results_df = bind_rows(bind_cols(results_list[[1]],"method"="ppsbm"),
-                         bind_cols(results_list[[2]],"method"="main_v5"),) %>% 
-    filter(param_value == switch(param_name, "beta"=val_beta, "n"=val_n)) %>%
-    pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
-    pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_log_lik", values_to = "log_lik") %>% 
-    pivot_longer(cols = starts_with("penalty_vec"), names_to = "N_clus_penalty", values_to = "penalty")
-  
-  ### Plot ICL vs N_clus
-  for (measurement in c("ICL","log_lik","penalty")) {
-    pdf(file=paste0("../Results/Plots/Temp/", 
-                    switch(param_name, "beta"=paste0("Beta_",val_beta), 
-                           "n"=paste0("N_node_",val_n), 
-                           "V"="V"), '_', 
-                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), ".pdf"), 
-        width = 4, height = 2.5)
-    g = results_df %>% 
-      ggplot(aes(x=switch(measurement,
-                          "ICL" = N_clus_ICL,
-                          "log_lik" = N_clus_log_lik,
-                          "penalty" = N_clus_penalty), 
-                 y=switch(measurement,
-                          "ICL" = ICL,
-                          "log_lik" = log_lik,
-                          "penalty" = penalty), 
-                 color=method)) +
-      stat_summary(aes(group=method), position = position_dodge(.2),
-                   geom="pointrange",
-                   fun = mean,
-                   fun.min = function(x) mean(x)-sd(x),
-                   fun.max = function(x) mean(x)+sd(x) ) +
-      stat_summary(aes(group=method),position = position_dodge(.2),
-                   geom="line",
-                   fun = "mean") +
-      # theme(legend.position = "none") +
-      scale_y_continuous() +
-      ylab(measurement) +
-      scale_x_discrete(labels=1:5) +
-      xlab("Number of clusters")
-    
+    if(measurement=='ICL'){
+      g = g + geom_point(mapping = aes(x=N_clus_est,y=max_ICL),
+                         data = results_df %>% 
+                           group_by(trial) %>% 
+                           summarise(max_ICL=max(ICL),N_clus_est=N_clus_est),
+                         alpha=0.3) 
+    }
+    if(measurement=='compl_log_lik'){
+      g = g + geom_point(mapping = aes(x=N_clus_est,y=max_lik),
+                         data = results_df %>% 
+                           group_by(trial) %>% 
+                           summarise(max_lik=max(compl_log_lik),
+                                     N_clus_est=as.numeric(substr(N_clus_compl_log_lik[which.max(compl_log_lik)],
+                                                       start=18,stop=18)) ),
+                         alpha=0.3) 
+    }
     print(g)
     dev.off()
   }

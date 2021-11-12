@@ -8,7 +8,7 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v5_smaller_lr/pr=1,n=30,beta=1.2/n/54/N_trial5_20211111_213156.Rdata")
+load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v5_smaller_lr/pr=1,n=30,beta=1.2/n/54/N_trial5_20211112_002520.Rdata")
 network_param = results[[1]]$network_param
 
 # Generate networks -------------------------------------------------------
@@ -111,6 +111,8 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
 
 plot(y=res$v_vec_list[[1]],x=v_true_list[[1]])
 abline(a=0,b=1,col='red')
+
+mean((res$v_vec_list[[1]]-v_true_list[[1]])^2)
 
 # Plot estimated intensities ----------------------------------------------
 
