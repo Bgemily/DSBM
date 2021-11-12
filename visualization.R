@@ -15,73 +15,6 @@ library("dplyr")
 library(ggplot2)
 
 
-# cdf + jitter (V==0) ------------------------------------------------------------
-path_vec = rep(0,5)
-
-path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/0/pr=1,n=30,beta=1.2/"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/5/pr=1,n=30,beta=1.2/"
-path_vec[3] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/10/pr=1,n=30,beta=1.2/"
-path_vec[4] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/15/pr=1,n=30,beta=1.2/"
-path_vec[5] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/20/pr=1,n=30,beta=1.2/"
-
-param_name_vec = list.files(path_vec[1])
-
-### For each parameter (n/beta/V), extract results and visualize results
-for (param_name in param_name_vec) {
-  
-  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
-  results_list = lapply(path_vec, function(folder_path)
-    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
-                           measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "ICL_vec")))
-  results_df = bind_rows(bind_cols(results_list[[1]],"jitter_level"="0"),
-                         bind_cols(results_list[[2]],"jitter_level"="5"),
-                         bind_cols(results_list[[3]],"jitter_level"="10"),
-                         bind_cols(results_list[[4]],"jitter_level"="15"),
-                         bind_cols(results_list[[5]],"jitter_level"="20"))
-  
-  ### Manipulate column "param_value"
-  results_df = results_df %>% 
-    mutate(param_value = factor(param_value, levels = sort(unique(param_value), 
-                                                           decreasing = param_name=="V")),
-           jitter_level = as_factor(jitter_level)) 
-  
-  ### Plot ARI/F_mse vs n/beta/V
-  for (measurement in c("1-ARI","f_mse","V_mse")) {
-    pdf(file=paste0("../Results/Plots/Temp/", 
-                    if_else(measurement=="1-ARI", true = "ARI", false = measurement),
-                    '_', 'vs', '_', "N_node", ".pdf"), 
-        width = 4, height = 4)
-    g = results_df %>% 
-      ggplot(aes(x=param_value, 
-                 y=switch(measurement,
-                          "1-ARI" = 1-ARI_mean,
-                          "f_mse" = F_mean_sq_err,
-                          "V_mse" = v_mean_sq_err), 
-                 color=jitter_level)) +
-      stat_summary(aes(group=jitter_level), position = position_dodge(.3),
-                   geom="pointrange",
-                   fun.min = function(x)quantile(x,0.25),
-                   fun.max = function(x)quantile(x,0.75),
-                   fun = median) +
-      stat_summary(aes(group=jitter_level),position = position_dodge(.3),
-                   geom="line",
-                   fun = "median") +
-      theme(legend.position = "bottom") +
-      # guides(color=guide_legend(nrow=2,byrow=TRUE)) +
-      scale_y_continuous(limits = switch(measurement,
-                                         "1-ARI" = c(0,1),
-                                         "f_mse" = c())) +
-      ylab(measurement) +
-      xlab("N_node")
-    
-    print(g)
-    dev.off()
-  }
-  
-}
-
-
-
 # cdf vs pdf (V!=0) ------------------------------------------------------------
 path_vec = rep(0,5)
 
@@ -203,16 +136,82 @@ for (param_name in param_name_vec) {
 
 
 
-# ICL/log_lik/penalty vs N_clus and freq_trun -----------------------------
+# cdf + jitter (V==0) ------------------------------------------------------------
+path_vec = rep(0,5)
 
-path_vec = rep(0,1)
+path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/0/pr=1,n=30,beta=1.2/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/5/pr=1,n=30,beta=1.2/"
+path_vec[3] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/10/pr=1,n=30,beta=1.2/"
+path_vec[4] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/15/pr=1,n=30,beta=1.2/"
+path_vec[5] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_timeshift_jitter_v4/jitter_time_rad/20/pr=1,n=30,beta=1.2/"
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_v4_multifreqtrun/pr=0.4,n=30,beta=1.3/"
 param_name_vec = list.files(path_vec[1])
-param_name_vec = c("n/90/freqtrun")
 
-val_n = 90 # 30, 42, 54, 66, 78, 90
-val_beta = 1.8
+### For each parameter (n/beta/V), extract results and visualize results
+for (param_name in param_name_vec) {
+  
+  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
+  results_list = lapply(path_vec, function(folder_path)
+    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
+                           measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "ICL_vec")))
+  results_df = bind_rows(bind_cols(results_list[[1]],"jitter_level"="0"),
+                         bind_cols(results_list[[2]],"jitter_level"="5"),
+                         bind_cols(results_list[[3]],"jitter_level"="10"),
+                         bind_cols(results_list[[4]],"jitter_level"="15"),
+                         bind_cols(results_list[[5]],"jitter_level"="20"))
+  
+  ### Manipulate column "param_value"
+  results_df = results_df %>% 
+    mutate(param_value = factor(param_value, levels = sort(unique(param_value), 
+                                                           decreasing = param_name=="V")),
+           jitter_level = as_factor(jitter_level)) 
+  
+  ### Plot ARI/F_mse vs n/beta/V
+  for (measurement in c("1-ARI","f_mse","V_mse")) {
+    pdf(file=paste0("../Results/Plots/Temp/", 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement),
+                    '_', 'vs', '_', "N_node", ".pdf"), 
+        width = 4, height = 4)
+    g = results_df %>% 
+      ggplot(aes(x=param_value, 
+                 y=switch(measurement,
+                          "1-ARI" = 1-ARI_mean,
+                          "f_mse" = F_mean_sq_err,
+                          "V_mse" = v_mean_sq_err), 
+                 color=jitter_level)) +
+      stat_summary(aes(group=jitter_level), position = position_dodge(.3),
+                   geom="pointrange",
+                   fun.min = function(x)quantile(x,0.25),
+                   fun.max = function(x)quantile(x,0.75),
+                   fun = median) +
+      stat_summary(aes(group=jitter_level),position = position_dodge(.3),
+                   geom="line",
+                   fun = "median") +
+      theme(legend.position = "bottom") +
+      # guides(color=guide_legend(nrow=2,byrow=TRUE)) +
+      scale_y_continuous(limits = switch(measurement,
+                                         "1-ARI" = c(0,1),
+                                         "f_mse" = c())) +
+      ylab(measurement) +
+      xlab("N_node")
+    
+    print(g)
+    dev.off()
+  }
+  
+}
+
+
+
+# ICL/log_lik/penalty vs N_clus -----------------------------
+
+path_vec = rep(0,2)
+
+path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.8/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.2/"
+
+param_name_vec = list.files(path_vec[1])
+
 ### For each parameter (n/beta/V), extract results and visualize results
 for (param_name in param_name_vec) {
   
@@ -221,8 +220,10 @@ for (param_name in param_name_vec) {
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
                            measurement = c("ICL_vec","compl_log_lik_vec", "penalty_vec", "penalty_2_vec"))
   }
-  results_list = lapply(path_vec, func_tmp, param_name=param_name)
-  results_df = results_list[[1]] %>% 
+  results_list = lapply(path_vec[1], func_tmp, param_name=param_name)
+  results_df = bind_rows(bind_cols(results_list[[1]],"beta"="1.8"), 
+                         bind_cols(results_list[[2]],"beta"="1.2"))
+  results_df = results_df %>% 
     pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
     pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_log_lik", values_to = "log_lik") %>% 
     pivot_longer(cols = starts_with("penalty_vec"), names_to = "N_clus_penalty", values_to = "penalty") %>%

@@ -41,6 +41,7 @@ select_model = function(edge_time_mat_list, N_node_vec,
       ### Compute log likelihood
       # First term of log likelihood: -\sum_{i<j}( \sum_{q,k} F_{q,k}(T)*tau_{i,q}*tau_{j,k} )
       F_qk_T = apply(center_pdf_array_tmp*(t_vec[2]-t_vec[1]), c(1,2), function(vec)sum(vec[-length(vec)]))
+      F_qk_T[is.na(F_qk_T)] = 0
       tau_F_tauT = tau_mat %*% F_qk_T %*% t(tau_mat)
       compl_log_lik_tmp = -sum(tau_F_tauT[upper.tri(tau_F_tauT)])
       
@@ -72,7 +73,9 @@ select_model = function(edge_time_mat_list, N_node_vec,
       }
       
       ### Second penalty: \sum_{i}\sum_{q} \tau^{i,q} * \log(\pi_q)
-      penalty_tmp_2 = -sum(tau_mat %*% log(pi_vec))
+      log_pi_vec = log(pi_vec)
+      log_pi_vec[log_pi_vec==-Inf] = 0
+      penalty_tmp_2 = -sum(tau_mat %*% log_pi_vec)
       
       ### Compute penalty
       penalty_tmp = (N_clus_tmp-1)/2*sum(log(N_node_vec)) + 
@@ -116,8 +119,9 @@ select_model = function(edge_time_mat_list, N_node_vec,
   return(list(N_clus_est = N_clus_est, 
               res_best = res, 
               ICL_vec = ICL_vec, 
-              compl_log_lik_vec = compl_log_lik_vec, 
-              penalty_vec = penalty_vec,
+              log_lik_vec = compl_log_lik_vec, 
               penalty_2_vec = penalty_2_vec,
+              compl_log_lik_vec = compl_log_lik_vec-penalty_2_vec,
+              penalty_vec = penalty_vec,
               counts = counts))
 }

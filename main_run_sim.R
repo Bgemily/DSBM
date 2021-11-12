@@ -85,7 +85,14 @@ conn_prob_mean_list = list(1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1)
 
 
 # Run simulations ---------------------------------------------------------
-
+main_v5(SEED = 4357044,
+        N_node_vec = rep(54,1),
+        conn_prob_mean = 1,
+        conn_patt_sep = 1.8,
+        time_shift_mean_vec = rep(20,3),
+        t_vec = seq(0,200,length.out=200),
+        freq_trun_vec = c(3,5,7,9),
+        N_clus_min = 1, N_clus_max = 5) -> tmp
 
 ### ARI vs N_node, V==0 -----
 
