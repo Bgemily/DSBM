@@ -26,9 +26,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=10, 
+  make_option(c("-n", "--N_trial"), type="integer", default=40, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=2)
+  make_option("--split", type="integer", default=4)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -85,14 +85,8 @@ conn_prob_mean_list = list(1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1)
 
 
 # Run simulations ---------------------------------------------------------
-main_v5(SEED = 3,
-        N_node_vec = rep(30,1),
-        conn_prob_mean = 1,
-        conn_patt_sep = 1.2,
-        time_shift_mean_vec = rep(20,3),
-        t_vec = seq(0,200,length.out=200),
-        freq_trun_vec = c(7),
-        N_clus_min = 3, N_clus_max = 3) -> tmp
+
+
 ### ARI vs N_node, V==0 -----
 
 ### Parameters' possible values:
@@ -136,6 +130,86 @@ for (. in 1:split) {
 
 
 
+# ### N_clus_est, V==0 -----
+# 
+# ### Parameters' possible values:
+# ### n
+# N_node_persubj_list = list(30,42,54,66,78,90)
+# N_node_persubj_list = list(54)
+# 
+# top_level_folder = "../Results/Rdata"
+# setup = 'SNR_Vnot0'
+# method = 'main_v5_pdf_simlt_align_Nclus'
+# default_setting = 'pr=1,n=54,beta=1.8'
+# 
+# for (. in 1:split) {
+#   ### N_node
+#   for (i in 1:length(N_node_persubj_list)) {
+#     N_node = N_node_persubj_list[[i]]
+#     results <- foreach(j = 1:N_trial) %dopar% {
+#       SEED = sample(1:1e7,1)
+#       tryCatch(main_v5(SEED = SEED,
+#                        N_node_vec = rep(N_node,1),
+#                        conn_prob_mean = 1,
+#                        conn_patt_sep = 1.8,
+#                        time_shift_mean_vec = rep(20,N_clus),
+#                        t_vec = seq(0,200,length.out=200),
+#                        freq_trun_vec = c(3,5,7,9),
+#                        N_clus_min = 1, N_clus_max = 5),
+#                error = function(x) print(SEED))
+#     }
+#     param_name = "n"
+#     param_value = N_node
+#     folder_path = paste0(top_level_folder, '/', setup, '/', method, 
+#                          '/', default_setting, 
+#                          '/', param_name, '/', param_value)
+#     dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+#     
+#     now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+#     save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+#     rm(results)
+#   }
+#   
+# }
+# 
+# 
+# default_setting = 'pr=1,n=54,beta=1.2'
+# 
+# for (. in 1:split) {
+#   ### N_node
+#   for (i in 1:length(N_node_persubj_list)) {
+#     N_node = N_node_persubj_list[[i]]
+#     results <- foreach(j = 1:N_trial) %dopar% {
+#       SEED = sample(1:1e7,1)
+#       tryCatch(main_v5(SEED = SEED,
+#                        N_node_vec = rep(N_node,1),
+#                        conn_prob_mean = 1,
+#                        conn_patt_sep = 1.2,
+#                        time_shift_mean_vec = rep(20,N_clus),
+#                        t_vec = seq(0,200,length.out=200),
+#                        freq_trun_vec = c(3,5,7,9),
+#                        N_clus_min = 1, N_clus_max = 5),
+#                error = function(x) print(SEED))
+#     }
+#     param_name = "n"
+#     param_value = N_node
+#     folder_path = paste0(top_level_folder, '/', setup, '/', method, 
+#                          '/', default_setting, 
+#                          '/', param_name, '/', param_value)
+#     dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+#     
+#     now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+#     save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+#     rm(results)
+#   }
+#   
+# }
+# 
+# 
+# 
+# 
+# 
+# 
 # ### ARI vs Jitter_radius, V==0 -----
 # 
 # ### Parameters' possible values: 
@@ -184,88 +258,6 @@ for (. in 1:split) {
 #   }
 #   
 # }
-# 
-# 
-# 
-# 
-# ### N_clus_est, V==0 -----
-# 
-# ### Parameters' possible values: 
-# ### n
-# N_node_persubj_list = list(30,42,54,66,78,90)
-# # N_node_persubj_list = list(90)
-# ### beta
-# conn_patt_sep_list = list(1.3,1.4,1.5,1.6,1.7,1.8)
-# conn_patt_sep_list = list(1.8)
-# 
-# top_level_folder = "../Results/Rdata"
-# setup = 'SNR_Vnot0'
-# method = 'main_v5_v4_multifreqtrun'
-# default_setting = 'pr=0.4,n=30,beta=1.3'
-# 
-# for (freq_trun in c(9,7,5,3,1)) {
-#   
-#   for (. in 1:split) {
-#     ### N_node
-#     for (i in 1:length(N_node_persubj_list)) {
-#       N_node = N_node_persubj_list[[i]]
-#       results <- foreach(j = 1:N_trial) %dopar% {
-#         SEED = sample(1:1e7,1)
-#         tryCatch(main_v5(SEED = SEED, 
-#                          N_node_vec = rep(N_node,1),
-#                          conn_prob_mean = 0.4, 
-#                          conn_patt_sep = 1.3,
-#                          time_shift_mean_vec = rep(20,N_clus),
-#                          t_vec = seq(0,200,length.out=200),
-#                          freq_trun=freq_trun,
-#                          N_clus_min = 1, N_clus_max = 5),
-#                  error = function(x) print(SEED))
-#       }
-#       param_name = "n"
-#       param_value = N_node
-#       folder_path = paste0(top_level_folder, '/', setup, '/', method, '/',
-#                            default_setting, '/', param_name, '/', param_value,
-#                            '/', 'freqtrun','/',freq_trun)
-#       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-#       
-#       now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-#       save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
-#       rm(results)
-#     }
-#     
-#     
-#     # ### beta
-#     # for (i in 1:length(conn_patt_sep_list)) {
-#     #   conn_patt_sep = conn_patt_sep_list[[i]]
-#     #   results <- foreach(j = 1:N_trial) %dopar% {
-#     #     SEED = sample(1:1e7,1)
-#     #     tryCatch(main_v5(SEED = SEED, 
-#     #                      N_node_vec = rep(30,1),
-#     #                      conn_prob_mean = 0.4, 
-#     #                      conn_patt_sep = conn_patt_sep,
-#     #                      time_shift_mean_vec = rep(20,N_clus),
-#     #                      t_vec = seq(0,200,length.out=200),
-#     #                      freq_trun=freq_trun,
-#     #                      N_clus_min = 1, N_clus_max = 5),
-#     #              error = function(x) print(SEED))
-#     #   }
-#     #   param_name = "beta"
-#     #   param_value = conn_patt_sep
-#     #   folder_path = paste0(top_level_folder, '/', setup, '/', method, '/',
-#     #                        default_setting, '/', param_name, '/', param_value,
-#     #                        '/', 'freqtrun','/',freq_trun)
-#     #   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-#     #   
-#     #   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-#     #   save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
-#     #   rm(results)
-#     # }
-#     
-#   }
-#   
-# }
-# 
-# 
 # 
 # 
 # 

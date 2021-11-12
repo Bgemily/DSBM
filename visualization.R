@@ -86,10 +86,8 @@ for (param_name in param_name_vec) {
 path_vec = rep(0,5)
 
 path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_cdf/pr=1,n=30,beta=1.2/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v2/freqtrun/3/pr=1,n=30,beta=1.2/"
-path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v2/freqtrun/5/pr=1,n=30,beta=1.2/"
-path_vec[4] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v2/freqtrun/7/pr=1,n=30,beta=1.2/"
-path_vec[5] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v2/freqtrun/9/pr=1,n=30,beta=1.2/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v5_smaller_lr/pr=1,n=30,beta=1.2/"
+path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v4_pairwise_alignment/pr=1,n=30,beta=1.2/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -100,15 +98,68 @@ for (param_name in param_name_vec) {
   results_list = lapply(path_vec, function(folder_path)
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
                            measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "ICL_vec")))
-  ICL_mat = sapply(results_list[-1], '[[','ICL_vec')
-  colid_freq_trun_best = apply(ICL_mat,1,which.max)
-  results_df_pdf = bind_rows(results_list[[2]][colid_freq_trun_best==1,],
-                             results_list[[3]][colid_freq_trun_best==2,],
-                             results_list[[4]][colid_freq_trun_best==3,],
-                             results_list[[5]][colid_freq_trun_best==4,])
-  
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
-                         bind_cols(results_df_pdf,"method"="PDF"))
+                         bind_cols(results_list[[2]],"method"="PDF+simult_align"), 
+                         bind_cols(results_list[[3]],"method"="PDF+pairwise_align"))
+  
+  ### Manipulate column "param_value"
+  results_df = results_df %>% 
+    filter(param_value<=90) %>%
+    mutate(param_value = factor(param_value, levels = sort(unique(param_value), 
+                                                           decreasing = param_name=="V")) ) 
+  
+  ### Plot ARI/F_mse vs n/beta/V
+  for (measurement in c("1-ARI","f_mse","V_mse")) {
+    pdf(file=paste0("../Results/Plots/Temp/", 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement),
+                    '_', 'vs', '_', "N_node", ".pdf"), 
+        width = 4, height = 4)
+    g = results_df %>% 
+      ggplot(aes(x=param_value, 
+                 y=switch(measurement,
+                          "1-ARI" = 1-ARI_mean,
+                          "f_mse" = F_mean_sq_err,
+                          "V_mse" = v_mean_sq_err), 
+                 color=method)) +
+      stat_summary(aes(group=method), position = position_dodge(.3),
+                   geom="pointrange",
+                   fun.min = function(x)quantile(x,0.25),
+                   fun.max = function(x)quantile(x,0.75),
+                   fun = median) +
+      stat_summary(aes(group=method),position = position_dodge(.3),
+                   geom="line",
+                   fun = "median") +
+      theme(legend.position = "bottom") +
+      # guides(color=guide_legend(nrow=2,byrow=TRUE)) +
+      scale_y_continuous(limits = switch(measurement,
+                                         "1-ARI" = c(0,1),
+                                         "f_mse" = c())) +
+      ylab(measurement) +
+      xlab("N_node")
+    
+    print(g)
+    dev.off()
+  }
+  
+}
+
+
+
+# pdf performance vs N_node (V!=0) ------------------------------------------------------------
+path_vec = rep(0,5)
+
+path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v4_pairwise_alignment/pr=1,n=30,beta=1.2/"
+
+param_name_vec = list.files(path_vec[1])
+
+### For each parameter (n/beta/V), extract results and visualize results
+for (param_name in param_name_vec) {
+  
+  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
+  results_list = lapply(path_vec, function(folder_path)
+    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
+                           measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "ICL_vec")))
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="PDF+pairwise_align"))
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 

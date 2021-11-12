@@ -8,7 +8,7 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v2/freqtrun/7/pr=1,n=30,beta=1.2/n/90/N_trial5_20211108_154619.Rdata")
+load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v5_smaller_lr/pr=1,n=30,beta=1.2/n/54/N_trial5_20211111_213156.Rdata")
 network_param = results[[1]]$network_param
 
 # Generate networks -------------------------------------------------------
