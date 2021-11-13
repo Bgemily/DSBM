@@ -20,7 +20,7 @@ path_vec = rep(0,5)
 
 path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_cdf/pr=1,n=30,beta=1.2/"
 path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v5_smaller_lr/pr=1,n=30,beta=1.2/"
-path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v6_pairwise_alignment/pr=1,n=30,beta=1.2/"
+path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_pairwise_alignment/pr=1,n=30,beta=1.2/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -207,7 +207,7 @@ for (param_name in param_name_vec) {
 
 path_vec = rep(0,2)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v6_multi_Nclus/pr=1,n=54,beta=1.2/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_multi_Nclus_Nbasis/pr=1,n=90,beta=1.2/"
 # path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.2/"
 
 param_name_vec = list.files(path_vec[1])
@@ -218,8 +218,9 @@ for (param_name in param_name_vec) {
   ### Extract results for n/beta/V. Output: freq_trun | ICL | log-lik | penalty
   func_tmp = function(folder_path, param_name) {
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
-                           measurement = c("ICL_vec","compl_log_lik_vec", 
-                                           # 'log_lik_vec',
+                           measurement = c("ICL_vec", 'ICL_mat',
+                                           "compl_log_lik_vec", 
+                                           'log_lik_vec',
                                            "penalty_vec", "penalty_2_vec",
                                            "N_clus_est"))
   }
@@ -231,11 +232,12 @@ for (param_name in param_name_vec) {
     mutate(trial = as_factor(trial)) %>%
     pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
     pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_compl_log_lik", values_to = "compl_log_lik") %>% 
+    pivot_longer(cols = starts_with("log_lik_vec"), names_to = "N_clus_log_lik", values_to = "log_lik") %>% 
     pivot_longer(cols = starts_with("penalty_vec"), names_to = "N_clus_penalty", values_to = "penalty") %>%
     pivot_longer(cols = starts_with("penalty_2_vec"), names_to = "N_clus_penalty_2", values_to = "penalty_2")
   
   ### Plot ICL vs N_clus
-  for (measurement in c("ICL","compl_log_lik","penalty","penalty_2")) {
+  for (measurement in c("ICL","compl_log_lik",'log_lik',"penalty","penalty_2")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement), 
                     '_', 'N_clus', ".pdf"), 
@@ -244,11 +246,13 @@ for (param_name in param_name_vec) {
       ggplot(aes(x=switch(measurement,
                           "ICL" = N_clus_ICL,
                           "compl_log_lik" = N_clus_compl_log_lik, 
+                          "log_lik" = N_clus_log_lik, 
                           "penalty_2" = N_clus_penalty_2,
                           "penalty" = N_clus_penalty),
                  y=switch(measurement,
                           "ICL" = ICL,
                           "compl_log_lik" = compl_log_lik,
+                          "log_lik" = log_lik,
                           "penalty_2" = penalty_2,
                           "penalty" = penalty), 
                  color=trial)) +
@@ -275,6 +279,15 @@ for (param_name in param_name_vec) {
                            summarise(max_lik=max(compl_log_lik),
                                      N_clus_est=as.numeric(substr(N_clus_compl_log_lik[which.max(compl_log_lik)],
                                                        start=18,stop=18)) ),
+                         alpha=0.3) 
+    }
+    if(measurement=='log_lik'){
+      g = g + geom_point(mapping = aes(x=N_clus_est,y=max_lik),
+                         data = results_df %>% 
+                           group_by(trial) %>% 
+                           summarise(max_lik=max(log_lik),
+                                     N_clus_est=as.numeric(substr(N_clus_log_lik[which.max(log_lik)],
+                                                                  start=12,stop=12)) ),
                          alpha=0.3) 
     }
     print(g)

@@ -59,7 +59,7 @@ for (subj in 1:length(edge_time_mat_list)) {
   type.seq = numeric(sum(edge_time_mat_tmp<Inf))
   current_ind = 1
   for (i in 1:nrow(edge_time_mat_tmp)) {
-    for (j in 1:ncol(edge_time_mat_tmp)) {
+    for (j in i:ncol(edge_time_mat_tmp)) {
       if (edge_time_mat_tmp[i,j]<Inf){
         time.seq[current_ind] = edge_time_mat_tmp[i,j]
         type.seq[current_ind] = convertNodePair(i, j, n = nrow(edge_time_mat_tmp), directed = FALSE)
@@ -110,7 +110,8 @@ for (subj in 1:length(edge_time_mat_list)) {
   ### Save result
   res = list(edge_time_mat = edge_time_mat_tmp,
              clusters_list = clusters_list_est,
-             center_pdf_array = center_pdf_array_est)
+             center_pdf_array = center_pdf_array_est,
+             t_vec = t_vec)
   folder_path = paste0('../Results/Rdata/RDA/', method, '/', file_vec[(subj+1)%/%2])
   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
   file_name = ifelse(subj%%2==1, yes = "Left", no = "Right") 

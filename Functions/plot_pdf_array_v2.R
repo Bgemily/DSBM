@@ -5,7 +5,7 @@ plot_pdf_array_v2 = function(pdf_array_list, pdf_true_array = NULL,
                           y_lim=c(0, 0.04))
 {
   
-  library(tidyverse)
+  # library(tidyverse)
   
   if (!is.list(pdf_array_list))
     pdf_array_list = list(pdf_array_list)

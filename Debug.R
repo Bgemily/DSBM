@@ -8,7 +8,7 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v5_smaller_lr/pr=1,n=30,beta=1.2/n/54/N_trial5_20211112_002520.Rdata")
+load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_pairwise_alignment//pr=1,n=30,beta=1.2/n/54/N_trial10_20211113_095511.Rdata")
 network_param = results[[1]]$network_param
 
 # Generate networks -------------------------------------------------------
@@ -45,7 +45,7 @@ N_subj = network_param$N_subj
 
 res_list = list()
 N_clus_tmp = 3
-for (step_size in c(.1,.3,.5,.7,.9)) {
+for (step_size in c(0.5)) {
   ### Get initialization -----------
   res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
                     t_vec = t_vec)

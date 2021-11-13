@@ -79,6 +79,7 @@ main_v5 = function(### Parameters for generative model
       n0_vec_list_init -> n0_vec_list_est
       n0_mat_list_init -> n0_mat_list_est
       
+      time_start = Sys.time()
       ### Estimation z,v,f based on pdf
       res = do_cluster_v14.2.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
                                clusters_list_init = clusters_list_est,
@@ -88,7 +89,8 @@ main_v5 = function(### Parameters for generative model
                                conv_thres=conv_thres, MaxIter=MaxIter,
                                opt_radius=opt_radius,
                                ...)
-      
+      time_end = Sys.time()
+      time_estimation = time_end - time_start
       
       res$clusters_list -> clusters_list_est
       res$v_vec_list -> v_vec_list_est
@@ -96,6 +98,8 @@ main_v5 = function(### Parameters for generative model
       res$align_time -> align_time
       res$cluster_time -> cluster_time
       res$center_pdf_array -> center_pdf_array_est
+      
+      N_iteration = res$N_iteration
       
       
       ### Get estimated pdf using kernel smoothing
@@ -129,9 +133,10 @@ main_v5 = function(### Parameters for generative model
   N_clus_est = sel_mod_res$N_clus_est
   ICL_vec = sel_mod_res$ICL_vec 
   compl_log_lik_vec = sel_mod_res$compl_log_lik_vec 
-  penalty_vec = sel_mod_res$penalty_vec
+  log_lik_vec = sel_mod_res$log_lik_vec
   penalty_2_vec = sel_mod_res$penalty_2_vec
-    
+  penalty_vec = sel_mod_res$penalty_vec
+  
   # Retrieve estimation results of the best cluster number ------------------
 
   res = sel_mod_res$res_best
@@ -288,8 +293,9 @@ main_v5 = function(### Parameters for generative model
               correct_N_clus=I(N_clus_est==N_clus)*1, 
               ICL_vec=ICL_vec, 
               compl_log_lik_vec=compl_log_lik_vec, 
-              penalty_vec=penalty_vec,
+              log_lik_vec=log_lik_vec,
               penalty_2_vec=penalty_2_vec,
+              penalty_vec=penalty_vec,
               # parameter estimates of best cluster number
               clusters_list_est=clusters_list_est,
               v_vec_list_est=v_vec_list_est,
@@ -299,6 +305,8 @@ main_v5 = function(### Parameters for generative model
               F_mean_sq_err=F_mean_sq_err, 
               v_mean_sq_err=v_mean_sq_err,
               # other
+              time_estimation=time_estimation,
+              N_iteration=N_iteration,
               loss_history=loss_history, 
               cluster_time=cluster_time, 
               align_time=align_time
