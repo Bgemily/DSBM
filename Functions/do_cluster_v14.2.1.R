@@ -138,6 +138,7 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
     if (n_iter>MaxIter) {
       message("[do_cluster_v14]: Reached maximum iteration number.")
     }
+    N_iteration = n_iter
     
     
     center_fft_array_list[[m]] = center_fft_array_current
@@ -313,6 +314,7 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
               center_pdf_array=center_pdf_array, 
               center_fft_array=center_pdf_array,
               freq_trun_mat=freq_trun_mat,
+              N_iteration=N_iteration,
               cluster_time=cluster_time, align_time=align_time))
   
 }

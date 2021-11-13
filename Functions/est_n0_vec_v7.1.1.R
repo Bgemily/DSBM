@@ -9,7 +9,7 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
                          clusters_list, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          freq_trun=5,
-                         t_vec=seq(0,200,length.out=1000), step_size=NULL,
+                         t_vec=seq(0,200,length.out=1000), step_size=8,
                          max_iter=50, epsilon=0.001, shrink=0.5, order_list=NULL, 
                          opt_radius=max(t_vec)/2,
                          ...)
@@ -72,7 +72,7 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
                                    n0_vec_list = n0_vec_list_current, 
                                    n0_mat_list = n0_mat_list_current, 
                                    freq_trun = freq_trun, t_vec = t_vec)
-  step_size = (length(t_vec)/100) / mean(sapply(gradient_vec_list, function(vec) sqrt(sum(vec^2)) ))
+  # step_size = (length(t_vec)/100) / mean(sapply(gradient_vec_list, function(vec) sqrt(sum(vec^2)) ))
   
   ### Refine estimation of time shifts using pdf
   n_iter = 1
