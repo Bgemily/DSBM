@@ -113,7 +113,6 @@ est_n0_vec_v8 = function(edge_time_mat_list,
           else
             weights = weights/sum(weights)
           
-          ### TODO: add adaptive step size here. Refer to est_n0_vec_v7.1.1
           if (!is.null(order_list)) {
             position = which(order_list[[m]]==i)
             n0_min = ifelse(test = position>=2, 
@@ -122,6 +121,7 @@ est_n0_vec_v8 = function(edge_time_mat_list,
             n0_max = ifelse(test = position<=(N_node-1), 
                             yes = n0_vec_tmp[order_list[[m]][position+1]],
                             no = length(t_vec))
+            stop("[est_n0_vec_v8:] The function align_multi_fft_gd might have bugs.")
             n0_vec_tmp[i] = align_multi_fft_gd(fft_origin_list = fft_origin_list, fft_target_list = fft_target_list,
                                                      step_size = step_size,
                                                      freq_trun = freq_trun,
@@ -131,13 +131,6 @@ est_n0_vec_v8 = function(edge_time_mat_list,
           else{
             n0_max = n0_max_vec_list[[m]][i]
             n0_min = n0_min_vec_list[[m]][i]
-            # browser()
-            # n0_vec_tmp[i] = align_multi_fft_gd(fft_origin_list = fft_origin_list, 
-            #                                    fft_target_list = fft_target_list,
-            #                                    step_size = step_size,
-            #                                    freq_trun = freq_trun,
-            #                                    weights = weights, t_vec=t_vec,
-            #                                    n0_min = n0_min, n0_max = n0_max)$n0
             
             f_origin_list = lapply(fft_origin_list,function(fft)Re(fft(fft, inverse=TRUE)) )
             f_target_list = lapply(fft_target_list,function(fft)Re(fft(fft, inverse=TRUE)) )

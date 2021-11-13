@@ -307,6 +307,7 @@ align_multi_curves_gd_v2 = function(f_origin_list, f_target_list, n0=0, step_siz
     else
       gd = sum(unlist(gd_list)*weights)
     
+    # print((step_size)*gd)
     n0 = n0 - (step_size)*gd
     n0 = round(n0) 
     
