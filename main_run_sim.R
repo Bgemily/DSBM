@@ -95,7 +95,7 @@ N_node_persubj_list = list(90)
 
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0'
-method = 'main_v5_cdf_multi_Nclus'
+method = 'main_v5_cdf_v2_multi_Nclus'
 default_setting = 'pr=1,n=90,beta=1.3'
 N_node_persubj_list = list(90)
 
