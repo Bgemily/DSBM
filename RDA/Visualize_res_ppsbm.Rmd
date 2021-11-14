@@ -1,0 +1,268 @@
+---
+title: "RDA_ppsbm"
+author: "Zitong Zhang"
+# date: 
+output: html_document
+params: 
+  subj_name: "func_20161004"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+# Import functions --------------------------------------------------------
+
+# rm(list=ls())
+file_path = "../Functions"
+file.sources = list.files(path = file_path, pattern = "*.R$", full.names = TRUE)
+sapply(file.sources, source)
+
+library(tidyverse)
+library(gridExtra)
+```
+
+## Read in network information for the L/R side 
+```{r}
+# Get network information for the L/R side 
+path = paste0("../../Processed_FunctionalData/",params$subj_name,"/")
+path_vec = c(path)
+
+edge_time_mat_list = vector(mode = "list", length = 2)
+locs_mat_list = vector(mode = "list", length = 2)
+mnx_vec_list = vector(mode = "list", length = 2)
+iso_inds_list = vector(mode = "list", length = 2)
+non_iso_inds_list = vector(mode = "list", length = 2)
+
+
+for(m in 1:length(path_vec)){ 
+  path = path_vec[m]
+  
+  ### Read information from data
+  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
+  edge_time_mat = edge_time_mat[,-1]
+  
+  avai.inds = as.matrix(read.csv(paste(path,'/AvaiNeurons.csv',sep='')))
+  avai.inds = avai.inds[,-1];
+  
+  locs.all = as.matrix(read.csv(paste(path,'/locs_all.csv',sep='')))
+  locs.all = locs.all[,-1]
+  locs_mat = locs.all[avai.inds,]
+  
+  mnx.all = as.matrix(read.csv(paste(path,'/mnx.csv',sep='')))
+  mnx.all = mnx.all[,-1]
+  mnx_vec = mnx.all[avai.inds]
+  
+  ### Split each zebrafish into left and right
+  inds_L = which(locs_mat[,2]<0)
+  inds_R = which(locs_mat[,2]>0)
+  
+  edge_time_mat_L = edge_time_mat[inds_L, inds_L]
+  edge_time_mat_R = edge_time_mat[inds_R, inds_R]
+  
+  locs_mat_L = locs_mat[inds_L,]
+  locs_mat_R = locs_mat[inds_R,]
+  
+  mnx_vec_L = mnx_vec[inds_L]
+  mnx_vec_R = mnx_vec[inds_R]
+  
+  
+  iso_inds_L = which(rowSums(edge_time_mat_L<Inf)==0)
+  iso_inds_R = which(rowSums(edge_time_mat_R<Inf)==0)
+  
+  non_iso_inds_L = setdiff(1:nrow(edge_time_mat_L), iso_inds_L)
+  non_iso_inds_R = setdiff(1:nrow(edge_time_mat_R), iso_inds_R)
+  
+  edge_time_mat_L = edge_time_mat_L[non_iso_inds_L, non_iso_inds_L]
+  edge_time_mat_R = edge_time_mat_R[non_iso_inds_R, non_iso_inds_R]
+  
+  edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
+  locs_mat_list[c(2*m-1,2*m)] = list(locs_mat_L, locs_mat_R)
+  mnx_vec_list[c(2*m-1,2*m)] = list(mnx_vec_L, mnx_vec_R)
+  
+  iso_inds_list[c(2*m-1,2*m)] = list(iso_inds_L, iso_inds_R)
+  non_iso_inds_list[c(2*m-1,2*m)] = list(non_iso_inds_L, non_iso_inds_R)
+  
+}
+
+```
+
+## Read in data analysis results
+```{r}
+### Read in data analysis results
+data_folder = paste0("../../Results/Rdata/RDA/ppsbm/", params$subj_name, "/") 
+path_vec = list.files(data_folder, full.names = TRUE, recursive = TRUE)
+
+res_list = vector(mode = "list", length = length(path_vec))
+
+for(m in 1:length(path_vec)){ 
+  path = path_vec[m]
+  ### Read in results from data
+  load(path)
+  res_list[[m]] = res
+}
+
+
+### Collect from all subjects: clusters_list, center_pdf_array
+clusters_list = lapply(res_list, function(res) res$clusters_list)
+center_pdf_array_list = lapply(res_list, function(res) res$center_pdf_array)
+
+
+
+```
+
+
+## Visualize estimated intensities
+```{r}
+### Visualize estimated connecting intensities 
+clus_size_list = lapply(clusters_list, function(clusters)sapply(clusters,length))
+if (!exists("t_vec")) {
+  t_vec = seq(0,336,1)
+}
+
+g1 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[1]], 
+                        pdf_true_array = center_pdf_array_list[[1]],
+                        clus_size_vec = clus_size_list[[1]],
+                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list))))
+
+g2 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[2]], 
+                        pdf_true_array = center_pdf_array_list[[2]],
+                        clus_size_vec = clus_size_list[[2]],
+                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list))))
+
+grid.arrange(g1, g2, ncol=2)
+
+```
+
+
+### Fix bug in ppsbm and order clusters by connecting probability
+```{r}
+### Fix bugs in ppsbm
+for(ind_subj in 1:length(center_pdf_array_list)){
+  center_pdf_array_list[[ind_subj]][center_pdf_array_list[[ind_subj]]==1] = 0
+}
+
+### Get connecting probabilities
+order_clus_1 = order(rowSums(apply(center_pdf_array_list[[1]], 
+      MARGIN = c(1,2),
+      function(vec)sum(vec*(t_vec[2]-t_vec[1])))), 
+      decreasing = TRUE)
+order_clus_2 = order(rowSums(apply(center_pdf_array_list[[2]], 
+      MARGIN = c(1,2),
+      function(vec)sum(vec*(t_vec[2]-t_vec[1])))), 
+      decreasing = TRUE)
+
+g1 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE], 
+                        pdf_true_array = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE],
+                        clus_size_vec = clus_size_list[[1]][order_clus_1],
+                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list))))
+
+g2 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE], 
+                        pdf_true_array = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE],
+                        clus_size_vec = clus_size_list[[2]][order_clus_2],
+                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list))))
+
+grid.arrange(g1, g2, ncol=2)
+```
+
+
+## Visualize estimated clusters with spatial location
+
+```{r}
+
+### Spatial location  ----
+
+membership_list = lapply(clusters_list, clus2mem)
+membership_list[[1]] = clus2mem(clusters_list[[1]][order_clus_1])
+membership_list[[2]] = clus2mem(clusters_list[[2]][order_clus_2])
+
+
+for (m in 1:length(membership_list)) {
+  N_node = nrow(locs_mat_list[[m]])
+  mem_tmp = rep(0,N_node)
+  mem_tmp[non_iso_inds_list[[m]]] = membership_list[[m]]
+  membership_list[[m]] = mem_tmp
+}
+
+data = as.data.frame(reduce(locs_mat_list,rbind))
+colnames(data) = c('AP','LR','DV')
+data = cbind(data, 
+             membership=as.factor(unlist(membership_list)),
+             subj=rep(1:length(membership_list),
+                      times=sapply(membership_list,length)))
+
+# lims = data.frame(coord=c("AP","DV","LR"), xmin=c(-0.5, 0, -2),xmax=c(9,140,3))
+g<- data %>% 
+  pivot_longer(cols = c('AP','LR','DV'), names_to = "coord", values_to = "loc") %>%
+  ggplot(aes(x=loc,
+                     group=membership,
+                     color=membership))+
+  geom_density( aes(), alpha=0.6, position = 'dodge') +
+  scale_color_manual(values=palette()[c(8,2:4)]) +
+  theme_bw()+
+  theme(legend.position = "none") +
+  facet_wrap(~coord, scales='free',ncol=1) +
+  xlab('') +
+  # scale_x_continuous(limits = c(-2, 6))+
+  theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
+  scale_y_continuous(position = "right")
+print(g)
+
+```
+```{r}
+ggplot(data = data, mapping = aes(x=LR, y=AP, color=membership)) +
+  geom_point() + 
+  scale_color_manual(values=palette()[c(8,2:4)])
+
+ggplot(data = data, mapping = aes(x=AP, y=DV, color=membership)) +
+  geom_point() + 
+  scale_color_manual(values=palette()[c(8,2:4)])
+
+ggplot(data = data, mapping = aes(x=LR, y=DV, color=membership)) +
+  geom_point() + 
+  scale_color_manual(values=palette()[c(8,2:4)])
+```
+
+
+## Visualize estimated clusters with mnx+/- indicator
+
+```{r}
+### mnx decomposition  ----
+
+data = tibble(subj=rep(1:length(membership_list),sapply(membership_list,length)),
+              membership=unlist(membership_list),
+              mnx=as.factor(unlist(mnx_vec_list)), 
+              islet=NA) 
+
+data_2 = data %>% 
+  mutate(mnx=factor(mnx,levels=c(1,0)), islet=as.factor(as.numeric(islet)), 
+         membership=factor(membership, levels=c(0,3,2,1))) 
+data_2 %>%
+  ggplot(mapping = aes(fill=membership,x=mnx)) +
+  # ggplot(mapping = aes(fill=membership,x=factor(1))) +
+  scale_fill_manual(values=palette()[c(8,4,3,2)]) +
+  geom_bar(position="fill") +
+  # facet_wrap(facets=. ~ mnx, ncol = 1,
+  #            labeller = labeller(mnx = c(`0`=paste0('mnx- (p=', as.numeric(data_2 %>% filter(mnx==0) %>% summarise(n())), ')'), 
+  #                                        `1`=paste0('mnx+ (p=', as.numeric(data_2 %>% filter(mnx==1) %>% summarise(n())), ')')))) +
+  # coord_polar(theta="y") +
+  geom_text(data = data_2 %>% 
+              count(mnx, membership) %>% group_by(mnx) %>% 
+              summarise(perc=round(n/sum(n),3), membership=membership) %>% 
+              arrange(desc(membership), .by_group = TRUE) ,
+            aes(x = mnx, label = scales::percent(perc), y=perc, fill=NULL), 
+            position = position_fill(0.5), size=2.5)+
+  scale_x_discrete(labels=c("mnx+","mnx-"))+
+  xlab("")+
+  theme_bw()+
+  theme(legend.position = 'none', 
+        panel.grid  = element_blank(),
+        # axis.text = element_blank(),
+        axis.text.y = element_blank(), 
+        axis.title = element_blank(),  
+        axis.title.y = element_blank(), 
+        axis.ticks.y = element_blank())
+
+```
+

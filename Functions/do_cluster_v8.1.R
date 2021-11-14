@@ -257,28 +257,3 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   
 }
 
-
-# Test --------------------------------------------------------------------
-
-# res = generate_network2_v2(SEED=831, N_subj=3, N_node_vec=rep(90,3),
-#                            N_clus=3,
-#                            total_time=200,
-#                            conn_patt_var=1, conn_patt_sep = 1.3, const=40, conn_prob_mean = 1, conn_prob_rad = 0,
-#                            time_shift_struc=max, time_shift_rad = 10)
-# 
-# edge_time_mat_list = res$edge_time_mat_list
-# cdf_true_array = res$cdf_true_array
-# pdf_true_array = res$pdf_true_array
-# clusters_list = res$clus_true_list
-# time_shift_list = res$time_shift_list
-# 
-# tmp = do_cluster_v2(edge_time_mat_list = edge_time_mat_list, N_clus = 3, max_iter=1, step_size=0.02)
-# plot(tmp$loss_history)
-# tmp$clusters_list
-# tmp$clusters_history
-# plot(time_shift_list[[1]][], tmp$v_vec_list[[1]][])
-
-# tmp2 = do_cluster(edge_time_mat = edge_time_mat_list[[1]], N_clus = 3)
-# tmp2$clusters
-# tmp2$clusters_history[[1]]
-# plot(time_shift_list[[1]], tmp2$n0_vec)
