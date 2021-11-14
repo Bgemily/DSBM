@@ -96,7 +96,7 @@ N_node_persubj_list = list(30,42,54,66,78,90)
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0'
 method = 'main_v5_pdf_v7_pairwise_alignment'
-default_setting = 'pr=1,n=30,beta=1.2'
+default_setting = 'pr=1,n=30,beta=1.3'
 
 for (. in 1:split) {
   ### N_node
@@ -107,7 +107,7 @@ for (. in 1:split) {
       tryCatch(main_v5(SEED = SEED,
                        N_node_vec = rep(N_node,1),
                        conn_prob_mean = 1,
-                       conn_patt_sep = 1.2,
+                       conn_patt_sep = 1.3,
                        time_shift_mean_vec = rep(20,N_clus),
                        t_vec = seq(0,200,length.out=200),
                        freq_trun_vec = c(7), step_size=0.5,
@@ -129,7 +129,7 @@ for (. in 1:split) {
 
 ### ICL vs N_clus and N_basis ----- 
 method = 'main_v5_pdf_v7_multi_Nclus_Nbasis'
-default_setting = 'pr=1,n=90,beta=1.2'
+default_setting = 'pr=1,n=90,beta=1.3'
 N_node_persubj_list = list(90)
 
 for (. in 1:split) {
@@ -141,7 +141,7 @@ for (. in 1:split) {
       tryCatch(main_v5(SEED = SEED,
                        N_node_vec = rep(N_node,1),
                        conn_prob_mean = 1,
-                       conn_patt_sep = 1.2,
+                       conn_patt_sep = 1.3,
                        time_shift_mean_vec = rep(20,N_clus),
                        t_vec = seq(0,200,length.out=200),
                        freq_trun_vec = c(3,5,7,9), step_size=0.5,
@@ -161,7 +161,7 @@ for (. in 1:split) {
   }
 }
 
-default_setting = 'pr=1,n=54,beta=1.2'
+default_setting = 'pr=1,n=54,beta=1.3'
 N_node_persubj_list = list(54)
 
 for (. in 1:split) {
@@ -173,7 +173,7 @@ for (. in 1:split) {
       tryCatch(main_v5(SEED = SEED,
                        N_node_vec = rep(N_node,1),
                        conn_prob_mean = 1,
-                       conn_patt_sep = 1.2,
+                       conn_patt_sep = 1.3,
                        time_shift_mean_vec = rep(20,N_clus),
                        t_vec = seq(0,200,length.out=200),
                        freq_trun_vec = c(3,5,7,9), step_size=0.5,

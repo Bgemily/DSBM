@@ -9,7 +9,7 @@ sapply(file.sources, source)
 # Load simulation result and get network parameters -----------------------
 
 load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_multi_Nclus_Nbasis/pr=1,n=90,beta=1.2/n/90/N_trial10_20211113_225559.Rdata")
-network_param = results[[1]]$network_param
+network_param = results[[2]]$network_param
 
 # Generate networks -------------------------------------------------------
 
@@ -90,13 +90,19 @@ for (step_size in c(0.5)) {
   
   # Save results of N_clus_tmp ----------------------------------------------
   
-  res_list = c(res_list, list(res))
+  res_list = c(res_list, list(list(res)))
   
 }
 
 # save(res_list, network_param,
 #      file = '../Results/Rdata/SNR_Vis0/main_v5_v7_largefreqtrun/pr=0.4,n=90,beta=1.3,one_instance.Rdata')
 
+### Calculate ICL
+tmp = select_model(edge_time_mat_list = edge_time_mat_list, 
+             N_node_vec = nrow(edge_time_mat_list[[1]]), 
+             N_clus_min = 1, N_clus_max = 1, result_list = res_list,
+             total_time = total_time)
+tmp$ICL_mat
 
 # Plot estimated time shifts ----------------------------------------------
 

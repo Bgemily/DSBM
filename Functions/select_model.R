@@ -65,10 +65,7 @@ select_model = function(edge_time_mat_list, N_node_vec,
           counts = counts / 2 ### Every finite edge time will be counted twice
           
           ### Add compl_log_lik_tmp by \sum_{i,j:z_i=q,z_j=k}{\log f_{q,k}(t_{i,j}-\max(v_i,v_j))}
-          ind_tmp = which(counts > 0)
-          if (sum(log_lik_qk_vec[ind_tmp]*counts[ind_tmp]) == -Inf) {
-            next
-          }
+          ind_tmp = which(counts > 0 & log_lik_qk_vec>-Inf)
           log_lik_tmp = log_lik_tmp + sum(log_lik_qk_vec[ind_tmp]*counts[ind_tmp])
         }
       }

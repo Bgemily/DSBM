@@ -207,7 +207,7 @@ for (param_name in param_name_vec) {
 
 path_vec = rep(0,2)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_multi_Nclus_Nbasis/pr=1,n=90,beta=1.2/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_multi_Nclus_Nbasis/pr=1,n=90,beta=1.3/"
 # path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.2/"
 
 param_name_vec = list.files(path_vec[1])
