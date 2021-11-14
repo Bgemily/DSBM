@@ -6,6 +6,7 @@ plot_pdf_array_v2 = function(pdf_array_list, pdf_true_array = NULL,
 {
   
   # library(tidyverse)
+  # library(ggplot2)
   
   if (!is.list(pdf_array_list))
     pdf_array_list = list(pdf_array_list)
@@ -48,7 +49,8 @@ plot_pdf_array_v2 = function(pdf_array_list, pdf_true_array = NULL,
     }
   }
   
-  library(ggplot2)
+  intensity_color_mat = matrix(palette()[1],nrow=k1,ncol=k2)
+  diag(intensity_color_mat) = palette()[2:(k1+1)]
   g <- big.df %>%
     mutate(group = as.factor(N_subj), 
            type_group = as.factor((N_subj=='True')*1), 
@@ -59,9 +61,7 @@ plot_pdf_array_v2 = function(pdf_array_list, pdf_true_array = NULL,
                size=type_group, linetype=type_group)) +
     geom_line()+
     # geom_line(color=big.df$fill.col) +
-    scale_color_manual(values = c(palette()[2],palette()[1],palette()[1],
-                                  palette()[1],palette()[3],palette()[1],
-                                  palette()[1],palette()[1],palette()[4]),
+    scale_color_manual(values = intensity_color_mat,
                        name=NULL,aesthetics = "color") +
     scale_alpha_manual(values=c(`1`=0.7, `0`=0.5), name=NULL) +
     scale_size_manual(values=c(`1`=0.5, `0`=0.5), name=NULL)+

@@ -1,5 +1,5 @@
 ---
-title: "RDA_ppsbm"
+title: "RDA_our_method"
 author: "Zitong Zhang"
 # date: 
 output: html_document
@@ -21,6 +21,7 @@ sapply(file.sources, source)
 
 library(tidyverse)
 library(gridExtra)
+library(R.matlab)
 ```
 
 ## Read in network information for the L/R side 
@@ -91,7 +92,7 @@ for(m in 1:length(path_vec)){
 ## Read in data analysis results
 ```{r}
 ### Read in data analysis results
-data_folder = paste0("../../Results/Rdata/RDA/ppsbm/", params$subj_name, "/") 
+data_folder = paste0("../../Results/Rdata/RDA/PDF+pairwise/", params$subj_name, "/") 
 path_vec = list.files(data_folder, full.names = TRUE, recursive = TRUE)
 
 res_list = vector(mode = "list", length = length(path_vec))
@@ -104,45 +105,19 @@ for(m in 1:length(path_vec)){
 }
 
 
-### Collect from all subjects: clusters_list, center_pdf_array
+### Collect from all subjects: clusters_list, center_pdf_array, v_vec
 clusters_list = lapply(res_list, function(res) res$clusters_list)
 center_pdf_array_list = lapply(res_list, function(res) res$center_pdf_array)
-
-
+v_vec_list = lapply(res_list, function(res) res$v_vec)
 
 ```
 
 
 ## Visualize estimated intensities
 ```{r}
-### Visualize estimated connecting intensities 
-clus_size_list = lapply(clusters_list, function(clusters)sapply(clusters,length))
 if (!exists("t_vec")) {
   t_vec = seq(0,336,1)
 }
-
-g1 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[1]], 
-                        pdf_true_array = center_pdf_array_list[[1]],
-                        clus_size_vec = clus_size_list[[1]],
-                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list))))
-
-g2 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[2]], 
-                        pdf_true_array = center_pdf_array_list[[2]],
-                        clus_size_vec = clus_size_list[[2]],
-                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list))))
-
-grid.arrange(g1, g2, ncol=2)
-
-```
-
-
-### Fix bug in ppsbm and order clusters by connecting probability
-```{r}
-### Fix bugs in ppsbm
-for(ind_subj in 1:length(center_pdf_array_list)){
-  center_pdf_array_list[[ind_subj]][center_pdf_array_list[[ind_subj]]==1] = 0
-}
-
 ### Get connecting probabilities
 order_clus_1 = order(rowSums(apply(center_pdf_array_list[[1]], 
       MARGIN = c(1,2),
@@ -152,6 +127,9 @@ order_clus_2 = order(rowSums(apply(center_pdf_array_list[[2]],
       MARGIN = c(1,2),
       function(vec)sum(vec*(t_vec[2]-t_vec[1])))), 
       decreasing = TRUE)
+
+### Visualize estimated connecting intensities 
+clus_size_list = lapply(clusters_list, function(clusters)sapply(clusters,length))
 
 g1 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE], 
                         pdf_true_array = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE],
@@ -167,12 +145,10 @@ grid.arrange(g1, g2, ncol=2)
 ```
 
 
-## Visualize estimated clusters with spatial location
 
+## Visualize estimated time shifts
 ```{r}
-
-### Spatial location  ----
-
+### Get memberships for ALL nodes
 membership_list = lapply(clusters_list, clus2mem)
 membership_list[[1]] = clus2mem(clusters_list[[1]][order_clus_1])
 membership_list[[2]] = clus2mem(clusters_list[[2]][order_clus_2])
@@ -184,6 +160,49 @@ for (m in 1:length(membership_list)) {
   mem_tmp[non_iso_inds_list[[m]]] = membership_list[[m]]
   membership_list[[m]] = mem_tmp
 }
+```
+
+```{r}
+### Get Wan's result
+dat=readMat(paste('../../Raw_data/to_shizhe/','Leader_',substr(params$subj_name, start=nchar(params$subj_name)-7, stop=nchar(params$subj_name)),'.mat',sep=''))
+activeTime_vec = dat$activeTime * 60
+patternTime_vec = dat$patternTime * 60
+
+### Let time shift for non-active nodes be NA
+for (m in 1:length(v_vec_list)) {
+  N_node = nrow(locs_mat_list[[m]])
+  v_vec_tmp = rep(NA,N_node)
+  v_vec_tmp[non_iso_inds_list[[m]]] = v_vec_list[[m]]
+  v_vec_list[[m]] = v_vec_tmp
+}
+
+ggplot(data = data.frame(activeTime_vec=activeTime_vec,
+                         v_vec=unlist(v_vec_list),
+                         mem=as_factor(unlist(membership_list))
+                         )) + 
+  geom_point(aes(x=activeTime_vec, y=v_vec, color=mem)) +
+  scale_color_manual(values=palette()[c(8,2:6)]) +
+  xlab('Activation time by Wan (pp. e7)') +
+  ylab('Our estimation')
+
+ggplot(data = data.frame(activeTime_vec=activeTime_vec,
+                         patternTime_vec=patternTime_vec,
+                         v_vec=unlist(v_vec_list),
+                         mem=as_factor(unlist(membership_list))
+                         )) + 
+  geom_point(aes(x=patternTime_vec, y=v_vec, color=mem)) +
+  scale_color_manual(values=palette()[c(8,2:6)]) +
+  xlab('Patterning time by Wan (pp. e7)') +
+  ylab('Our estimation')
+
+```
+
+
+## Visualize estimated clusters with spatial location
+
+```{r}
+
+### Spatial location  ----
 
 data = as.data.frame(reduce(locs_mat_list,rbind))
 colnames(data) = c('AP','LR','DV')
@@ -199,7 +218,7 @@ g<- data %>%
                      group=membership,
                      color=membership))+
   geom_density( aes(), alpha=0.6, position = 'dodge') +
-  scale_color_manual(values=palette()[c(8,2:4)]) +
+  scale_color_manual(values=palette()[c(8,2:6)]) +
   theme_bw()+
   theme(legend.position = "none") +
   facet_wrap(~coord, scales='free',ncol=1) +
@@ -213,15 +232,15 @@ print(g)
 ```{r}
 ggplot(data = data, mapping = aes(x=LR, y=AP, color=membership)) +
   geom_point() + 
-  scale_color_manual(values=palette()[c(8,2:4)])
+  scale_color_manual(values = c(palette()[c(8,2:6)]))
 
 ggplot(data = data, mapping = aes(x=AP, y=DV, color=membership)) +
   geom_point() + 
-  scale_color_manual(values=palette()[c(8,2:4)])
+  scale_color_manual(values = c(palette()[c(8,2:6)]))
 
 ggplot(data = data, mapping = aes(x=LR, y=DV, color=membership)) +
   geom_point() + 
-  scale_color_manual(values=palette()[c(8,2:4)])
+  scale_color_manual(values = c(palette()[c(8,2:6)]))
 ```
 
 
@@ -237,11 +256,11 @@ data = tibble(subj=rep(1:length(membership_list),sapply(membership_list,length))
 
 data_2 = data %>% 
   mutate(mnx=factor(mnx,levels=c(1,0)), islet=as.factor(as.numeric(islet)), 
-         membership=factor(membership, levels=c(0,3,2,1))) 
+         membership=factor(membership, levels=c(0,max(membership):1))) 
 data_2 %>%
   ggplot(mapping = aes(fill=membership,x=mnx)) +
   # ggplot(mapping = aes(fill=membership,x=factor(1))) +
-  scale_fill_manual(values=palette()[c(8,4,3,2)]) +
+  scale_fill_manual(values=palette()[c(8,(length(levels(data_2$membership))):2)]) +
   geom_bar(position="fill") +
   # facet_wrap(facets=. ~ mnx, ncol = 1,
   #            labeller = labeller(mnx = c(`0`=paste0('mnx- (p=', as.numeric(data_2 %>% filter(mnx==0) %>% summarise(n())), ')'), 

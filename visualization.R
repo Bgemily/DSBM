@@ -218,13 +218,19 @@ for (param_name in param_name_vec) {
   ### Extract results for n/beta/V. Output: freq_trun | ICL | log-lik | penalty
   func_tmp = function(folder_path, param_name) {
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
-                           measurement = c("ICL_vec", 'ICL_mat',
+                           measurement = c("ICL_vec", 
                                            "compl_log_lik_vec", 
                                            'log_lik_vec',
                                            "penalty_vec", "penalty_2_vec",
                                            "N_clus_est"))
   }
   results_list = lapply(path_vec[1], func_tmp, param_name=param_name)
+  results_list[[1]]$compl_log_lik_vec1 = results_list[[1]]$log_lik_vec1 - results_list[[1]]$penalty_2_vec1
+  results_list[[1]]$compl_log_lik_vec2 = results_list[[1]]$log_lik_vec2 - results_list[[1]]$penalty_2_vec2
+  results_list[[1]]$compl_log_lik_vec3 = results_list[[1]]$log_lik_vec3 - results_list[[1]]$penalty_2_vec3
+  results_list[[1]]$compl_log_lik_vec4 = results_list[[1]]$log_lik_vec4 - results_list[[1]]$penalty_2_vec4
+  results_list[[1]]$compl_log_lik_vec5 = results_list[[1]]$log_lik_vec5 - results_list[[1]]$penalty_2_vec5
+  
   results_df = bind_rows(bind_cols(results_list[[1]],
                                    "beta"="1.2",
                                    'trial'=seq(nrow(results_list[[1]]))))
@@ -270,7 +276,7 @@ for (param_name in param_name_vec) {
                          data = results_df %>% 
                            group_by(trial) %>% 
                            summarise(max_ICL=max(ICL),N_clus_est=N_clus_est),
-                         alpha=0.3) 
+                         alpha=0.5) 
     }
     if(measurement=='compl_log_lik'){
       g = g + geom_point(mapping = aes(x=N_clus_est,y=max_lik),
@@ -279,7 +285,7 @@ for (param_name in param_name_vec) {
                            summarise(max_lik=max(compl_log_lik),
                                      N_clus_est=as.numeric(substr(N_clus_compl_log_lik[which.max(compl_log_lik)],
                                                        start=18,stop=18)) ),
-                         alpha=0.3) 
+                         alpha=0.5) 
     }
     if(measurement=='log_lik'){
       g = g + geom_point(mapping = aes(x=N_clus_est,y=max_lik),
@@ -288,7 +294,7 @@ for (param_name in param_name_vec) {
                            summarise(max_lik=max(log_lik),
                                      N_clus_est=as.numeric(substr(N_clus_log_lik[which.max(log_lik)],
                                                                   start=12,stop=12)) ),
-                         alpha=0.3) 
+                         alpha=0.5) 
     }
     print(g)
     dev.off()

@@ -8,7 +8,7 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_pairwise_alignment//pr=1,n=30,beta=1.2/n/54/N_trial10_20211113_095511.Rdata")
+load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_multi_Nclus_Nbasis/pr=1,n=90,beta=1.2/n/90/N_trial10_20211113_225559.Rdata")
 network_param = results[[1]]$network_param
 
 # Generate networks -------------------------------------------------------
@@ -44,7 +44,7 @@ N_subj = network_param$N_subj
 # Apply our method --------------------------------------------------------
 
 res_list = list()
-N_clus_tmp = 3
+N_clus_tmp = 1
 for (step_size in c(0.5)) {
   ### Get initialization -----------
   res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
@@ -103,6 +103,7 @@ for (step_size in c(0.5)) {
 plot(y=res$v_vec_list[[1]],x=v_true_list[[1]])
 abline(a=0,b=1,col='red')
 
+plot(y=res$center_pdf_array[1,1,], x=t_vec)
 
 v_mse_vec = sapply(res_list, function(res)mean((res$v_vec_list[[1]] - v_true_list[[1]])^2))
 plot(y=v_mse_vec,x=c(0.1,.3,0.5,0.7,0.9),type='b')
