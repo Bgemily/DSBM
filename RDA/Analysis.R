@@ -125,7 +125,7 @@ for(m in 1:length(path_vec)){
 # Apply algorithm (our) ---------------------------------------------------------
 
 
-method = "PDF+pairwise"
+method = "PDF+pairwise_v2"
 
 N_clus_min = 1 # Number of clusters
 N_clus_max = 5

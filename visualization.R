@@ -16,11 +16,14 @@ library(ggplot2)
 
 
 # cdf vs pdf (V!=0) ------------------------------------------------------------
-path_vec = rep(0,5)
+path_vec = rep(0,6)
 
 path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_cdf/pr=1,n=30,beta=1.2/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v5_smaller_lr/pr=1,n=30,beta=1.2/"
-path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_pairwise_alignment/pr=1,n=30,beta=1.2/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v9_pairwise_alignment/pr=1,n=30,beta=1.2/"
+path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v10_pairwise_alignment/freq_trun/3/pr=1,n=30,beta=1.2/"
+path_vec[4] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v10_pairwise_alignment/freq_trun/5/pr=1,n=30,beta=1.2/"
+path_vec[5] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v10_pairwise_alignment/freq_trun/7/pr=1,n=30,beta=1.2/"
+path_vec[6] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v10_pairwise_alignment/freq_trun/9/pr=1,n=30,beta=1.2/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -32,8 +35,11 @@ for (param_name in param_name_vec) {
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
                            measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "ICL_vec")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
-                         bind_cols(results_list[[2]],"method"="PDF+simult_align"), 
-                         bind_cols(results_list[[3]],"method"="PDF+pairwise_align"))
+                         bind_cols(results_list[[2]],"method"="PDF+N_basis_adptv"),
+                         bind_cols(results_list[[3]],"method"="PDF+N_basis_07"),
+                         bind_cols(results_list[[4]],"method"="PDF+N_basis_11"),
+                         bind_cols(results_list[[5]],"method"="PDF+N_basis_15"),
+                         bind_cols(results_list[[6]],"method"="PDF+N_basis_19"),)
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
@@ -46,7 +52,7 @@ for (param_name in param_name_vec) {
     pdf(file=paste0("../Results/Plots/Temp/", 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement),
                     '_', 'vs', '_', "N_node", ".pdf"), 
-        width = 4, height = 4)
+        width = 5, height = 5)
     g = results_df %>% 
       ggplot(aes(x=param_value, 
                  y=switch(measurement,
@@ -54,16 +60,17 @@ for (param_name in param_name_vec) {
                           "f_mse" = F_mean_sq_err,
                           "V_mse" = v_mean_sq_err), 
                  color=method)) +
-      stat_summary(aes(group=method), position = position_dodge(.3),
-                   geom="pointrange",
-                   fun.min = function(x)quantile(x,0.25),
-                   fun.max = function(x)quantile(x,0.75),
-                   fun = median) +
-      stat_summary(aes(group=method),position = position_dodge(.3),
+      stat_summary(aes(group=method), position = position_dodge(.0),
+                   # geom="pointrange",
+                   # fun.min = function(x)quantile(x,0.25),
+                   # fun.max = function(x)quantile(x,0.75),
+                   geom="point",
+                   fun = "median") +
+      stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",
                    fun = "median") +
       theme(legend.position = "bottom") +
-      # guides(color=guide_legend(nrow=2,byrow=TRUE)) +
+      guides(color=guide_legend(nrow=2,byrow=TRUE)) +
       scale_y_continuous(limits = switch(measurement,
                                          "1-ARI" = c(0,1),
                                          "f_mse" = c())) +
@@ -207,7 +214,7 @@ for (param_name in param_name_vec) {
 
 path_vec = rep(0,2)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_multi_Nclus_Nbasis/pr=1,n=90,beta=1.3/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v9_multi_Nclus_Nbasis/pr=1,n=54,beta=1.2/"
 # path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.2/"
 
 param_name_vec = list.files(path_vec[1])

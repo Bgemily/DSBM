@@ -4,7 +4,8 @@ author: "Zitong Zhang"
 # date: 
 output: html_document
 params: 
-  subj_name: "func_20161004"
+  subj_name: "func_20150417"
+  data_folder: "../../Results/Rdata/RDA/PDF+pairwise_v2/"
 ---
 
 ```{r setup, include=FALSE}
@@ -92,7 +93,7 @@ for(m in 1:length(path_vec)){
 ## Read in data analysis results
 ```{r}
 ### Read in data analysis results
-data_folder = paste0("../../Results/Rdata/RDA/PDF+pairwise/", params$subj_name, "/") 
+data_folder = paste0(params$data_folder, params$subj_name, "/") 
 path_vec = list.files(data_folder, full.names = TRUE, recursive = TRUE)
 
 res_list = vector(mode = "list", length = length(path_vec))
@@ -109,7 +110,7 @@ for(m in 1:length(path_vec)){
 clusters_list = lapply(res_list, function(res) res$clusters_list)
 center_pdf_array_list = lapply(res_list, function(res) res$center_pdf_array)
 v_vec_list = lapply(res_list, function(res) res$v_vec)
-
+t_vec = res$t_vec
 ```
 
 
@@ -134,12 +135,12 @@ clus_size_list = lapply(clusters_list, function(clusters)sapply(clusters,length)
 g1 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE], 
                         pdf_true_array = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE],
                         clus_size_vec = clus_size_list[[1]][order_clus_1],
-                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list))))
+                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list[[1]]))))
 
 g2 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE], 
                         pdf_true_array = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE],
                         clus_size_vec = clus_size_list[[2]][order_clus_2],
-                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list))))
+                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list[[2]]))))
 
 grid.arrange(g1, g2, ncol=2)
 ```

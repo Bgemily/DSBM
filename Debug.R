@@ -8,8 +8,125 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_multi_Nclus_Nbasis/pr=1,n=90,beta=1.2/n/90/N_trial10_20211113_225559.Rdata")
+load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v9_pairwise_alignment/pr=1,n=30,beta=1.2/n/90/N_trial10_20211114_163710.Rdata")
+network_param = results[[1]]$network_param
+
+# Generate networks -------------------------------------------------------
+
+network_list = do.call(what = generate_network2_v3, args = network_param)
+
+edge_time_mat_list = network_list$edge_time_mat_list
+pdf_true_array = network_list$pdf_true_array
+membership_true_list = network_list$membership_true_list
+clus_true_list = network_list$clus_true_list
+v_true_list = network_list$time_shift_list
+order_true_list = lapply(v_true_list, function(v_vec)order(v_vec))
+
+
+# Estimation results ----------------------------------------------
+results[[1]]$v_mean_sq_err
+plot(y=results[[1]]$v_vec_list_est[[1]],x=v_true_list[[1]],
+     xlab="True time shifts", ylab="Estimated time shifts",
+     main=paste("PDF+adap,","mse:",round(results[[1]]$v_mean_sq_err,2)))
+abline(a=0,b=1,col='red')
+
+results[[1]]$F_mean_sq_err
+center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list,
+                                               clusters_list = results[[1]]$clusters_list_est,
+                                               n0_mat_list = lapply(results[[1]]$v_vec_list_est, 
+                                                                    function(vec) n0_vec2mat(round(vec/(t_vec[2])))),
+                                               t_vec = t_vec)
+res = find_permn(center_cdf_array_from = center_pdf_array_est,
+                 center_cdf_array_to = pdf_true_array)
+permn = res$permn
+center_pdf_array_est = center_pdf_array_est[permn, permn, ]
+g = plot_pdf_array_v2(pdf_array_list = list(center_pdf_array_est), 
+                  pdf_true_array = pdf_true_array, 
+                  clus_size_vec = sapply(results[[1]]$clusters_list_est[[1]][permn], length),
+                  t_vec = t_vec, y_lim = c(0,0.06))
+g + ggtitle(paste0("PDF+adap, f_mse:",round(results[[1]]$F_mean_sq_err,5)))
+
+
+# Load simulation result and get network parameters -----------------------
+
+load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v10_pairwise_alignment/freq_trun/7/pr=1,n=30,beta=1.2/n/54/N_trial10_20211114_195338.Rdata")
 network_param = results[[2]]$network_param
+
+# Generate networks -------------------------------------------------------
+
+network_list = do.call(what = generate_network2_v3, args = network_param)
+
+edge_time_mat_list = network_list$edge_time_mat_list
+pdf_true_array = network_list$pdf_true_array
+membership_true_list = network_list$membership_true_list
+clus_true_list = network_list$clus_true_list
+v_true_list = network_list$time_shift_list
+order_true_list = lapply(v_true_list, function(v_vec)order(v_vec))
+
+
+# Plot estimated time shifts ----------------------------------------------
+results[[2]]$v_mean_sq_err
+plot(y=results[[2]]$v_vec_list_est[[1]],x=v_true_list[[1]],
+     xlab="True time shifts", ylab="Estimated time shifts",
+     main=paste("PDF+Nbasis_15,","mse:",round(results[[2]]$v_mean_sq_err,2)))
+abline(a=0,b=1,col='red')
+
+results[[2]]$F_mean_sq_err
+center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list,
+                                               clusters_list = results[[2]]$clusters_list_est,
+                                               n0_mat_list = lapply(results[[2]]$v_vec_list_est, 
+                                                                    function(vec) n0_vec2mat(round(vec/(t_vec[2])))),
+                                               t_vec = t_vec)
+res = find_permn(center_cdf_array_from = center_pdf_array_est,
+                 center_cdf_array_to = pdf_true_array)
+permn = res$permn
+center_pdf_array_est = center_pdf_array_est[permn, permn, ]
+g = plot_pdf_array_v2(pdf_array_list = list(center_pdf_array_est), 
+                      pdf_true_array = pdf_true_array, 
+                      clus_size_vec = sapply(results[[2]]$clusters_list_est[[1]][permn], length),
+                      t_vec = t_vec, y_lim = c(0,0.06))
+g + ggtitle(paste0("PDF+Nbasis_15, f_mse:",round(results[[2]]$F_mean_sq_err,5)))
+
+
+# Load simulation result and get network parameters -----------------------
+load("../Results/Rdata/SNR_Vnot0/main_v5_cdf/pr=1,n=30,beta=1.2/n/54/N_trial10_20211111_222235.Rdata")
+network_param = results[[1]]$network_param
+
+# Generate networks -------------------------------------------------------
+
+network_list = do.call(what = generate_network2_v3, args = network_param)
+
+edge_time_mat_list = network_list$edge_time_mat_list
+pdf_true_array = network_list$pdf_true_array
+membership_true_list = network_list$membership_true_list
+clus_true_list = network_list$clus_true_list
+v_true_list = network_list$time_shift_list
+order_true_list = lapply(v_true_list, function(v_vec)order(v_vec))
+
+
+# Plot estimated time shifts ----------------------------------------------
+results[[1]]$v_mean_sq_err
+plot(y=results[[1]]$v_vec_list_est[[1]],x=v_true_list[[1]],
+     xlab="True time shifts", ylab="Estimated time shifts",
+     main=paste("CDF,","mse:",round(results[[1]]$v_mean_sq_err,2)))
+abline(a=0,b=1,col='red')
+
+results[[1]]$F_mean_sq_err
+center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list,
+                                               clusters_list = results[[1]]$clusters_list_est,
+                                               n0_mat_list = lapply(results[[1]]$v_vec_list_est, 
+                                                                    function(vec) n0_vec2mat(round(vec/(t_vec[2])))),
+                                               t_vec = t_vec)
+res = find_permn(center_cdf_array_from = center_pdf_array_est,
+                 center_cdf_array_to = pdf_true_array)
+permn = res$permn
+center_pdf_array_est = center_pdf_array_est[permn, permn, ]
+g = plot_pdf_array_v2(pdf_array_list = list(center_pdf_array_est), 
+                      pdf_true_array = pdf_true_array, 
+                      clus_size_vec = sapply(results[[1]]$clusters_list_est[[1]][permn], length),
+                      t_vec = t_vec, y_lim = c(0,0.06))
+g + ggtitle(paste0("CDF, f_mse:",round(results[[1]]$F_mean_sq_err,5)))
+
 
 # Generate networks -------------------------------------------------------
 
@@ -44,8 +161,10 @@ N_subj = network_param$N_subj
 # Apply our method --------------------------------------------------------
 
 res_list = list()
-N_clus_tmp = 1
-for (step_size in c(0.5)) {
+res_list[[1]] = list()
+N_clus_tmp = 3
+step_size = 0.5
+for (freq_trun in c(3,5,7,9)) {
   ### Get initialization -----------
   res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
                     t_vec = t_vec)
@@ -61,11 +180,13 @@ for (step_size in c(0.5)) {
   n0_mat_list_init -> n0_mat_list_est
   
   ### Estimation z,v,f based on pdf
-  res = do_cluster_v14.2.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+  res = do_cluster_v14.2.1(edge_time_mat_list = edge_time_mat_list, 
+                           N_clus = N_clus_tmp,
                            clusters_list_init = clusters_list_est,
                            n0_vec_list_init = n0_vec_list_est, n0_mat_list_init = n0_mat_list_est,
                            total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                           freq_trun=7, step_size = step_size,
+                           freq_trun=freq_trun, 
+                           step_size = step_size,
                            conv_thres=conv_thres, MaxIter=MaxIter,
                            opt_radius=opt_radius)
   
@@ -90,26 +211,20 @@ for (step_size in c(0.5)) {
   
   # Save results of N_clus_tmp ----------------------------------------------
   
-  res_list = c(res_list, list(list(res)))
+  res_list[[1]] = c(res_list[[1]], list(res))
   
 }
 
 # save(res_list, network_param,
 #      file = '../Results/Rdata/SNR_Vis0/main_v5_v7_largefreqtrun/pr=0.4,n=90,beta=1.3,one_instance.Rdata')
 
-### Calculate ICL
-tmp = select_model(edge_time_mat_list = edge_time_mat_list, 
-             N_node_vec = nrow(edge_time_mat_list[[1]]), 
-             N_clus_min = 1, N_clus_max = 1, result_list = res_list,
-             total_time = total_time)
-tmp$ICL_mat
-
 # Plot estimated time shifts ----------------------------------------------
 
 plot(y=res$v_vec_list[[1]],x=v_true_list[[1]])
 abline(a=0,b=1,col='red')
 
-plot(y=res$center_pdf_array[1,1,], x=t_vec)
+v_mse_vec = mean((res$v_vec_list[[1]] - v_true_list[[1]])^2)
+v_mse_vec
 
-v_mse_vec = sapply(res_list, function(res)mean((res$v_vec_list[[1]] - v_true_list[[1]])^2))
-plot(y=v_mse_vec,x=c(0.1,.3,0.5,0.7,0.9),type='b')
+plot(y=res$v_vec_list[[1]],x=n0_vec_list_init[[1]]*(t_vec[2]-t_vec[1]))
+abline(a=0,b=1,col='red')

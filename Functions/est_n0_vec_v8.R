@@ -173,7 +173,11 @@ est_n0_vec_v8 = function(edge_time_mat_list,
     center_fft_array_current = center_fft_array_update
   }
   
-  
+  if(n_iter>max_iter){
+    print(paste0("[est_n0_vec_v8]: Reached maximum iteration number:",max_iter))
+  } else if(n_iter<=2){
+    print("[est_n0_vec_v8]: Converged in one iteration. Consider increasing learning rate or reducing epsilon.")
+  }
   
   ### Compute time shift matrix and connecting patterns
   n0_vec_list = n0_vec_list_current
