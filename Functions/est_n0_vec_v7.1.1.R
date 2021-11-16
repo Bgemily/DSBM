@@ -74,7 +74,6 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
                                    freq_trun = freq_trun, t_vec = t_vec)
   step_size = length(t_vec) / mean(sapply(gradient_vec_list, function(vec) sqrt(sum(vec^2)) ))
   
-  
   ### Refine estimation of time shifts using pdf
   n_iter = 1
   converge = FALSE
@@ -184,12 +183,6 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
     converge = (loss_current-loss_update)/(loss_first_iter-loss_update+.Machine$double.eps) < epsilon  
     
     
-    ### Debug
-    # browser()
-    # plot(n0_vec_list_current[[1]], n0_vec_list_update[[1]])
-    # step_size*gradient_vec_list[[1]]
-    
-    
     ### *update -> *current
     n_iter = n_iter + 1
     n0_vec_list_current = n0_vec_list_update
@@ -204,9 +197,9 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
   }
   
   ### Debug
-  # browser()
-  # plot(loss_history[-1])
+  # plot(loss_history)
   # print(n_iter)
+  # browser()
   
   
   

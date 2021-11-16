@@ -102,14 +102,24 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
   
 }
 
-# save(res_list, network_param,
-#      file = '../Results/Rdata/SNR_Vis0/main_v5_v7_largefreqtrun/pr=0.4,n=90,beta=1.3,one_instance.Rdata')
+
+n0_vec_list_true = lapply(v_true_list, function(vec)round(vec/t_vec[2]))
+n0_mat_list_true = n0_vec2mat(n0_vec_list_true)
+res = do_cluster_v14.2.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+                         clusters_list_init = clusters_list_init,
+                         n0_vec_list_init = n0_vec_list_true, 
+                         n0_mat_list_init = n0_mat_list_true,
+                         total_time = total_time, max_iter=max_iter, t_vec=t_vec,
+                         freq_trun=freq_trun, 
+                         conv_thres=conv_thres, MaxIter=MaxIter,
+                         opt_radius=opt_radius)
+
 
 
 
 # Plot estimated time shifts ----------------------------------------------
 
-plot(y=res$v_vec_list[[1]],x=v_true_list[[1]])
+plot(y=results[[1]]$v_vec_list_est[[1]],x=v_true_list[[1]])
 abline(a=0,b=1,col='red')
 
 # Plot estimated intensities ----------------------------------------------
