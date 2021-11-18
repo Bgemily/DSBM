@@ -86,7 +86,7 @@ conn_prob_mean_list = list(1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1)
 ### n
 N_node_persubj_list = list(30,42,54,66,78,90)
 ### beta
-conn_patt_sep_list = list(1.3,1.4,1.5,1.6,1.7,1.8,1.9)
+conn_patt_sep_list = list(1.1,1.2,1.3,1.4,1.5,1.6,1.7)
 ### V
 time_shift_mean_vec_list = list(rep(15,N_clus), rep(20,N_clus),
                                 rep(25,N_clus), rep(30,N_clus), 
@@ -96,7 +96,7 @@ time_shift_mean_vec_list = list(rep(15,N_clus), rep(20,N_clus),
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vis0'
 method = 'main_v5_pdf_v12'
-default_setting = 'pr=0.4,n=30,beta=1.3,V=0'
+default_setting = 'pr=0.7,n=30,beta=1.1,V=0'
 
 for (. in 1:split) {
   for (freq_trun in c(7)){
@@ -107,8 +107,8 @@ for (. in 1:split) {
         SEED = sample(1:1e7,1)
         tryCatch(main_v5(SEED = SEED,
                          N_node_vec = rep(N_node,1),
-                         conn_prob_mean = 0.4,
-                         conn_patt_sep = 1.3,
+                         conn_prob_mean = 0.7,
+                         conn_patt_sep = 1.1,
                          time_shift_mean_vec = rep(0,N_clus),
                          t_vec = seq(0,200,length.out=200),
                          freq_trun_vec = c(freq_trun), 
@@ -134,7 +134,70 @@ for (. in 1:split) {
         SEED = sample(1:1e7,1)
         tryCatch(main_v5(SEED = SEED,
                          N_node_vec = rep(30,1),
-                         conn_prob_mean = 0.4,
+                         conn_prob_mean = 0.7,
+                         conn_patt_sep = conn_patt_sep,
+                         time_shift_mean_vec = rep(0,N_clus),
+                         t_vec = seq(0,200,length.out=200),
+                         freq_trun_vec = c(freq_trun), 
+                         N_clus_min = N_clus, N_clus_max = N_clus),
+                 error = function(x) print(SEED))
+      }
+      param_name = "beta"
+      param_value = conn_patt_sep
+      folder_path = paste0(top_level_folder, '/', setup, '/', method,
+                           '/','freq_trun','/',freq_trun,
+                           '/', default_setting,
+                           '/', param_name, '/', param_value)
+      dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+      
+      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+      save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+      rm(results)
+    }
+    
+  }
+}
+
+
+default_setting = 'pr=0.9,n=30,beta=1.1,V=0'
+
+for (. in 1:split) {
+  for (freq_trun in c(7)){
+    ### N_node
+    for (i in 1:length(N_node_persubj_list)) {
+      N_node = N_node_persubj_list[[i]]
+      results <- foreach(j = 1:N_trial) %dopar% {
+        SEED = sample(1:1e7,1)
+        tryCatch(main_v5(SEED = SEED,
+                         N_node_vec = rep(N_node,1),
+                         conn_prob_mean = 0.9,
+                         conn_patt_sep = 1.1,
+                         time_shift_mean_vec = rep(0,N_clus),
+                         t_vec = seq(0,200,length.out=200),
+                         freq_trun_vec = c(freq_trun), 
+                         N_clus_min = N_clus, N_clus_max = N_clus),
+                 error = function(x) print(SEED))
+      }
+      param_name = "n"
+      param_value = N_node
+      folder_path = paste0(top_level_folder, '/', setup, '/', method,
+                           '/','freq_trun','/',freq_trun,
+                           '/', default_setting,
+                           '/', param_name, '/', param_value)
+      dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+      
+      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+      save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+      rm(results)
+    }
+    ### beta
+    for (i in 1:length(conn_patt_sep_list)) {
+      conn_patt_sep = conn_patt_sep_list[[i]]
+      results <- foreach(j = 1:N_trial) %dopar% {
+        SEED = sample(1:1e7,1)
+        tryCatch(main_v5(SEED = SEED,
+                         N_node_vec = rep(30,1),
+                         conn_prob_mean = 0.9,
                          conn_patt_sep = conn_patt_sep,
                          time_shift_mean_vec = rep(0,N_clus),
                          t_vec = seq(0,200,length.out=200),
