@@ -99,7 +99,7 @@ method = 'main_v5_pdf_v12'
 default_setting = 'pr=0.9,n=30,beta=1.05,V=0'
 
 for (. in 1:split) {
-  for (freq_trun in c(7)){
+  for (freq_trun in c(3,5,7,9)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
