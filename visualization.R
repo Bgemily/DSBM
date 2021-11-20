@@ -18,12 +18,11 @@ library(ggplot2)
 # cdf vs pdf (V!=0) ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_cdf/pr=1,n=30,beta=1.2/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v9_pairwise_alignment/pr=1,n=30,beta=1.2/"
-path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v10_pairwise_alignment/freq_trun/3/pr=1,n=30,beta=1.2/"
-path_vec[4] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v10_pairwise_alignment/freq_trun/5/pr=1,n=30,beta=1.2/"
-path_vec[5] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v10_pairwise_alignment/freq_trun/7/pr=1,n=30,beta=1.2/"
-path_vec[6] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v10_pairwise_alignment/freq_trun/9/pr=1,n=30,beta=1.2/"
+path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_v12/pr=0.9,n=30,beta=1.05,V=0/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_pdf_v12/freq_trun/7/pr=0.9,n=30,beta=1.05,V=0/"
+path_vec[3] = "../Results/Rdata/SNR_Vis0/main_v5_pdf_v12/freq_trun/3/pr=0.9,n=30,beta=1.05,V=0/"
+path_vec[4] = "../Results/Rdata/SNR_Vis0/main_v5_pdf_v12/freq_trun/5/pr=0.9,n=30,beta=1.05,V=0/"
+path_vec[5] = "../Results/Rdata/SNR_Vis0/main_v5_pdf_v12/freq_trun/9/pr=0.9,n=30,beta=1.05,V=0/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -35,11 +34,10 @@ for (param_name in param_name_vec) {
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
                            measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "ICL_vec")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
-                         bind_cols(results_list[[2]],"method"="PDF+N_basis_adptv"),
+                         bind_cols(results_list[[2]],"method"="PDF+N_basis_15"),
                          bind_cols(results_list[[3]],"method"="PDF+N_basis_07"),
                          bind_cols(results_list[[4]],"method"="PDF+N_basis_11"),
-                         bind_cols(results_list[[5]],"method"="PDF+N_basis_15"),
-                         bind_cols(results_list[[6]],"method"="PDF+N_basis_19"),)
+                         bind_cols(results_list[[5]],"method"="PDF+N_basis_19"))
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
@@ -51,7 +49,9 @@ for (param_name in param_name_vec) {
   for (measurement in c("1-ARI","f_mse","V_mse")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement),
-                    '_', 'vs', '_', "N_node", ".pdf"), 
+                    '_', 'vs', '_', 
+                    switch(param_name,"beta"='beta','n'='p','V'='V'),
+                    ".pdf"), 
         width = 5, height = 5)
     g = results_df %>% 
       ggplot(aes(x=param_value, 
@@ -59,15 +59,18 @@ for (param_name in param_name_vec) {
                           "1-ARI" = 1-ARI_mean,
                           "f_mse" = F_mean_sq_err,
                           "V_mse" = v_mean_sq_err), 
+                 linetype=method,
                  color=method)) +
       stat_summary(aes(group=method), position = position_dodge(.0),
-                   # geom="pointrange",
-                   # fun.min = function(x)quantile(x,0.25),
-                   # fun.max = function(x)quantile(x,0.75),
-                   geom="point",
+                   geom="pointrange", 
+                   alpha=0.7,
+                   fun.min = function(x)quantile(x,0.25),
+                   fun.max = function(x)quantile(x,0.75),
+                   # geom="point",
                    fun = "median") +
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",
+                   alpha=0.8,
                    fun = "median") +
       theme(legend.position = "bottom") +
       guides(color=guide_legend(nrow=2,byrow=TRUE)) +
@@ -75,7 +78,7 @@ for (param_name in param_name_vec) {
                                          "1-ARI" = c(0,1),
                                          "f_mse" = c())) +
       ylab(measurement) +
-      xlab("N_node")
+      xlab(switch(param_name, 'n'='N_node'))
     
     print(g)
     dev.off()
