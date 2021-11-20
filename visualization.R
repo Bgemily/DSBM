@@ -15,14 +15,14 @@ library("dplyr")
 library(ggplot2)
 
 
-# cdf vs pdf (V!=0) ------------------------------------------------------------
+# cdf vs pdf ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vis0/main_v5_cdf_v12/pr=0.9,n=30,beta=1.05,V=0/"
-path_vec[2] = "../Results/Rdata/SNR_Vis0/main_v5_pdf_v12/freq_trun/7/pr=0.9,n=30,beta=1.05,V=0/"
-path_vec[3] = "../Results/Rdata/SNR_Vis0/main_v5_pdf_v12/freq_trun/3/pr=0.9,n=30,beta=1.05,V=0/"
-path_vec[4] = "../Results/Rdata/SNR_Vis0/main_v5_pdf_v12/freq_trun/5/pr=0.9,n=30,beta=1.05,V=0/"
-path_vec[5] = "../Results/Rdata/SNR_Vis0/main_v5_pdf_v12/freq_trun/9/pr=0.9,n=30,beta=1.05,V=0/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_cdf_v12/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/7/pr=0.9,n=30,beta=1.3,V=80/"
+# path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/3/pr=0.9,n=30,beta=1.05,V=0/"
+# path_vec[4] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/5/pr=0.9,n=30,beta=1.05,V=0/"
+# path_vec[5] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/9/pr=0.9,n=30,beta=1.05,V=0/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -34,10 +34,10 @@ for (param_name in param_name_vec) {
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
                            measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "ICL_vec")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
-                         bind_cols(results_list[[2]],"method"="PDF+N_basis_15"),
-                         bind_cols(results_list[[3]],"method"="PDF+N_basis_07"),
-                         bind_cols(results_list[[4]],"method"="PDF+N_basis_11"),
-                         bind_cols(results_list[[5]],"method"="PDF+N_basis_19"))
+                         # bind_cols(results_list[[3]],"method"="PDF+N_basis_07"),
+                         # bind_cols(results_list[[4]],"method"="PDF+N_basis_11"),
+                         # bind_cols(results_list[[5]],"method"="PDF+N_basis_19"),
+                         bind_cols(results_list[[2]],"method"="PDF+N_basis_15"))
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
@@ -78,7 +78,7 @@ for (param_name in param_name_vec) {
                                          "1-ARI" = c(0,1),
                                          "f_mse" = c())) +
       ylab(measurement) +
-      xlab(switch(param_name, 'n'='N_node'))
+      xlab(switch(param_name, 'n'='N_node',param_name))
     
     print(g)
     dev.off()
