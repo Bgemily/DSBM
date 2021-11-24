@@ -5,7 +5,7 @@ generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
                                 conn_patt_var=1, conn_patt_sep=2, conn_prob_mean=0.8, conn_prob_rad=0, 
                                 time_shift_mean_vec=rep(10,N_clus), time_shift_rad=min(time_shift_mean_vec), 
                                 time_shift_struc=max, 
-                                SEED=NULL, const=40)
+                                SEED=NULL, const=20)
 {
   if(!is.null(SEED)) set.seed(SEED)
   
@@ -56,22 +56,22 @@ generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
   var_mat = matrix(nrow = N_clus, ncol = N_clus)
 
   mean_mat[1,2] = mean_mat[2,1] = const*conn_patt_sep
-  var_mat[1,2] = var_mat[2,1] = const*conn_patt_var*conn_patt_sep^2
+  var_mat[1,2] = var_mat[2,1] = (const^2)/4*conn_patt_sep^(-2)
   
-  mean_mat[1,3] = mean_mat[3,1] = const/conn_patt_sep^2
-  var_mat[1,3] = var_mat[3,1] = const*conn_patt_var/conn_patt_sep
+  mean_mat[1,3] = mean_mat[3,1] = const*conn_patt_sep^2
+  var_mat[1,3] = var_mat[3,1] = (const^2)/4*conn_patt_sep^(-2)
   
-  mean_mat[2,3] = mean_mat[3,2] = const/conn_patt_sep 
-  var_mat[2,3] = var_mat[3,2] = const*conn_patt_var/conn_patt_sep^2 
+  mean_mat[2,3] = mean_mat[3,2] = const*conn_patt_sep^(1/2) 
+  var_mat[2,3] = var_mat[3,2] = (const^2)/4*conn_patt_sep^(-1)
   
-  mean_mat[1,1] = const/2
-  var_mat[1,1] = (const/2)^2/4
+  mean_mat[1,1] = const
+  var_mat[1,1] = (const^2)/4
   
   mean_mat[2,2] = const*conn_patt_sep^2
-  var_mat[2,2] = const*conn_patt_var*conn_patt_sep
+  var_mat[2,2] = (const^2)/4*conn_patt_sep
   
-  mean_mat[3,3] = const*sqrt(conn_patt_sep)
-  var_mat[3,3] = const*conn_patt_var*conn_patt_sep
+  mean_mat[3,3] = const*(conn_patt_sep)^(3/2)
+  var_mat[3,3] = (const^2)/4*conn_patt_sep
 
   conn_prob_min = conn_prob_mean - conn_prob_rad
   conn_prob_max = conn_prob_mean + conn_prob_rad
