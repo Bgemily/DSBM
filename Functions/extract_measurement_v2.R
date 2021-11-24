@@ -12,9 +12,22 @@ extract_measurement_v2 = function(folder_path, measurement=c("ARI_mean", "F_mean
     for (file in file_name_vec) {
       load(file)
 
-      # Size of meas_value_mat: N_meas*N_trial
-      meas_value_mat = sapply(results, function(one_trial) tryCatch(unlist(one_trial[measurement]), 
-                                                                    error=function(x)NA))  
+      if ("time_estimation" %in% measurement){
+        # Size of meas_value_mat: N_meas*N_trial
+        ind = which(measurement=='time_estimation')
+        time_est_value_vec = sapply(results, function(one_trial) tryCatch(as.numeric(one_trial[["time_estimation"]],
+                                                                                      units = 'secs'), 
+                                                                          error=function(x)NA))  
+        meas_value_mat = sapply(results, function(one_trial) tryCatch(unlist(one_trial[measurement[-ind]]), 
+                                                                      error=function(x)NA)) 
+        meas_value_mat = rbind(meas_value_mat, time_est_value_vec)
+        
+      } else{
+        # Size of meas_value_mat: N_meas*N_trial
+        meas_value_mat = sapply(results, function(one_trial) tryCatch(unlist(one_trial[measurement]), 
+                                                                      error=function(x)NA))  
+      }
+      
       if (is.vector(meas_value_mat)) 
         meas_value_mat = matrix(meas_value_mat)
       else

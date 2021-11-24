@@ -32,7 +32,7 @@ for (param_name in param_name_vec) {
   ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
   results_list = lapply(path_vec, function(folder_path)
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
-                           measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "ICL_vec")))
+                           measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "time_estimation")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
                          # bind_cols(results_list[[3]],"method"="PDF+N_basis_07"),
                          # bind_cols(results_list[[4]],"method"="PDF+N_basis_11"),
@@ -41,12 +41,12 @@ for (param_name in param_name_vec) {
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
-    filter(param_value<=90) %>%
+    # filter(param_value<=90) %>%
     mutate(param_value = factor(param_value, levels = sort(unique(param_value), 
                                                            decreasing = param_name=="V")) ) 
   
   ### Plot ARI/F_mse vs n/beta/V
-  for (measurement in c("1-ARI","f_mse","V_mse")) {
+  for (measurement in c("1-ARI","f_mse","V_mse","time_est")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement),
                     '_', 'vs', '_', 
@@ -58,6 +58,7 @@ for (param_name in param_name_vec) {
                  y=switch(measurement,
                           "1-ARI" = 1-ARI_mean,
                           "f_mse" = F_mean_sq_err,
+                          "time_est"= time_estimation,
                           "V_mse" = v_mean_sq_err), 
                  linetype=method,
                  color=method)) +

@@ -23,3 +23,29 @@ for (subj_name in subj_name_vec) {
 }
 
 
+### Our method -------
+res_folder = "../Results/Rdata/RDA/CDF/"
+subj_name_vec = list.files(res_folder, full.names = FALSE, recursive = FALSE)
+
+dir.create("../Results/Html/CDF/", recursive = TRUE)
+for (subj_name in subj_name_vec) {
+  rmarkdown::render("./RDA/Visualize_res_our.Rmd", 
+                    params = list(subj_name=subj_name,
+                                  data_folder=paste0('../',res_folder)),
+                    output_file = paste0("../../Results/Html/CDF/",subj_name,'.html'))
+}
+
+
+### Our method -------
+res_folder = "../Results/Rdata/RDA/CDF_Nclus_3/"
+subj_name_vec = list.files(res_folder, full.names = FALSE, recursive = FALSE)
+
+dir.create("../Results/Html/CDF_Nclus_3/", recursive = TRUE)
+for (subj_name in subj_name_vec) {
+  rmarkdown::render("./RDA/Visualize_res_our.Rmd", 
+                    params = list(subj_name=subj_name,
+                                  data_folder=paste0('../',res_folder)),
+                    output_file = paste0("../../Results/Html/CDF_Nclus_3/",subj_name,'.html'))
+}
+
+

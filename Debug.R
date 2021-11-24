@@ -8,8 +8,8 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v2/freqtrun/7/pr=1,n=30,beta=1.2/n/90/N_trial5_20211108_154619.Rdata")
-network_param = results[[1]]$network_param
+load("../Results/Rdata/SNR_Vnot0/main_v5_cdf_v12/pr=0.9,n=30,beta=1.3,V=80/n/90/N_trial10_20211119_162229.Rdata")
+network_param = results[[6]]$network_param
 
 # Generate networks -------------------------------------------------------
 
@@ -46,7 +46,8 @@ N_subj = network_param$N_subj
 res_list = list()
 for (N_clus_tmp in N_clus_min:N_clus_max) {
   ### Get initialization -----------
-  res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
+  res = get_init_v4(edge_time_mat_list = edge_time_mat_list, 
+                    N_clus = N_clus_tmp, 
                     t_vec = t_vec)
   
   clusters_list_init = res$clusters_list
@@ -70,12 +71,12 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
   
   ### Estimation z,v,f based on pdf
   res = do_cluster_v14.2.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
-                           clusters_list_init = clusters_list_est,
-                           n0_vec_list_init = n0_vec_list_est, n0_mat_list_init = n0_mat_list_est,
-                           total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                           freq_trun=freq_trun, 
-                           conv_thres=conv_thres, MaxIter=MaxIter,
-                           opt_radius=opt_radius)
+                        clusters_list_init = clusters_list_est,
+                        n0_vec_list_init = n0_vec_list_est, n0_mat_list_init = n0_mat_list_est,
+                        total_time = total_time, max_iter=max_iter, t_vec=t_vec,
+                        freq_trun=freq_trun,
+                        opt_radius=opt_radius,
+                        conv_thres=conv_thres, MaxIter=MaxIter)
   
   
   res$clusters_list -> clusters_list_est
@@ -103,36 +104,27 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
 }
 
 
-n0_vec_list_true = lapply(v_true_list, function(vec)round(vec/t_vec[2]))
-n0_mat_list_true = n0_vec2mat(n0_vec_list_true)
-res = do_cluster_v14.2.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
-                         clusters_list_init = clusters_list_init,
-                         n0_vec_list_init = n0_vec_list_true, 
-                         n0_mat_list_init = n0_mat_list_true,
-                         total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                         freq_trun=freq_trun, 
-                         conv_thres=conv_thres, MaxIter=MaxIter,
-                         opt_radius=opt_radius)
-
-
-
 
 # Plot estimated time shifts ----------------------------------------------
 
-plot(y=results[[1]]$v_vec_list_est[[1]],x=v_true_list[[1]])
+plot(y=results[[1]]$v_vec_list[[1]],x=v_true_list[[1]],
+     main=paste0("V_mse:",round(mean((results[[1]]$v_vec_list[[1]]-v_true_list[[1]])^2),2)))
 abline(a=0,b=1,col='red')
 
-# Plot estimated intensities ----------------------------------------------
+mean((results[[1]]$v_vec_list[[1]]-v_true_list[[1]])^2)
 
-plot_pdf_array_v2(pdf_array_list = list(res_list[[1]]$center_pdf_array), 
+# Plot estimated intensities ----------------------------------------------
+library(tidyverse)
+permn = c(2,3,1)
+g = plot_pdf_array_v2(pdf_array_list = list(res_list[[1]]$center_pdf_array[permn,permn,]), 
                   pdf_true_array = network_list$pdf_true_array,
-                  clus_size_vec = sapply(res$clusters_list[[1]],length),
+                  clus_size_vec = sapply(res_list[[1]]$clusters_list[[1]][permn],length),
                   y_lim = c(0,0.06),
                   t_vec = t_vec)
+g+ggtitle(paste0("f_mse:",round(results[[5]]$F_mean_sq_err,4)))
 
-plot(x=seq(0,200,length.out=ncol(res_list_ppsbm[[3]]$logintensities.ql)), 
-     y=exp(res_list_ppsbm[[1]]$logintensities.ql[1,])*I(res_list_ppsbm[[1]]$logintensities.ql[1,]!=0), 
-     type='s',col=2)
+results[[6]]$F_mean_sq_err
+results[[6]]$v_mean_sq_err
 
-lines(x=t_vec, y=res_list[[1]]$center_pdf_array[1,1,],type='l')
 
+apply(res_list[[1]]$center_pdf_array[permn,permn,]-network_list$pdf_true_array, c(1,2),function(vec)sum(vec^2))

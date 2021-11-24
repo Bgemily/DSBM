@@ -78,7 +78,7 @@ plot_pdf_array_v2 = function(pdf_array_list, pdf_true_array = NULL,
     filter(N_subj == "True") %>%
     group_by(clus.pair) %>%
     summarise(conn_prob = round(sum(value)*(t_vec[2]-t_vec[1]),digits=3)) %>%
-    mutate(clus_size = ifelse(clus.pair %in% c("(1,1)","(2,2)","(3,3)"), clus_size_vec, NA)) %>%
+    mutate(clus_size = ifelse(clus.pair %in% c("(1,1)","(2,2)","(3,3)","(4,4)","(5,5)"), clus_size_vec, NA)) %>%
     mutate(label = paste0('Pr = ',conn_prob,
                           ifelse(is.na(clus_size),
                                  yes = '', no = paste0('\n', "  = ",round(clus_size))) ) )

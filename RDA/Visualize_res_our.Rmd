@@ -5,7 +5,7 @@ author: "Zitong Zhang"
 output: html_document
 params: 
   subj_name: "func_20150417"
-  data_folder: "../../Results/Rdata/RDA/PDF+pairwise_v2/"
+  data_folder: "../../Results/Rdata/RDA/CDF/"
 ---
 
 ```{r setup, include=FALSE}
@@ -23,6 +23,7 @@ sapply(file.sources, source)
 library(tidyverse)
 library(gridExtra)
 library(R.matlab)
+library(data.table)
 ```
 
 ## Read in network information for the L/R side 
@@ -34,6 +35,7 @@ path_vec = c(path)
 edge_time_mat_list = vector(mode = "list", length = 2)
 locs_mat_list = vector(mode = "list", length = 2)
 mnx_vec_list = vector(mode = "list", length = 2)
+dFF_mat_list = vector(mode = "list", length = 2)
 iso_inds_list = vector(mode = "list", length = 2)
 non_iso_inds_list = vector(mode = "list", length = 2)
 
@@ -56,6 +58,10 @@ for(m in 1:length(path_vec)){
   mnx.all = mnx.all[,-1]
   mnx_vec = mnx.all[avai.inds]
   
+  dFF.all = as.matrix(fread(paste(path,'/dFF.csv',sep='')))
+  dFF.all = dFF.all[,-1]
+  dFF_mat = dFF.all[avai.inds,]
+  
   ### Split each zebrafish into left and right
   inds_L = which(locs_mat[,2]<0)
   inds_R = which(locs_mat[,2]>0)
@@ -68,6 +74,9 @@ for(m in 1:length(path_vec)){
   
   mnx_vec_L = mnx_vec[inds_L]
   mnx_vec_R = mnx_vec[inds_R]
+  
+  dFF_mat_L = dFF_mat[inds_L,]
+  dFF_mat_R = dFF_mat[inds_R,]
   
   
   iso_inds_L = which(rowSums(edge_time_mat_L<Inf)==0)
@@ -82,6 +91,7 @@ for(m in 1:length(path_vec)){
   edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
   locs_mat_list[c(2*m-1,2*m)] = list(locs_mat_L, locs_mat_R)
   mnx_vec_list[c(2*m-1,2*m)] = list(mnx_vec_L, mnx_vec_R)
+  dFF_mat_list[c(2*m-1,2*m)] = list(dFF_mat_L, dFF_mat_R)
   
   iso_inds_list[c(2*m-1,2*m)] = list(iso_inds_L, iso_inds_R)
   non_iso_inds_list[c(2*m-1,2*m)] = list(non_iso_inds_L, non_iso_inds_R)
@@ -198,6 +208,24 @@ ggplot(data = data.frame(activeTime_vec=activeTime_vec,
 
 ```
 
+```{r}
+ind_vec = which(unlist(v_vec_list)!=0 & activeTime_vec==1)
+ind = ind_vec[1]
+
+for (i in 1:min(length(ind_vec),3)) {
+  ind = ind_vec[i]
+  data_trace = tibble(dFF=dFF_mat[ind,],time=(1:ncol(dFF_mat)*0.25)/60)
+  g = ggplot(data_trace, aes(x=time, y=dFF)) +
+    geom_line(alpha=0.3) +
+    # xlim(unlist(v_vec_list)[ind]+c(-1,1)) +
+    geom_vline(xintercept = unlist(v_vec_list)[ind])
+  print(g)
+}
+
+
+```
+
+
 
 ## Visualize estimated clusters with spatial location
 
@@ -231,17 +259,17 @@ print(g)
 
 ```
 ```{r}
-ggplot(data = data, mapping = aes(x=LR, y=AP, color=membership)) +
-  geom_point() + 
-  scale_color_manual(values = c(palette()[c(8,2:6)]))
-
-ggplot(data = data, mapping = aes(x=AP, y=DV, color=membership)) +
-  geom_point() + 
-  scale_color_manual(values = c(palette()[c(8,2:6)]))
-
-ggplot(data = data, mapping = aes(x=LR, y=DV, color=membership)) +
-  geom_point() + 
-  scale_color_manual(values = c(palette()[c(8,2:6)]))
+library(plotly)
+fig = plot_ly(data, x = ~LR, y = ~AP, z = ~DV, color = ~membership, 
+              # colors = c(palette()[c(8,2:6)]),
+              colors = c(`0`=palette()[8], 
+                         `1`=palette()[2],
+                         `2`=palette()[3],
+                         `3`=palette()[4],
+                         `4`=palette()[5],
+                         `5`=palette()[6]),
+              type = "scatter3d")
+fig
 ```
 
 
@@ -258,16 +286,22 @@ data = tibble(subj=rep(1:length(membership_list),sapply(membership_list,length))
 data_2 = data %>% 
   mutate(mnx=factor(mnx,levels=c(1,0)), islet=as.factor(as.numeric(islet)), 
          membership=factor(membership, levels=c(0,max(membership):1))) 
-data_2 %>%
+
+data_2_left = data_2 %>% filter(subj==1) %>% mutate(membership=fct_drop(membership))
+data_2_right = data_2 %>% filter(subj==2) %>% mutate(membership=fct_drop(membership))
+
+fill_color = c(`0`=palette()[8],
+               `1`=palette()[2],
+               `2`=palette()[3],
+               `3`=palette()[4],
+               `4`=palette()[5],
+               `5`=palette()[6])
+### Left spine
+g1 = data_2_left %>%
   ggplot(mapping = aes(fill=membership,x=mnx)) +
-  # ggplot(mapping = aes(fill=membership,x=factor(1))) +
-  scale_fill_manual(values=palette()[c(8,(length(levels(data_2$membership))):2)]) +
+  scale_fill_manual(values=fill_color) +
   geom_bar(position="fill") +
-  # facet_wrap(facets=. ~ mnx, ncol = 1,
-  #            labeller = labeller(mnx = c(`0`=paste0('mnx- (p=', as.numeric(data_2 %>% filter(mnx==0) %>% summarise(n())), ')'), 
-  #                                        `1`=paste0('mnx+ (p=', as.numeric(data_2 %>% filter(mnx==1) %>% summarise(n())), ')')))) +
-  # coord_polar(theta="y") +
-  geom_text(data = data_2 %>% 
+  geom_text(data = data_2_left %>% 
               count(mnx, membership) %>% group_by(mnx) %>% 
               summarise(perc=round(n/sum(n),3), membership=membership) %>% 
               arrange(desc(membership), .by_group = TRUE) ,
@@ -284,5 +318,28 @@ data_2 %>%
         axis.title.y = element_blank(), 
         axis.ticks.y = element_blank())
 
+### Right spine
+g2 = data_2_right %>%
+  ggplot(mapping = aes(fill=membership,x=mnx)) +
+  scale_fill_manual(values=fill_color) +
+  geom_bar(position="fill") +
+  geom_text(data = data_2_right %>% 
+              count(mnx, membership) %>% group_by(mnx) %>% 
+              summarise(perc=round(n/sum(n),3), membership=membership) %>% 
+              arrange(desc(membership), .by_group = TRUE) ,
+            aes(x = mnx, label = scales::percent(perc), y=perc, fill=NULL), 
+            position = position_fill(0.5), size=2.5)+
+  scale_x_discrete(labels=c("mnx+","mnx-"))+
+  xlab("")+
+  theme_bw()+
+  theme(legend.position = 'none', 
+        panel.grid  = element_blank(),
+        # axis.text = element_blank(),
+        axis.text.y = element_blank(), 
+        axis.title = element_blank(),  
+        axis.title.y = element_blank(), 
+        axis.ticks.y = element_blank())
+
+grid.arrange(g1, g2, ncol=2)
 ```
 
