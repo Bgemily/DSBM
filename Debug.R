@@ -8,10 +8,10 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0/main_v5_cdf/pr=1,n=30,beta=1.2/n/54/N_trial5_20211108_125533.Rdata")
+load("../Results/Rdata/SNR_Vnot0/main_v5_cdf_v12/pr=0.9,n=30,beta=1.3,V=80/n/30/N_trial10_20211119_161657.Rdata")
 network_param = results[[1]]$network_param
-network_param$conn_patt_sep = 1.8
-
+network_param$const = 20
+network_param$conn_patt_sep = 1.3
 # Generate networks -------------------------------------------------------
 
 network_list = do.call(what = generate_network2_v3, args = network_param)
@@ -92,24 +92,8 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
   
 }
 
-# Check clustering result -------------------------------------------------
-
-res_list[[1]]$clusters_list[[1]]
-res_list[[2]]$clusters_list[[1]]
-
-get_ARI(memb_true_vec = network_list$membership_true_list[[1]], 
-        clusters_list = res_list[[1]]$clusters_list)
-
-get_ARI(memb_true_vec = network_list$membership_true_list[[1]], 
-        clusters_list = res_list[[2]]$clusters_list)
-
-mean((res_list[[1]]$v_vec_list[[1]] - v_true_list[[1]])^2)
-mean((res_list[[2]]$v_vec_list[[1]] - v_true_list[[1]])^2)
-
 # Plot estimated intensities ----------------------------------------------
 plot(y=res_list[[1]]$v_vec_list[[1]], x=v_true_list[[1]]); abline(a=0,b=1,col='red')
-
-plot(y=res_list[[2]]$v_vec_list[[1]], x=v_true_list[[1]]); abline(a=0,b=1,col='red')
 
 plot_pdf_array_v2(pdf_array_list = list(res_list[[1]]$center_pdf_array), 
                   pdf_true_array = pdf_true_array, 
@@ -117,8 +101,3 @@ plot_pdf_array_v2(pdf_array_list = list(res_list[[1]]$center_pdf_array),
                   y_lim = c(0,0.04),
                   t_vec = t_vec)
 
-plot_pdf_array_v2(pdf_array_list = list(res_list[[2]]$center_pdf_array), 
-                  pdf_true_array = pdf_true_array, 
-                  clus_size_vec = sapply(res_list[[2]]$clusters_list[[1]],length),
-                  y_lim = c(0,0.04),
-                  t_vec = t_vec)

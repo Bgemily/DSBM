@@ -112,9 +112,13 @@ est_n0_vec_v4.1 = function(edge_time_mat_list,
           
         }
       }
-      
-      n0_vec_tmp = n0_vec_tmp - min(n0_vec_tmp)
       n0_vec_list_update[[m]] = n0_vec_tmp
+      
+      ### Set minimum shifted edge time to be zero
+      n0_mat_tmp = n0_vec2mat(n0_vec = n0_vec_list_update[[m]])
+      adjs_edge_time_mat = edge_time_mat_list[[m]] - n0_mat_tmp*t_unit
+      global_timeshift = min(adjs_edge_time_mat)
+      n0_vec_list_update[[m]] = n0_vec_list_update[[m]] + floor(abs(global_timeshift/t_unit))*sign(global_timeshift)
       
     }
     ### Debug

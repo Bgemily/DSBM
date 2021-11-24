@@ -11,7 +11,7 @@ main_v5 = function(### Parameters for generative model
   SEED, N_subj=1, N_node_vec = rep(90,N_subj),
   N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
   total_time=200, 
-  conn_patt_var=1, conn_patt_sep = 1.5, const=40, conn_prob_mean = 1, conn_prob_rad = 0, 
+  conn_patt_var=1, conn_patt_sep = 1.5, const=20, conn_prob_mean = 1, conn_prob_rad = 0, 
   time_shift_struc=max, time_shift_mean_vec = rep(20,N_clus), 
   time_shift_rad = min(time_shift_mean_vec),
   t_vec = seq(0,total_time,length.out=1000),

@@ -37,26 +37,6 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
                                                        n0_mat_list = n0_mat_list, t_vec = t_vec)
   center_cdf_array_update = center_cdf_array_current
   
-
-  # browser(); mean(clusters_list[[1]][[1]])
-  ### Get rough estimation of time shifts using cdf
-  res = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, 
-                        clusters_list = clusters_list,
-                        n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list, 
-                        center_cdf_array = center_cdf_array_current,
-                        t_vec = t_vec, order_list=order_list, 
-                        max_iter = max_iter,
-                        ...)
-  n0_vec_list_update = res$n0_vec_list
-  n0_mat_list_update = res$n0_mat_list
-  
-  # browser(); mean(n0_vec_list_update[[1]])
-
-  ### *update -> *current
-  n0_vec_list_current = n0_vec_list_update
-  n0_mat_list_current = n0_mat_list_update
-
-  
   ### Evaluate loss 
   loss_history = c()
   loss = eval_loss_v4(edge_time_mat_list = edge_time_mat_list,
@@ -94,7 +74,6 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
                                    freq_trun = freq_trun, t_vec = t_vec)
   step_size = length(t_vec) / mean(sapply(gradient_vec_list, function(vec) sqrt(sum(vec^2)) ))
   
-  
   ### Refine estimation of time shifts using pdf
   n_iter = 1
   converge = FALSE
@@ -128,10 +107,12 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
         }
       }
       
+      ### Set minimum shifted edge time to be zero
+      n0_mat_tmp = n0_vec2mat(n0_vec = n0_vec_list_update[[m]])
+      adjs_edge_time_mat = edge_time_mat_list[[m]] - n0_mat_tmp*t_unit
+      global_timeshift = min(adjs_edge_time_mat)
+      n0_vec_list_update[[m]] = n0_vec_list_update[[m]] + floor(abs(global_timeshift/t_unit))*sign(global_timeshift)
 
-      ### Set the minimum time shift as zero
-      n0_vec_list_update[[m]] = n0_vec_list_update[[m]] - min(n0_vec_list_update[[m]])
-      
     }
     
     
@@ -170,8 +151,11 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
           }
         }
         
-        ### Set the minimum time shift as zero
-        n0_vec_list_update[[m]] = n0_vec_list_update[[m]] - min(n0_vec_list_update[[m]])
+        ### Set minimum shifted edge time to be zero
+        n0_mat_tmp = n0_vec2mat(n0_vec = n0_vec_list_update[[m]])
+        adjs_edge_time_mat = edge_time_mat_list[[m]] - n0_mat_tmp*t_unit
+        global_timeshift = min(adjs_edge_time_mat)
+        n0_vec_list_update[[m]] = n0_vec_list_update[[m]] + floor(abs(global_timeshift/t_unit))*sign(global_timeshift)
         
       }
 
@@ -204,12 +188,6 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
     converge = (loss_current-loss_update)/(loss_first_iter-loss_update+.Machine$double.eps) < epsilon  
     
     
-    ### Debug
-    # browser()
-    # plot(n0_vec_list_current[[1]], n0_vec_list_update[[1]])
-    # step_size*gradient_vec_list[[1]]
-    
-    
     ### *update -> *current
     n_iter = n_iter + 1
     n0_vec_list_current = n0_vec_list_update
@@ -224,9 +202,9 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
   }
   
   ### Debug
-  # browser()
-  # plot(loss_history[-1])
+  # plot(loss_history)
   # print(n_iter)
+  # browser()
   
   
   
