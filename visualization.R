@@ -18,8 +18,8 @@ library(ggplot2)
 # cdf vs pdf ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_cdf_v12/pr=0.9,n=30,beta=1.3,V=80/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/7/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.5,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.5,V=80/"
 # path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/3/pr=0.9,n=30,beta=1.05,V=0/"
 # path_vec[4] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/5/pr=0.9,n=30,beta=1.05,V=0/"
 # path_vec[5] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/9/pr=0.9,n=30,beta=1.05,V=0/"
@@ -68,11 +68,11 @@ for (param_name in param_name_vec) {
                    fun.min = function(x)quantile(x,0.25),
                    fun.max = function(x)quantile(x,0.75),
                    # geom="point",
-                   fun = "median") +
+                   fun = "mean") +
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",
                    alpha=0.8,
-                   fun = "median") +
+                   fun = "mean") +
       theme(legend.position = "bottom") +
       guides(color=guide_legend(nrow=2,byrow=TRUE)) +
       scale_y_continuous(limits = switch(measurement,
