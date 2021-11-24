@@ -64,8 +64,8 @@ generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
   mean_mat[2,3] = mean_mat[3,2] = const/conn_patt_sep 
   var_mat[2,3] = var_mat[3,2] = const*conn_patt_var/conn_patt_sep^2 
   
-  mean_mat[1,1] = const
-  var_mat[1,1] = const*conn_patt_var
+  mean_mat[1,1] = const/2
+  var_mat[1,1] = (const/2)^2/4
   
   mean_mat[2,2] = const*conn_patt_sep^2
   var_mat[2,2] = const*conn_patt_var*conn_patt_sep

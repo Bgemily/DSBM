@@ -15,7 +15,6 @@ file_path = "./Functions"
 file.sources = list.files(path = file_path, pattern = "*.R$", full.names = TRUE)
 sapply(file.sources, source)
 
-
 # Load libraries ----------------------------------------------------------
 
 library("optparse") 

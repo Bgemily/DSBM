@@ -8,8 +8,8 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0/main_v5_cdf_v12/pr=0.9,n=30,beta=1.3,V=80/n/90/N_trial10_20211119_162229.Rdata")
-network_param = results[[6]]$network_param
+load("../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/7/pr=0.9,n=30,beta=1.3,V=80/n/90/N_trial10_20211119_162438.Rdata")
+network_param = results[[1]]$network_param
 
 # Generate networks -------------------------------------------------------
 
@@ -107,15 +107,15 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
 
 # Plot estimated time shifts ----------------------------------------------
 
-plot(y=results[[1]]$v_vec_list[[1]],x=v_true_list[[1]],
-     main=paste0("V_mse:",round(mean((results[[1]]$v_vec_list[[1]]-v_true_list[[1]])^2),2)))
+plot(y=res_list[[1]]$v_vec_list[[1]],x=v_true_list[[1]],
+     main=paste0("V_mse:",round(mean((res_list[[1]]$v_vec_list[[1]]-v_true_list[[1]])^2),2)))
 abline(a=0,b=1,col='red')
 
 mean((results[[1]]$v_vec_list[[1]]-v_true_list[[1]])^2)
 
 # Plot estimated intensities ----------------------------------------------
 library(tidyverse)
-permn = c(2,3,1)
+permn = c(1,2,3)
 g = plot_pdf_array_v2(pdf_array_list = list(res_list[[1]]$center_pdf_array[permn,permn,]), 
                   pdf_true_array = network_list$pdf_true_array,
                   clus_size_vec = sapply(res_list[[1]]$clusters_list[[1]][permn],length),
