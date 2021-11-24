@@ -61,7 +61,7 @@ generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
   mean_mat[1,3] = mean_mat[3,1] = const*conn_patt_sep^2
   var_mat[1,3] = var_mat[3,1] = (const^2)/4*conn_patt_sep^(-2)
   
-  mean_mat[2,3] = mean_mat[3,2] = const*conn_patt_sep 
+  mean_mat[2,3] = mean_mat[3,2] = const*conn_patt_sep^(1/2) 
   var_mat[2,3] = var_mat[3,2] = (const^2)/4*conn_patt_sep^(-1)
   
   mean_mat[1,1] = const
@@ -70,7 +70,7 @@ generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
   mean_mat[2,2] = const*conn_patt_sep^2
   var_mat[2,2] = (const^2)/4*conn_patt_sep
   
-  mean_mat[3,3] = const*(conn_patt_sep)^(1/2)
+  mean_mat[3,3] = const*(conn_patt_sep)^(3/2)
   var_mat[3,3] = (const^2)/4*conn_patt_sep
 
   conn_prob_min = conn_prob_mean - conn_prob_rad

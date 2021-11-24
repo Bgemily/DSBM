@@ -18,9 +18,9 @@ library(ggplot2)
 # cdf vs pdf (V!=0) ------------------------------------------------------------
 path_vec = rep(0,5)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0/main_v5_cdf/pr=1,n=30,beta=1.2/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v5_smaller_lr/pr=1,n=30,beta=1.2/"
-path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_pairwise_alignment/pr=1,n=30,beta=1.2/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.3,V=80/"
+# path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v5_smaller_lr/pr=1,n=30,beta=1.2/"
+# path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v7_pairwise_alignment/pr=1,n=30,beta=1.2/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -31,9 +31,7 @@ for (param_name in param_name_vec) {
   results_list = lapply(path_vec, function(folder_path)
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
                            measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "ICL_vec")))
-  results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
-                         bind_cols(results_list[[2]],"method"="PDF+simult_align"), 
-                         bind_cols(results_list[[3]],"method"="PDF+pairwise_align"))
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF") )
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
@@ -45,7 +43,7 @@ for (param_name in param_name_vec) {
   for (measurement in c("1-ARI","f_mse","V_mse")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement),
-                    '_', 'vs', '_', "N_node", ".pdf"), 
+                    '_', 'vs', '_', param_name, ".pdf"), 
         width = 4, height = 4)
     g = results_df %>% 
       ggplot(aes(x=param_value, 
@@ -58,10 +56,10 @@ for (param_name in param_name_vec) {
                    geom="pointrange",
                    fun.min = function(x)quantile(x,0.25),
                    fun.max = function(x)quantile(x,0.75),
-                   fun = median) +
+                   fun = mean) +
       stat_summary(aes(group=method),position = position_dodge(.3),
                    geom="line",
-                   fun = "median") +
+                   fun = "mean") +
       theme(legend.position = "bottom") +
       # guides(color=guide_legend(nrow=2,byrow=TRUE)) +
       scale_y_continuous(limits = switch(measurement,
