@@ -6,7 +6,7 @@
 # Import functions --------------------------------------------------------
 
 rm(list=ls())
-file_path = "./functions"
+file_path = "./Functions"
 file.sources = list.files(path = file_path, pattern = "*.R$", full.names = TRUE)
 sapply(file.sources, source)
 
