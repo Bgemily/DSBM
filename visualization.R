@@ -18,8 +18,8 @@ library(ggplot2)
 # cdf vs pdf ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=60,beta=1.4,V=80/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=60,beta=1.4,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.5,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.5,V=80/"
 # path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/3/pr=0.9,n=30,beta=1.05,V=0/"
 # path_vec[4] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/5/pr=0.9,n=30,beta=1.05,V=0/"
 # path_vec[5] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/9/pr=0.9,n=30,beta=1.05,V=0/"
@@ -65,8 +65,10 @@ for (param_name in param_name_vec) {
       stat_summary(aes(group=method), position = position_dodge(.0),
                    geom="pointrange", 
                    alpha=0.7,
-                   fun.min = function(x)quantile(x,0.25),
-                   fun.max = function(x)quantile(x,0.75),
+                   # fun.min = function(x)quantile(x,0.25),
+                   # fun.max = function(x)quantile(x,0.75),
+                   fun.min = function(x)mean(x)-sd(x),
+                   fun.max = function(x)mean(x)+sd(x),
                    # geom="point",
                    fun = "mean") +
       stat_summary(aes(group=method),position = position_dodge(.0),
@@ -76,10 +78,10 @@ for (param_name in param_name_vec) {
       theme(legend.position = "bottom") +
       guides(color=guide_legend(nrow=2,byrow=TRUE)) +
       scale_y_continuous(limits = switch(measurement,
-                                         "1-ARI" = c(0,1),
                                          "time_est" = c(0,350),
                                          "V_mse" = c(0,250),
-                                         "f_mse" = c(0,0.01))) +
+                                         "f_mse" = c(0,0.025),
+                                         "1-ARI" = c(0,1) )) +
       ylab(measurement) +
       xlab(switch(param_name, 'n'='N_node',param_name))
     

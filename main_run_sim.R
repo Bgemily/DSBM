@@ -25,9 +25,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=50, 
+  make_option(c("-n", "--N_trial"), type="integer", default=400, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=5)
+  make_option("--split", type="integer", default=40)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);

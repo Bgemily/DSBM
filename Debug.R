@@ -8,10 +8,13 @@ sapply(file.sources, source)
 
 # Load simulation result and get network parameters -----------------------
 
-load("../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.5,V=80/beta/1.9/N_trial10_20211124_095056.Rdata")
+load("../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.5,V=80/beta/1.9/N_trial10_20211124_164941.Rdata")
 load("../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.5,V=80/beta/1.9/N_trial10_20211124_093320.Rdata")
 
 network_param = results[[1]]$network_param
+results[[3]]$F_mean_sq_err
+results[[3]]$ARI_mean
+results[[3]]$v_mean_sq_err
 
 # Generate networks -------------------------------------------------------
 
@@ -126,4 +129,4 @@ g = plot_pdf_array_v2(pdf_array_list = list(res_list[[1]]$center_pdf_array[permn
                   t_vec = t_vec)
 g+ggtitle(paste0("f_mse:",round(results[[1]]$F_mean_sq_err,4)))
 
-mean(apply(res_list[[1]]$center_pdf_array[permn,permn,]-network_list$pdf_true_array, c(1,2),function(vec)sum(vec^2)))
+apply(res_list[[1]]$center_pdf_array[permn,permn,]-network_list$pdf_true_array, c(1,2),function(vec)sum(vec^2))
