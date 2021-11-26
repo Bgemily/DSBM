@@ -131,7 +131,9 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
       
     }
     
-    
+    if(n_iter>MaxIter){
+      print("[do_cluster_v8.1:] Reached maximum iteration number.")
+    }
     
     center_cdf_array_list[[m]] = center_cdf_array_current
     

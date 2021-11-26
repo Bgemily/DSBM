@@ -57,8 +57,11 @@ main_v5 = function(### Parameters for generative model
     N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
     for (ind_freq_trun in 1:1) {
       ### Get initialization -----------
+      start = Sys.time()
       res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
                         t_vec = t_vec)
+      end = Sys.time()
+      time_init = as.numeric(end-start, units='secs')
       
       clusters_list_init = res$clusters_list
       n0_vec_list_init = res$n0_vec_list
@@ -73,6 +76,8 @@ main_v5 = function(### Parameters for generative model
                             clusters_list_init = clusters_list_init,
                             n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
                             save_est_history = save_est_history,
+                            conv_thres = conv_thres,
+                            MaxIter = MaxIter,
                             ...)
       time_end = Sys.time()
       time_estimation = time_end - time_start
@@ -321,6 +326,7 @@ main_v5 = function(### Parameters for generative model
                 v_mean_sq_err=v_mean_sq_err,
                 # other
                 time_estimation=time_estimation,
+                time_init=time_init,
                 N_iteration=N_iteration,
                 loss_history=loss_history, 
                 cluster_time=cluster_time, 
@@ -352,6 +358,7 @@ main_v5 = function(### Parameters for generative model
                 v_mean_sq_err=v_mean_sq_err,
                 # other
                 time_estimation=time_estimation,
+                time_init=time_init,
                 N_iteration=N_iteration,
                 loss_history=loss_history, 
                 cluster_time=cluster_time, 
