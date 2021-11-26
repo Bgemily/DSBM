@@ -15,6 +15,67 @@ library("dplyr")
 library(ggplot2)
 
 
+# ARI/F_mse/v_mse vs iteration number -------------------------------------
+path_vec = rep(0,6)
+
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v4_est_history/pr=0.9,n=60,beta=1.6,V=80/"
+
+param_name_vec = list.files(path_vec[1])
+
+### For each parameter (n/beta/V), extract results and visualize results
+for (param_name in param_name_vec) {
+  
+  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
+  results_list = lapply(path_vec, function(folder_path)
+    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
+                           measurement=c("ARI_history", "F_mean_sq_err_history", "v_mean_sq_err_history")))
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="Our initialization"))
+  
+  results_df = results_df %>% 
+    mutate(param_value = as_factor(param_value)) %>%
+    pivot_longer(cols = starts_with("ARI"), names_to = "Iter_ARI", values_to = "ARI") %>% 
+    pivot_longer(cols = starts_with("F_mean_sq_err"), names_to = "Iter_F_mean_sq_err", values_to = "F_mean_sq_err") %>% 
+    pivot_longer(cols = starts_with("v_mean_sq_err"), names_to = "Iter_v_mean_sq_err", values_to = "v_mean_sq_err")
+    
+  results_df = results_df %>% 
+    mutate(Iter_ARI=fct_relevel(Iter_ARI,"ARI_history10","ARI_history11", after = Inf),
+           Iter_F_mean_sq_err=fct_relevel(Iter_F_mean_sq_err,"F_mean_sq_err_history10","F_mean_sq_err_history11", after = Inf),
+           Iter_v_mean_sq_err=fct_relevel(Iter_v_mean_sq_err,"v_mean_sq_err_history10","v_mean_sq_err_history11", after = Inf))
+  
+  ### Plot ICL vs N_clus
+  for (measurement in c("1-ARI","F_mean_sq_err",'v_mean_sq_err')) {
+    pdf(file=paste0("../Results/Plots/Temp/", 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement), 
+                    '_', 'Iteration', ".pdf"), 
+        width = 4, height = 2.5)
+    g = results_df %>% 
+      ggplot(aes(x=switch(measurement,
+                          "1-ARI" = Iter_ARI,
+                          "F_mean_sq_err" = Iter_F_mean_sq_err, 
+                          "v_mean_sq_err" = Iter_v_mean_sq_err),
+                 y=switch(measurement,
+                          "1-ARI" = 1-ARI,
+                          "F_mean_sq_err" = F_mean_sq_err,
+                          "v_mean_sq_err" = v_mean_sq_err), 
+                 color=method)) +
+      stat_summary(aes(group=method),position = position_dodge(.0),
+                   geom="line",alpha=0.7,
+                   fun = "mean") +
+      # theme(legend.position = "none") +
+      guides(color=guide_legend(title="Method")) +
+      scale_y_continuous() +
+      ylab(measurement) +
+      scale_x_discrete(labels=c(0:10)) +
+      xlab("Iteration")
+    
+    print(g)
+    dev.off()
+  }
+  
+}
+
+
+
 # cdf vs pdf ------------------------------------------------------------
 path_vec = rep(0,6)
 

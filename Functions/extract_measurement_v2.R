@@ -13,8 +13,8 @@ extract_measurement_v2 = function(folder_path, measurement=c("ARI_mean", "F_mean
       load(file)
 
       # Size of meas_value_mat: N_meas*N_trial
-      meas_value_mat = sapply(results, function(one_trial) tryCatch(unlist(one_trial[measurement]), 
-                                                                    error=function(x)NA))  
+      meas_value_mat = sapply(results[sapply(results,is.list)], function(one_trial) tryCatch(unlist(one_trial[measurement]), 
+                                                                    error=function(x)c(NA)))  
       if (is.vector(meas_value_mat)) 
         meas_value_mat = matrix(meas_value_mat)
       else

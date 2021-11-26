@@ -58,7 +58,11 @@ main_v5 = function(### Parameters for generative model
     for (ind_freq_trun in 1:1) {
       ### Get initialization -----------
       start = Sys.time()
-      res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
+      # res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
+      #                   t_vec = t_vec)
+      seed_init = sample(1e5,1)
+      set.seed(seed_init)
+      res = get_init_v5(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
                         t_vec = t_vec)
       end = Sys.time()
       time_init = as.numeric(end-start, units='secs')
@@ -325,6 +329,7 @@ main_v5 = function(### Parameters for generative model
                 F_mean_sq_err=F_mean_sq_err, 
                 v_mean_sq_err=v_mean_sq_err,
                 # other
+                seed_init=seed_init,
                 time_estimation=time_estimation,
                 time_init=time_init,
                 N_iteration=N_iteration,
@@ -357,6 +362,7 @@ main_v5 = function(### Parameters for generative model
                 F_mean_sq_err=F_mean_sq_err, 
                 v_mean_sq_err=v_mean_sq_err,
                 # other
+                seed_init=seed_init,
                 time_estimation=time_estimation,
                 time_init=time_init,
                 N_iteration=N_iteration,

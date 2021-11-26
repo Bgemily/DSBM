@@ -83,7 +83,7 @@ conn_prob_mean_list = list(1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1)
 ### ARI vs iteration number -----
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0_v4'
-method = 'main_v5_cdf_v4_est_history'
+method = 'main_v5_cdf_v4_est_history/rand_init'
 default_setting = 'pr=0.9,n=60,beta=1.6,V=80'
 N_node_persubj_list = list(60)
 ### beta
