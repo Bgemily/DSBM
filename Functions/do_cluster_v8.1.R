@@ -6,7 +6,7 @@
 do_cluster_v8.1 = function(edge_time_mat_list, N_clus, 
                          clusters_list_init, n0_vec_list_init, n0_mat_list_init,
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
-                         MaxIter=10, conv_thres=5e-3, ...)
+                         MaxIter=10, conv_thres=5e-3, save_est_history=FALSE, ...)
 {
   t_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
@@ -16,6 +16,9 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   loss_history = c()
   cluster_time = align_time = 0
   
+  v_vec_history = list()
+  center_cdf_array_history = list()
+
   # Initialize clusters and time shifts -------------------------------------
   
   clusters_list = clusters_list_init
@@ -23,12 +26,17 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   n0_mat_list = n0_mat_list_init
   order_list = lapply(n0_vec_list, function(n0_vec)order(n0_vec))
   
-  clusters_history = c(clusters_history, list(clusters_list))
-  
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
                                              n0_mat_list = n0_mat_list, t_vec = t_vec)
   
+  ### Save estimation
+  if (save_est_history==TRUE){
+    clusters_history = c(clusters_history, list(clusters_list[[1]]))
+    v_vec_list = lapply(n0_vec_list, function(vec)vec*t_unit)
+    v_vec_history = c(v_vec_history, list(v_vec_list[[1]]))
+    center_cdf_array_history= c(center_cdf_array_history, list(center_cdf_array))
+  }
   
   
   ### Evaluate loss function
@@ -41,7 +49,6 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   
   
   # Update clusters and connecting patterns separately for each subject ---------------------
-  
 
   clusters_list_update = clusters_list_current = clusters_list
   n0_vec_list_update = n0_vec_list_current = n0_vec_list
@@ -63,7 +70,6 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
     
     
     while (!stopping & n_iter<=MaxIter){
-      
       ### Update clusters, time shifts and connecting patterns
       res = cluster_kmeans_v6.1(edge_time_mat_list=edge_time_mat_list[m], 
                               clusters_list=clusters_list_current[m], 
@@ -116,6 +122,13 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
                           center_cdf_array = center_cdf_array_current, t_vec = t_vec)$loss
       loss_history = c(loss_history, loss)
       
+      ### Save estimation
+      if (save_est_history==TRUE) {
+        clusters_history = c(clusters_history, list(clusters_list_current[[m]]))
+        v_vec_history = c(v_vec_history, list(v_vec_list_current[[m]]))
+        center_cdf_array_history= c(center_cdf_array_history, list(center_cdf_array_current))
+      }
+      
     }
     
     
@@ -138,12 +151,6 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
       clusters_list_current[[m]] = clusters_list_current[[m]][permn]
     }
   }
-  
-  
-  
-  
-  
-  clusters_history = c(clusters_history, list(clusters_list_current))
   
   
   center_cdf_array_current = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
@@ -183,10 +190,6 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
       ### Record computing time for clustering and aligning
       cluster_time = cluster_time + res$cluster_time
       align_time = align_time + res$align_time
-      
-      
-      clusters_history = c(clusters_history, list(clusters_list_update))
-      
       
       ### Evaluate loss function
       loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
@@ -247,12 +250,14 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
                                              clusters_list = clusters_list, 
                                              n0_mat_list = n0_mat_list, t_vec = t_vec)
   
-  
-  return(list(clusters_list=clusters_list, clusters_history=clusters_history, 
-              loss_history=loss_history,
+  return(list(clusters_list=clusters_list, 
               v_vec_list=v_vec_list, 
               n0_vec_list=n0_vec_list, n0_mat_list=n0_mat_list,
               center_pdf_array=center_pdf_array, center_cdf_array=center_cdf_array,
+              clusters_history=clusters_history, 
+              v_vec_history=v_vec_history,
+              center_cdf_array_history=center_cdf_array_history,
+              loss_history=loss_history,
               cluster_time=cluster_time, align_time=align_time))
   
 }

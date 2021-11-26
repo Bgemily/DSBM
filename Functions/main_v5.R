@@ -22,6 +22,7 @@ main_v5 = function(### Parameters for generative model
   opt_radius=total_time/2,
   N_clus_min=N_clus-2, N_clus_max=N_clus+2,
   freq_trun_vec=NULL,
+  save_est_history=FALSE,
   ...)
 {
   
@@ -37,6 +38,7 @@ main_v5 = function(### Parameters for generative model
   
   edge_time_mat_list = network_list$edge_time_mat_list
   pdf_true_array = network_list$pdf_true_array
+  cdf_true_array = network_list$cdf_true_array
   membership_true_list = network_list$membership_true_list
   clus_true_list = network_list$clus_true_list
   v_true_list = network_list$time_shift_list
@@ -70,6 +72,7 @@ main_v5 = function(### Parameters for generative model
                             total_time = total_time, max_iter=max_iter, t_vec=t_vec,
                             clusters_list_init = clusters_list_init,
                             n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
+                            save_est_history = save_est_history,
                             ...)
       time_end = Sys.time()
       time_estimation = time_end - time_start
@@ -113,10 +116,46 @@ main_v5 = function(### Parameters for generative model
   res$align_time -> align_time
   res$cluster_time -> cluster_time
   
+  if (save_est_history==TRUE) {
+    clusters_history = res$clusters_history
+    v_vec_history = res$v_vec_history
+    center_cdf_array_history = res$center_cdf_array_history
+  }
   
   # Compute estimation error ------------------------------------------------
   
   if (N_clus_est == N_clus) {
+    ### Compute estimatino error history
+    if (save_est_history==TRUE) {
+      ARI_history = F_mean_sq_err_history = v_mean_sq_err_history = c()
+      for (ind_iter in 1:length(clusters_history)) {
+        ### Calculate ARI
+        ARI_tmp = get_one_ARI(memb_est_vec = clus2mem(clusters_history[[ind_iter]]), 
+                              memb_true_vec = membership_true_list[[1]])
+        ### Calculate F_mse
+        res = find_permn(center_cdf_array_from = center_cdf_array_history[[ind_iter]],
+                         center_cdf_array_to = cdf_true_array)
+        permn = res$permn
+        center_cdf_array_est_permn = center_cdf_array_history[[ind_iter]][permn, permn, ]
+        
+        dist_mat = matrix(nrow=N_clus, ncol=N_clus)
+        for (q in 1:N_clus) {
+          for (k in 1:N_clus) {
+            dist_mat[q,k] = sqrt(sum( (center_cdf_array_est_permn[q,k,] - cdf_true_array[q,k,])^2 * 
+                                        (t_vec[2]-t_vec[1]) ))
+          }
+        }
+        F_mean_sq_err = mean(dist_mat[upper.tri(dist_mat, diag=TRUE)]^2)
+        
+        ### Calculate v_mse
+        v_mean_sq_err = mean((unlist(v_true_list)-unlist(v_vec_history[[ind_iter]]))^2) 
+        
+        ### Save estimation error
+        ARI_history[ind_iter] = ARI_tmp
+        F_mean_sq_err_history[ind_iter] = F_mean_sq_err
+        v_mean_sq_err_history[ind_iter] = v_mean_sq_err
+      }
+    }
     # Compute errors of clusters, i.e. Z ------------------------------------
     
     ARI_vec = numeric(length = N_subj)
@@ -250,37 +289,76 @@ main_v5 = function(### Parameters for generative model
   
   
   # Output ------------------------------------------------------------------
-  
-  return(list(network_param=network_param, 
-              N_node_vec_entropy=N_node_vec_entropy,
-              # model selection result
-              N_clus_est=N_clus_est, 
-              correct_N_clus=I(N_clus_est==N_clus)*1, 
-              ICL_vec=ICL_vec, 
-              compl_log_lik_vec=compl_log_lik_vec, 
-              log_lik_vec=log_lik_vec,
-              penalty_2_vec=penalty_2_vec,
-              penalty_vec=penalty_vec,
-              ICL_mat = ICL_mat,
-              compl_log_lik_mat = compl_log_lik_mat, 
-              log_lik_mat = log_lik_mat, 
-              penalty_2_mat = penalty_2_mat,
-              penalty_mat = penalty_mat,
-              # parameter estimates of best cluster number
-              clusters_list_est=clusters_list_est,
-              v_vec_list_est=v_vec_list_est,
-              # estimation error
-              Lambda_mean_sq_err = Lambda_mean_sq_err,
-              ARI_vec=ARI_vec, ARI_mean=ARI_mean, 
-              F_mean_sq_err=F_mean_sq_err, 
-              v_mean_sq_err=v_mean_sq_err,
-              # other
-              time_estimation=time_estimation,
-              N_iteration=N_iteration,
-              loss_history=loss_history, 
-              cluster_time=cluster_time, 
-              align_time=align_time
-              ))
+  if (save_est_history==TRUE) {
+    return(list(ARI_history=ARI_history,
+                F_mean_sq_err_history=F_mean_sq_err_history,
+                v_mean_sq_err_history=v_mean_sq_err_history,
+                clusters_history = clusters_history,
+                v_vec_history = v_vec_history,
+                # network parameter
+                network_param=network_param, 
+                N_node_vec_entropy=N_node_vec_entropy,
+                # model selection result
+                N_clus_est=N_clus_est, 
+                correct_N_clus=I(N_clus_est==N_clus)*1, 
+                ICL_vec=ICL_vec, 
+                compl_log_lik_vec=compl_log_lik_vec, 
+                log_lik_vec=log_lik_vec,
+                penalty_2_vec=penalty_2_vec,
+                penalty_vec=penalty_vec,
+                ICL_mat = ICL_mat,
+                compl_log_lik_mat = compl_log_lik_mat, 
+                log_lik_mat = log_lik_mat, 
+                penalty_2_mat = penalty_2_mat,
+                penalty_mat = penalty_mat,
+                # parameter estimates of best cluster number
+                clusters_list_est=clusters_list_est,
+                v_vec_list_est=v_vec_list_est,
+                # estimation error
+                Lambda_mean_sq_err = Lambda_mean_sq_err,
+                ARI_vec=ARI_vec, ARI_mean=ARI_mean, 
+                F_mean_sq_err=F_mean_sq_err, 
+                v_mean_sq_err=v_mean_sq_err,
+                # other
+                time_estimation=time_estimation,
+                N_iteration=N_iteration,
+                loss_history=loss_history, 
+                cluster_time=cluster_time, 
+                align_time=align_time
+                ))
+  } else{
+    return(list(network_param=network_param, 
+                N_node_vec_entropy=N_node_vec_entropy,
+                # model selection result
+                N_clus_est=N_clus_est, 
+                correct_N_clus=I(N_clus_est==N_clus)*1, 
+                ICL_vec=ICL_vec, 
+                compl_log_lik_vec=compl_log_lik_vec, 
+                log_lik_vec=log_lik_vec,
+                penalty_2_vec=penalty_2_vec,
+                penalty_vec=penalty_vec,
+                ICL_mat = ICL_mat,
+                compl_log_lik_mat = compl_log_lik_mat, 
+                log_lik_mat = log_lik_mat, 
+                penalty_2_mat = penalty_2_mat,
+                penalty_mat = penalty_mat,
+                # parameter estimates of best cluster number
+                clusters_list_est=clusters_list_est,
+                v_vec_list_est=v_vec_list_est,
+                # estimation error
+                Lambda_mean_sq_err = Lambda_mean_sq_err,
+                ARI_vec=ARI_vec, ARI_mean=ARI_mean, 
+                F_mean_sq_err=F_mean_sq_err, 
+                v_mean_sq_err=v_mean_sq_err,
+                # other
+                time_estimation=time_estimation,
+                N_iteration=N_iteration,
+                loss_history=loss_history, 
+                cluster_time=cluster_time, 
+                align_time=align_time
+    ))
+  }
+
   
 }
 
