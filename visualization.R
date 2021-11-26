@@ -37,7 +37,8 @@ for (param_name in param_name_vec) {
                          # bind_cols(results_list[[3]],"method"="PDF+N_basis_07"),
                          # bind_cols(results_list[[4]],"method"="PDF+N_basis_11"),
                          # bind_cols(results_list[[5]],"method"="PDF+N_basis_19"),
-                         bind_cols(results_list[[2]],"method"="PDF+N_basis_15"))
+                         bind_cols(results_list[[2]],"method"="PDF+N_basis_15")
+                         )
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
@@ -63,13 +64,13 @@ for (param_name in param_name_vec) {
                  linetype=method,
                  color=method)) +
       stat_summary(aes(group=method), position = position_dodge(.0),
-                   geom="pointrange", 
-                   alpha=0.7,
+                   # geom="pointrange",
+                   # alpha=0.7,
                    # fun.min = function(x)quantile(x,0.25),
                    # fun.max = function(x)quantile(x,0.75),
-                   fun.min = function(x)mean(x)-sd(x),
-                   fun.max = function(x)mean(x)+sd(x),
-                   # geom="point",
+                   # fun.min = function(x)mean(x)-sd(x),
+                   # fun.max = function(x)mean(x)+sd(x),
+                   geom="point",
                    fun = "mean") +
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",

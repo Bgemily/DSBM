@@ -9,12 +9,14 @@ sapply(file.sources, source)
 # Load simulation result and get network parameters -----------------------
 
 load("../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.5,V=80/beta/1.9/N_trial10_20211124_164941.Rdata")
-load("../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.5,V=80/beta/1.9/N_trial10_20211124_093320.Rdata")
+load("../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.5,V=80/beta/1.5/N_trial10_20211124_162252.Rdata")
+load("../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.5,V=80/V/80/N_trial10_20211124_093554.Rdata")
+load("../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.5,V=80/V/30/N_trial10_20211124_093341.Rdata")
 
 network_param = results[[1]]$network_param
-results[[3]]$F_mean_sq_err
-results[[3]]$ARI_mean
-results[[3]]$v_mean_sq_err
+results[[2]]$F_mean_sq_err
+results[[2]]$ARI_mean
+results[[1]]$v_mean_sq_err
 
 # Generate networks -------------------------------------------------------
 
@@ -112,9 +114,9 @@ for (N_clus_tmp in N_clus_min:N_clus_max) {
 
 # Plot estimated time shifts ----------------------------------------------
 
-plot(y=res_list[[1]]$v_vec_list[[1]],x=v_true_list[[1]],
+plot(y=results[[1]]$v_vec_list[[1]],x=v_true_list[[1]],
      ylim=c(0,100),
-     main=paste0("V_mse:",round(mean((res_list[[1]]$v_vec_list[[1]]-v_true_list[[1]])^2),2)))
+     main=paste0("V_mse:",round(mean((results[[1]]$v_vec_list[[1]]-v_true_list[[1]])^2),2)))
 abline(a=0,b=1,col='red')
 
 mean((results[[1]]$v_vec_list[[1]]-v_true_list[[1]])^2)
