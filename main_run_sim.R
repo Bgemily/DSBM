@@ -96,7 +96,7 @@ time_shift_mean_vec_list = list(rep(15,N_clus), rep(20,N_clus),
 
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0_v4'
-method = 'main_v5_pdf_v1'
+method = 'main_v5_pdf_v2'
 default_setting = 'pr=0.9,n=30,beta=1.3,V=80'
 
 for (freq_trun in c(7)){
@@ -113,6 +113,7 @@ for (freq_trun in c(7)){
                          time_shift_mean_vec = rep(40,N_clus),
                          t_vec = seq(0,200,length.out=200),
                          freq_trun_vec = c(freq_trun), 
+                         MaxIter = 10,
                          N_clus_min = N_clus, N_clus_max = N_clus),
                  error = function(x) print(SEED))
       }
