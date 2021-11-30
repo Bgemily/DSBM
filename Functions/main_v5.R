@@ -61,13 +61,13 @@ main_v5 = function(### Parameters for generative model
       start = Sys.time()
       seed_init = sample(1e5,1)
       set.seed(seed_init)
-      # res = get_init_v4(edge_time_mat_list = edge_time_mat_list, 
-      #                   N_clus = N_clus_tmp,
-      #                   t_vec = t_vec)
-      res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
+      res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
                         N_clus = N_clus_tmp,
-                        N_restart = N_restart,
                         t_vec = t_vec)
+      # res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
+      #                   N_clus = N_clus_tmp,
+      #                   N_restart = N_restart,
+      #                   t_vec = t_vec)
       end = Sys.time()
       time_init = as.numeric(end-start, units='secs')
 

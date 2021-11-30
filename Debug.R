@@ -11,12 +11,14 @@ sapply(file.sources, source)
 load("../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.3,V=80/beta/1.3/N_trial10_20211128_123327.Rdata")
 load("../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.3,V=80/beta/1.9/N_trial10_20211128_123716.Rdata")
 load("../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.3,V=80/beta/1.3/N_trial10_20211123_224729.Rdata")
-load("../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.3,V=80/beta/1.9/N_trial10_20211123_233049.Rdata")
+load("../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v2/pr=0.9,n=30,beta=1.3,V=80/n/90/N_trial10_20211129_183155.Rdata")
 
-network_param = results[[8]]$network_param
+network_param = results[[1]]$network_param
 sapply(results, function(res)res$ARI_mean)
 sapply(results, function(res)res$v_mean_sq_err)
-results[[8]]$F_mean_sq_err
+results[[1]]$F_mean_sq_err
+results[[1]]$ARI_vec
+results[[1]]$v_mean_sq_err
 
 # Generate networks -------------------------------------------------------
 
