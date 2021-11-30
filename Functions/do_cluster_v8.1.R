@@ -6,7 +6,9 @@
 do_cluster_v8.1 = function(edge_time_mat_list, N_clus, 
                          clusters_list_init, n0_vec_list_init, n0_mat_list_init,
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
-                         MaxIter=10, conv_thres=5e-3, save_est_history=FALSE, ...)
+                         MaxIter=10, conv_thres=5e-3, save_est_history=FALSE, 
+                         fix_timeshift=FALSE,
+                         ...)
 {
   t_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
@@ -75,7 +77,9 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
                               clusters_list=clusters_list_current[m], 
                               n0_vec_list=n0_vec_list_current[m], n0_mat_list=n0_mat_list_current[m], 
                               center_cdf_array = center_cdf_array_current,
-                              t_vec=t_vec, order_list=NULL, ...)
+                              t_vec=t_vec, order_list=NULL, 
+                              fix_timeshift=fix_timeshift,
+                              ...)
       clusters_list_update[m] = res$clusters_list
       n0_vec_list_update[m] = res$n0_vec_list
       n0_mat_list_update[m] = res$n0_mat_list
@@ -134,6 +138,8 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
     if(n_iter>MaxIter){
       print("[do_cluster_v8.1:] Reached maximum iteration number.")
     }
+    N_iteration = n_iter
+    
     
     center_cdf_array_list[[m]] = center_cdf_array_current
     
@@ -182,7 +188,9 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
                               clusters_list=clusters_list_current, 
                               n0_vec_list=n0_vec_list_current, n0_mat_list=n0_mat_list_current, 
                               center_cdf_array = center_cdf_array_current,
-                              t_vec=t_vec, order_list=NULL, ...)
+                              t_vec=t_vec, order_list=NULL, 
+                              fix_timeshift=fix_timeshift,
+                              ...)
       clusters_list_update = res$clusters_list
       n0_vec_list_update = res$n0_vec_list
       n0_mat_list_update = res$n0_mat_list
@@ -260,6 +268,7 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
               v_vec_history=v_vec_history,
               center_cdf_array_history=center_cdf_array_history,
               loss_history=loss_history,
+              N_iteration=N_iteration,
               cluster_time=cluster_time, align_time=align_time))
   
 }

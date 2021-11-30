@@ -2,7 +2,7 @@
 plot_pdf_array_v2 = function(pdf_array_list, pdf_true_array = NULL, 
                              clus_size_vec,
                           t_vec = seq(0, 350, length.out=1000), 
-                          y_lim=c(0, 0.04))
+                          y_lim=c(0, 0.04),x_lim=NULL)
 {
   
   # library(tidyverse)
@@ -88,6 +88,10 @@ plot_pdf_array_v2 = function(pdf_array_list, pdf_true_array = NULL,
     geom_label(data = label_df, x=Inf, y=Inf, mapping = aes(label=label), size=3, color='black',
               vjust = "inward", hjust = "inward",
               show.legend = FALSE, inherit.aes = FALSE)
+  
+  if(!is.null(x_lim)){
+    g = g + xlim(x_lim)
+  }
     
   g
   

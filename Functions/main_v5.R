@@ -23,6 +23,7 @@ main_v5 = function(### Parameters for generative model
   N_clus_min=N_clus-2, N_clus_max=N_clus+2,
   freq_trun_vec=NULL,
   save_est_history=FALSE,
+  N_restart=1,
   ...)
 {
   
@@ -58,15 +59,18 @@ main_v5 = function(### Parameters for generative model
     for (ind_freq_trun in 1:1) {
       ### Get initialization -----------
       start = Sys.time()
-      # res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
-      #                   t_vec = t_vec)
       seed_init = sample(1e5,1)
       set.seed(seed_init)
-      res = get_init_v5(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
+      # res = get_init_v4(edge_time_mat_list = edge_time_mat_list, 
+      #                   N_clus = N_clus_tmp,
+      #                   t_vec = t_vec)
+      res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
+                        N_clus = N_clus_tmp,
+                        N_restart = N_restart,
                         t_vec = t_vec)
       end = Sys.time()
       time_init = as.numeric(end-start, units='secs')
-      
+
       clusters_list_init = res$clusters_list
       n0_vec_list_init = res$n0_vec_list
       n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)

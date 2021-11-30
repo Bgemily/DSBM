@@ -5,7 +5,7 @@ author: "Zitong Zhang"
 output: html_document
 params: 
   subj_name: "func_20150417"
-  data_folder: "../../Results/Rdata/RDA/CDF/"
+  data_folder: "../../Results/Rdata/RDA/CDF_cut_intens_Ngrid15_fix_v/"
 ---
 
 ```{r setup, include=FALSE}
@@ -121,6 +121,15 @@ clusters_list = lapply(res_list, function(res) res$clusters_list)
 center_pdf_array_list = lapply(res_list, function(res) res$center_pdf_array)
 v_vec_list = lapply(res_list, function(res) res$v_vec)
 t_vec = res$t_vec
+n0_mat_list = lapply(v_vec_list, function(v_vec) n0_vec2mat(n0_vec = v_vec/(t_vec[2]-t_vec[1])))
+
+### Fix spike intensity 
+for (ind in 1:length(center_pdf_array_list)) {
+  if (max(center_pdf_array_list[[ind]])>1e5) {
+    center_pdf_array_list[[ind]] = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list[ind], clusters_list = clusters_list[ind], n0_mat_list = n0_mat_list[ind], t_vec = t_vec)
+}
+}
+
 ```
 
 
@@ -145,12 +154,12 @@ clus_size_list = lapply(clusters_list, function(clusters)sapply(clusters,length)
 g1 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE], 
                         pdf_true_array = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE],
                         clus_size_vec = clus_size_list[[1]][order_clus_1],
-                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list[[1]]))))
+                        t_vec = t_vec, x_lim = c(0,250), y_lim = c(0,max(unlist(center_pdf_array_list[[1]]))))
 
 g2 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE], 
                         pdf_true_array = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE],
                         clus_size_vec = clus_size_list[[2]][order_clus_2],
-                        t_vec = t_vec, y_lim = c(0,max(unlist(center_pdf_array_list[[2]]))))
+                        t_vec = t_vec, x_lim = c(0,250), y_lim = c(0,max(unlist(center_pdf_array_list[[2]]))))
 
 grid.arrange(g1, g2, ncol=2)
 ```
@@ -212,11 +221,16 @@ ggplot(data = data.frame(activeTime_vec=activeTime_vec,
 ind_vec = which(unlist(v_vec_list)!=0 & activeTime_vec==1)
 ind = ind_vec[1]
 
-data_trace = tibble(dFF=dFF_mat[ind,],time=(1:ncol(dFF_mat)*0.25)/60)
-ggplot(data_trace, aes(x=time, y=dFF)) +
-  geom_line(alpha=0.3) +
-  xlim(230+c(-1,1)) +
-  geom_vline(xintercept = unlist(v_vec_list)[ind])
+for (i in 1:min(length(ind_vec),3)) {
+  ind = ind_vec[i]
+  data_trace = tibble(dFF=dFF_mat[ind,],time=(1:ncol(dFF_mat)*0.25)/60)
+  g = ggplot(data_trace, aes(x=time, y=dFF)) +
+    geom_line(alpha=0.3) +
+    # xlim(unlist(v_vec_list)[ind]+c(-1,1)) +
+    geom_vline(xintercept = unlist(v_vec_list)[ind])
+  print(g)
+}
+
 
 ```
 

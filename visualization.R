@@ -18,19 +18,31 @@ library(ggplot2)
 # ARI/F_mse/v_mse vs iteration number -------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v4_est_history/pr=0.9,n=60,beta=1.6,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v4_est_history/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v4_est_history/N_restart/1/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[6] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v4_est_history/N_restart/20/pr=0.9,n=30,beta=1.6,V=80/"
+# path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v4_est_history/N_restart/3/pr=0.9,n=60,beta=1.4,V=80/"
+path_vec[4] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v4_est_history/N_restart/5/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[5] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v4_est_history/N_restart/10/pr=0.9,n=30,beta=1.6,V=80/"
 
 param_name_vec = list.files(path_vec[1])
 
 ### For each parameter (n/beta/V), extract results and visualize results
 for (param_name in param_name_vec) {
-  
   ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
   results_list = lapply(path_vec, function(folder_path)
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
-                           measurement=c("ARI_history", "F_mean_sq_err_history", "v_mean_sq_err_history")))
-  results_df = bind_rows(bind_cols(results_list[[1]],"method"="Our initialization"))
-  
+                           measurement=c("ARI_history", 
+                                         "F_mean_sq_err_history", 
+                                         'time_init',
+                                         "v_mean_sq_err_history")))
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="Our init"),
+                         # bind_cols(results_list[[3]],"method"="3 rand init"),
+                         bind_cols(results_list[[4]],"method"="5 rand init"),
+                         bind_cols(results_list[[5]],"method"="10 rand init"),
+                         bind_cols(results_list[[6]],"method"="20 rand init"),
+                         bind_cols(results_list[[2]],"method"="1 rand init"))
+
   results_df = results_df %>% 
     mutate(param_value = as_factor(param_value)) %>%
     pivot_longer(cols = starts_with("ARI"), names_to = "Iter_ARI", values_to = "ARI") %>% 
@@ -38,7 +50,9 @@ for (param_name in param_name_vec) {
     pivot_longer(cols = starts_with("v_mean_sq_err"), names_to = "Iter_v_mean_sq_err", values_to = "v_mean_sq_err")
     
   results_df = results_df %>% 
-    mutate(Iter_ARI=fct_relevel(Iter_ARI,"ARI_history10","ARI_history11", after = Inf),
+    mutate(method=fct_relevel(method,"10 rand init", "20 rand init", after=Inf),
+           method=fct_relevel(method,"Our init", after=0),
+           Iter_ARI=fct_relevel(Iter_ARI,"ARI_history10","ARI_history11", after = Inf),
            Iter_F_mean_sq_err=fct_relevel(Iter_F_mean_sq_err,"F_mean_sq_err_history10","F_mean_sq_err_history11", after = Inf),
            Iter_v_mean_sq_err=fct_relevel(Iter_v_mean_sq_err,"v_mean_sq_err_history10","v_mean_sq_err_history11", after = Inf))
   
@@ -61,7 +75,7 @@ for (param_name in param_name_vec) {
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",alpha=0.7,
                    fun = "mean") +
-      # theme(legend.position = "none") +
+      # theme(legend.position = "bottom") +
       guides(color=guide_legend(title="Method")) +
       scale_y_continuous() +
       ylab(measurement) +
@@ -72,15 +86,23 @@ for (param_name in param_name_vec) {
     dev.off()
   }
   
+  results_df %>% 
+    group_by(method) %>%
+    summarise(time_init = mean(time_init, na.rm=TRUE)) %>%
+    mutate(method=fct_relevel(method,"10 rand init",after=Inf)) %>%
+    ggplot(mapping = aes(x=method, y=time_init,group=1)) +
+    geom_point()
+    stat_summary(geom="point",alpha=0.7,
+                 fun = "mean")
+  
 }
-
 
 
 # cdf vs pdf ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.5,V=80/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.5,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.3,V=80/"
 # path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/3/pr=0.9,n=30,beta=1.05,V=0/"
 # path_vec[4] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/5/pr=0.9,n=30,beta=1.05,V=0/"
 # path_vec[5] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/9/pr=0.9,n=30,beta=1.05,V=0/"
@@ -93,12 +115,15 @@ for (param_name in param_name_vec) {
   ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
   results_list = lapply(path_vec, function(folder_path)
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
-                           measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", "time_estimation")))
+                           measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", 
+                                         "N_iteration",
+                                         "time_estimation")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
                          # bind_cols(results_list[[3]],"method"="PDF+N_basis_07"),
                          # bind_cols(results_list[[4]],"method"="PDF+N_basis_11"),
                          # bind_cols(results_list[[5]],"method"="PDF+N_basis_19"),
-                         bind_cols(results_list[[2]],"method"="PDF+N_basis_15"))
+                         bind_cols(results_list[[2]],"method"="PDF+N_basis_15")
+                         )
   
   ### Manipulate column "param_value"
   results_df = results_df %>% 
@@ -107,7 +132,9 @@ for (param_name in param_name_vec) {
                                                            decreasing = param_name=="V")) ) 
   
   ### Plot ARI/F_mse vs n/beta/V
-  for (measurement in c("1-ARI","f_mse","V_mse","time_est")) {
+  for (measurement in c("1-ARI","f_mse","V_mse",
+                        # "N_iteration",
+                        "time_est")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement),
                     '_', 'vs', '_', 
@@ -120,17 +147,18 @@ for (param_name in param_name_vec) {
                           "1-ARI" = 1-ARI_mean,
                           "f_mse" = F_mean_sq_err,
                           "time_est"= time_estimation,
+                          "N_iteration" = N_iteration,
                           "V_mse" = v_mean_sq_err), 
                  linetype=method,
                  color=method)) +
       stat_summary(aes(group=method), position = position_dodge(.0),
-                   geom="pointrange", 
+                   # geom="pointrange", 
                    alpha=0.7,
                    # fun.min = function(x)quantile(x,0.25),
                    # fun.max = function(x)quantile(x,0.75),
-                   fun.min = function(x)mean(x)-sd(x),
-                   fun.max = function(x)mean(x)+sd(x),
-                   # geom="point",
+                   # fun.min = function(x)mean(x)-sd(x),
+                   # fun.max = function(x)mean(x)+sd(x),
+                   geom="point",
                    fun = "mean") +
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",
@@ -140,7 +168,7 @@ for (param_name in param_name_vec) {
       guides(color=guide_legend(nrow=2,byrow=TRUE)) +
       scale_y_continuous(limits = switch(measurement,
                                          "time_est" = c(0,350),
-                                         "V_mse" = c(0,250),
+                                         "V_mse" = c(0,150),
                                          "f_mse" = c(0,0.025),
                                          "1-ARI" = c(0,1) )) +
       ylab(measurement) +
@@ -283,7 +311,7 @@ for (param_name in param_name_vec) {
 
 path_vec = rep(0,2)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v2_multi_Nclus/pr=0.9,n=60,beta=1.9,V=80,N_grid=20/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v2_multi_Nclus/pr=0.9,n=60,beta=1.9,V=80,N_grid=10/"
 # path_vec[2] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_simlt_align_Nclus/pr=1,n=54,beta=1.2/"
 
 param_name_vec = list.files(path_vec[1])
@@ -303,6 +331,7 @@ for (param_name in param_name_vec) {
   results_list = lapply(path_vec[1], func_tmp, param_name=param_name)
   results_df = bind_rows(results_list[[1]])
   results_df = results_df %>% 
+    filter(param_value>=1.5) %>%
     mutate(param_value = as_factor(param_value)) %>%
     pivot_longer(cols = starts_with("ICL_vec"), names_to = "N_clus_ICL", values_to = "ICL") %>% 
     pivot_longer(cols = starts_with("compl_log_lik_vec"), names_to = "N_clus_compl_log_lik", values_to = "compl_log_lik") %>% 

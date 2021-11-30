@@ -9,7 +9,7 @@ get_pdf_vec = function(edge_time_vec, t_vec=seq(0, 50, 0.05), bw=NULL, intensity
     f_density = function(x)return(0)
   else{
     if (length(jumps) == 1) 
-      jumps = c(jumps, jumps + 1e-10)
+      jumps = c(jumps, jumps)
     if (!is.null(bw)) {
       d = density(jumps, bw = bw)
     }
