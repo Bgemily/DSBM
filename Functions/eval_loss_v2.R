@@ -2,6 +2,7 @@
 
 eval_loss_v2 = function(edge_time_mat_list, 
                         n0_mat_list, clusters_list, center_cdf_array,
+                        freq_trun = 15,
                         t_vec=seq(0,200,length.out=1000)){
 
   N_subj = length(edge_time_mat_list)
@@ -18,9 +19,10 @@ eval_loss_v2 = function(edge_time_mat_list,
     
     N_node = nrow(edge_time_mat)
     counting_proc_array = get_node_cdf_array_v2(edge_time_mat = edge_time_mat, 
-                                clusters = as.list(1:N_node), 
-                                n0_mat = matrix(0,nrow=N_node,ncol=N_node), 
-                                t_vec = t_vec)
+                                                clusters = as.list(1:N_node), 
+                                                n0_mat = matrix(0,nrow=N_node,ncol=N_node),
+                                                freq_trun = freq_trun,
+                                                t_vec = t_vec)
     event_rate_array = array(dim = c(N_node,N_node,length(t_vec)))
     for (q in 1:N_clus) {
       for (k in 1:N_clus) {

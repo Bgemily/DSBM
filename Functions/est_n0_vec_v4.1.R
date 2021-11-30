@@ -8,6 +8,7 @@
 est_n0_vec_v4.1 = function(edge_time_mat_list, 
                          clusters_list, center_cdf_array=NULL, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
+                         freq_trun = 15,
                          t_vec=seq(0,200,length.out=1000), step_size=0.02,
                          max_iter=5, epsilon=0.001, order_list=NULL)
 {
@@ -25,7 +26,9 @@ est_n0_vec_v4.1 = function(edge_time_mat_list,
   if (is.null(center_cdf_array)) {
     center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                clusters_list = clusters_list, 
-                                               n0_mat_list = n0_mat_list, t_vec = t_vec)
+                                               n0_mat_list = n0_mat_list, 
+                                               freq_trun = freq_trun, 
+                                               t_vec = t_vec)
   }
   
   # browser(); mean(center_cdf_array)
@@ -55,8 +58,11 @@ est_n0_vec_v4.1 = function(edge_time_mat_list,
       edge_time_mat_tmp = edge_time_mat_list[[m]] * order_mat_current
       clusters_tmp = clusters_list[[m]]
       n0_mat_tmp = n0_mat_list_current[[m]]
-      node_cdf_array = get_node_cdf_array_v2(edge_time_mat = edge_time_mat_tmp, clusters = clusters_tmp, 
-                                             n0_mat = n0_mat_tmp*0, t_vec = t_vec)
+      node_cdf_array = get_node_cdf_array_v2(edge_time_mat = edge_time_mat_tmp, 
+                                             clusters = clusters_tmp, 
+                                             n0_mat = n0_mat_tmp*0, 
+                                             freq_trun = freq_trun, 
+                                             t_vec = t_vec)
       
       ### Get weight matrix N_node*N_clus, (i,l)-th entry is proportional to |{j: v_j<=v_i && z_j==l}|
       order_mat_current[is.na(order_mat_current)] = 0
@@ -130,7 +136,9 @@ est_n0_vec_v4.1 = function(edge_time_mat_list,
     
     center_cdf_array_update = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                       clusters_list = clusters_list, 
-                                                      n0_mat_list = n0_mat_list_update, t_vec = t_vec)
+                                                      n0_mat_list = n0_mat_list_update, 
+                                                      freq_trun = freq_trun, 
+                                                      t_vec = t_vec)
     ### Evaluate stopping criterion
     converge = sqrt(sum((unlist(center_cdf_array_update)-unlist(center_cdf_array_current))^2))/
       sqrt(sum((unlist(center_cdf_array_current)+.Machine$double.eps)^2)) < epsilon
@@ -155,7 +163,9 @@ est_n0_vec_v4.1 = function(edge_time_mat_list,
   
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
-                                             n0_mat_list = n0_mat_list, t_vec = t_vec)
+                                             n0_mat_list = n0_mat_list, 
+                                             freq_trun = freq_trun, 
+                                             t_vec = t_vec)
   
   return(list(center_cdf_array=center_cdf_array, 
               n0_vec_list=n0_vec_list, n0_mat_list=n0_mat_list,

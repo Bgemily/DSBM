@@ -25,9 +25,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=200, 
+  make_option(c("-n", "--N_trial"), type="integer", default=50, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=20)
+  make_option("--split", type="integer", default=5)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -128,37 +128,42 @@ conn_prob_mean_list = list(1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1)
 ### ICL vs N_clus and N_basis -----
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0_v4'
-method = 'main_v5_cdf_v2_multi_Nclus'
+method = 'main_v5_cdf_v5_ICL_freqtrun'
 default_setting = 'pr=0.9,n=60,beta=1.9,V=80,N_grid=10'
 N_node_persubj_list = list(60)
 ### beta
-conn_patt_sep_list = list(1.3,1.4,1.5,1.6,1.7,1.8,1.9)
+conn_patt_sep_list = list(1.9)
 
 for (. in 1:split) {
-  ### beta
-  for (i in 1:length(conn_patt_sep_list)) {
-    conn_patt_sep = conn_patt_sep_list[[i]]
-    results <- foreach(j = 1:N_trial) %dopar% {
-      SEED = sample(1:1e7,1)
-      tryCatch(main_v5(SEED = SEED,
-                       N_node_vec = rep(60,1),
-                       conn_prob_mean = 0.9,
-                       conn_patt_sep = conn_patt_sep,
-                       time_shift_mean_vec = rep(40,N_clus),
-                       t_vec = seq(0,200,length.out=10),
-                       N_clus_min = 1, N_clus_max = 5),
-               error = function(x) print(SEED))
+  for (freq_trun in c(13,15,17,19,21)) {
+    ### beta
+    for (i in 1:length(conn_patt_sep_list)) {
+      conn_patt_sep = conn_patt_sep_list[[i]]
+      results <- foreach(j = 1:N_trial) %dopar% {
+        SEED = sample(1:1e7,1)
+        tryCatch(main_v5(SEED = SEED,
+                         N_node_vec = rep(60,1),
+                         conn_prob_mean = 0.9,
+                         conn_patt_sep = conn_patt_sep,
+                         time_shift_mean_vec = rep(40,N_clus),
+                         t_vec = seq(0,200,length.out=200),
+                         freq_trun_vec = c(freq_trun),
+                         N_clus_min = 1, N_clus_max = 5),
+                 error = function(x) print(SEED))
+      }
+      param_name = "beta"
+      param_value = conn_patt_sep
+      folder_path = paste0(top_level_folder, '/', setup, '/', method,
+                           '/','freq_trun','/',freq_trun,
+                           '/', default_setting,
+                           '/', param_name, '/', param_value)
+      dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+      
+      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+      save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+      rm(results)
     }
-    param_name = "beta"
-    param_value = conn_patt_sep
-    folder_path = paste0(top_level_folder, '/', setup, '/', method,
-                         '/', default_setting,
-                         '/', param_name, '/', param_value)
-    dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-
-    now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-    save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
-    rm(results)
+    
   }
 }
 

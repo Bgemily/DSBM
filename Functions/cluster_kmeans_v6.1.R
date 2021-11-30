@@ -6,7 +6,9 @@
 ### Use est_n0_vec_v4.1: force n0 to be less than earliest edge time
 ### Normalize node_cdf_array when updating time shifts.
 cluster_kmeans_v6.1 = function(edge_time_mat_list, 
-                             clusters_list, n0_vec_list=NULL, n0_mat_list=NULL, center_cdf_array=NULL, 
+                             clusters_list, n0_vec_list=NULL, n0_mat_list=NULL, 
+                             center_cdf_array=NULL, 
+                             freq_trun = 15,
                              t_vec=seq(0,200,length.out=1000), order_list=NULL, 
                              fix_timeshift=FALSE,
                              ...)
@@ -39,7 +41,9 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
   if (is.null(center_cdf_array)) {
     center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                clusters_list = clusters_list, 
-                                               n0_mat_list = n0_mat_list, t_vec = t_vec)
+                                               n0_mat_list = n0_mat_list, 
+                                               freq_trun = freq_trun, 
+                                               t_vec = t_vec)
   }
   
   
@@ -53,7 +57,9 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
     ### Compute node_cdf_array
     node_cdf_array = get_node_cdf_array_v2(edge_time_mat = edge_time_mat, 
                                             clusters = clusters, 
-                                            n0_mat = n0_mat, t_vec = t_vec)
+                                            n0_mat = n0_mat, 
+                                           freq_trun = freq_trun, 
+                                           t_vec = t_vec)
     
     ### Update clusters
     ############### V1: classification. Compare each node with each cluster
@@ -138,7 +144,9 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
   ### Update center --- will be the initial value for next step
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
-                                             n0_mat_list = n0_mat_list, t_vec = t_vec)
+                                             n0_mat_list = n0_mat_list, 
+                                             freq_trun = freq_trun, 
+                                             t_vec = t_vec)
   # browser(); mean(clusters_list[[1]][[1]])
   
   clustering_end_time = Sys.time()
@@ -155,12 +163,15 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
     v_mat_list = lapply(n0_mat_list, function(n0_mat)n0_mat*t_unit)
     center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                clusters_list = clusters_list, 
-                                               n0_mat_list = n0_mat_list, t_vec = t_vec)
+                                               n0_mat_list = n0_mat_list, 
+                                               freq_trun = freq_trun, 
+                                               t_vec = t_vec)
   } else {
     res = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, 
                           clusters_list = clusters_list, 
                           n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list,
                           center_cdf_array = center_cdf_array,
+                          freq_trun = freq_trun, 
                           t_vec = t_vec, order_list=order_list, ...)
     n0_vec_list = res$n0_vec_list
     n0_mat_list = res$n0_mat_list

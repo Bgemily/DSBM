@@ -103,8 +103,8 @@ for (param_name in param_name_vec) {
 # cdf vs pdf ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v2/pr=0.9,n=30,beta=1.3,V=80/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v1/freq_trun/7/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v4/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v2/freq_trun/7/pr=0.9,n=30,beta=1.3,V=80/"
 # path_vec[3] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/3/pr=0.9,n=30,beta=1.05,V=0/"
 # path_vec[4] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/5/pr=0.9,n=30,beta=1.05,V=0/"
 # path_vec[5] = "../Results/Rdata/SNR_Vnot0/main_v5_pdf_v12/freq_trun/9/pr=0.9,n=30,beta=1.05,V=0/"

@@ -53,10 +53,15 @@ main_v5 = function(### Parameters for generative model
   # Fit model for various cluster number ------------------------------------
   
   res_list = list()
+  if(is.null(freq_trun_vec)){
+    freq_trun_vec = c(freq_trun)
+  }
   for (ind_N_clus in 1:length(N_clus_min:N_clus_max)) {
     res_list[[ind_N_clus]] = list()
     N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
-    for (ind_freq_trun in 1:1) {
+    for (ind_freq_trun in 1:length(freq_trun_vec)) {
+      freq_trun = freq_trun_vec[ind_freq_trun]
+      
       ### Get initialization -----------
       start = Sys.time()
       seed_init = sample(1e5,1)
@@ -84,6 +89,7 @@ main_v5 = function(### Parameters for generative model
                             clusters_list_init = clusters_list_init,
                             n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
                             save_est_history = save_est_history,
+                            freq_trun = freq_trun,
                             conv_thres = conv_thres,
                             MaxIter = MaxIter,
                             ...)

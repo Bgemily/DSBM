@@ -5,6 +5,7 @@
 ### Update time shifts at each iteration
 do_cluster_v8.1 = function(edge_time_mat_list, N_clus, 
                          clusters_list_init, n0_vec_list_init, n0_mat_list_init,
+                         freq_trun=15, 
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
                          MaxIter=10, conv_thres=5e-3, save_est_history=FALSE, 
                          fix_timeshift=FALSE,
@@ -30,6 +31,7 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
+                                             freq_trun = freq_trun,
                                              n0_mat_list = n0_mat_list, t_vec = t_vec)
   
   ### Save estimation
@@ -45,7 +47,9 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
                       n0_mat_list = n0_mat_list, 
                       clusters_list = clusters_list, 
-                      center_cdf_array = center_cdf_array, t_vec = t_vec)$loss
+                      freq_trun = freq_trun,
+                      center_cdf_array = center_cdf_array, 
+                      t_vec = t_vec)$loss
   loss_history = c(loss_history, loss)
   
   
@@ -67,6 +71,7 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
     ### Initialize connecting patterns
     center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list[m], 
                                                clusters_list = clusters_list[m], 
+                                               freq_trun = freq_trun,
                                                n0_mat_list = n0_mat_list[m], t_vec = t_vec)
     center_cdf_array_update = center_cdf_array_current = center_cdf_array
     
@@ -77,6 +82,7 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
                               clusters_list=clusters_list_current[m], 
                               n0_vec_list=n0_vec_list_current[m], n0_mat_list=n0_mat_list_current[m], 
                               center_cdf_array = center_cdf_array_current,
+                              freq_trun = freq_trun,
                               t_vec=t_vec, order_list=NULL, 
                               fix_timeshift=fix_timeshift,
                               ...)
@@ -123,7 +129,9 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
       loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list[m],
                           n0_mat_list = n0_mat_list_current[m],
                           clusters_list = clusters_list_current[m],
-                          center_cdf_array = center_cdf_array_current, t_vec = t_vec)$loss
+                          center_cdf_array = center_cdf_array_current, 
+                          freq_trun = freq_trun,
+                          t_vec = t_vec)$loss
       loss_history = c(loss_history, loss)
       
       ### Save estimation
@@ -163,13 +171,17 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   
   center_cdf_array_current = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                      clusters_list = clusters_list_current, 
-                                                     n0_mat_list = n0_mat_list_current, t_vec = t_vec)
+                                                     n0_mat_list = n0_mat_list_current, 
+                                                     freq_trun = freq_trun,
+                                                     t_vec = t_vec)
   
   ### Evaluate loss function
   loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
                       n0_mat_list = n0_mat_list_current, 
                       clusters_list = clusters_list_current, 
-                      center_cdf_array = center_cdf_array_current, t_vec = t_vec)$loss
+                      center_cdf_array = center_cdf_array_current, 
+                      freq_trun = freq_trun,
+                      t_vec = t_vec)$loss
   loss_history = c(loss_history, loss)
   
   
@@ -205,6 +217,7 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
       loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
                           n0_mat_list = n0_mat_list_update, 
                           clusters_list = clusters_list_update, 
+                          freq_trun = freq_trun,
                           center_cdf_array = center_cdf_array_update, t_vec = t_vec)$loss
       loss_history = c(loss_history, loss)
       
@@ -256,9 +269,20 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   v_vec_list_current -> v_vec_list
   center_cdf_array_current -> center_cdf_array
   
+  ### Save freq_trun_mat 
+  freq_trun_mat = matrix(data = 0, nrow=N_clus, ncol=N_clus)
+  for (q in 1:N_clus) {
+    for (k in 1:N_clus) {
+      # N_basis = sum(center_fft_array[q,k,]!=0)
+      freq_trun_mat[q,k] = freq_trun
+    }
+  }
+  
+  ### Get estimated pdf using kernel smoothing
   center_pdf_array = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
-                                             n0_mat_list = n0_mat_list, t_vec = t_vec)
+                                             n0_mat_list = n0_mat_list, 
+                                             t_vec = t_vec)
   
   return(list(clusters_list=clusters_list, 
               v_vec_list=v_vec_list, 
@@ -268,6 +292,7 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
               v_vec_history=v_vec_history,
               center_cdf_array_history=center_cdf_array_history,
               loss_history=loss_history,
+              freq_trun_mat=freq_trun_mat,
               N_iteration=N_iteration,
               cluster_time=cluster_time, align_time=align_time))
   
