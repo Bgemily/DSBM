@@ -23,39 +23,30 @@ data_folder = "../Processed_FunctionalData/"
 path_vec = list.files(data_folder, full.names = TRUE)
 file_vec = list.files(data_folder, full.names = FALSE)
 
-edge_time_mat_list = vector(mode = "list", length = length(path_vec)*2)
+edge_time_mat_list = vector(mode = "list", length = length(path_vec))
 
 
 for(m in 1:length(path_vec)){ 
   path = path_vec[m]
   
   ### Read information from data
-  edge_time_mat_L = as.matrix(read.csv(paste(path, '/EdgeTime_L.csv', sep='')))
-  edge_time_mat_L = edge_time_mat_L[,-1]
-  edge_time_mat_R = as.matrix(read.csv(paste(path, '/EdgeTime_R.csv', sep='')))
-  edge_time_mat_R = edge_time_mat_R[,-1]
+  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
+  edge_time_mat = edge_time_mat[,-1]
   
-  # ### Remove nodes with extremely small edges
-  # ### Remark: threshold `5` is decided by outlier of #edges for 2nd subject
-  # non_iso_inds_L = which(rowSums(edge_time_mat_L<Inf)>5)
-  # non_iso_inds_R = which(rowSums(edge_time_mat_R<Inf)>5)
-  # edge_time_mat_L = edge_time_mat_L[non_iso_inds_L, non_iso_inds_L]
-  # edge_time_mat_R = edge_time_mat_R[non_iso_inds_R, non_iso_inds_R]
-  
-  edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
+  edge_time_mat_list[m] = list(edge_time_mat)
 }
 
 
 # Apply algorithm (our) ---------------------------------------------------------
 
 
-method = "CDF_freqtrun5"
+method = "CDF_freqtrun4"
 
 N_clus_min = 1 # Number of clusters
-N_clus_max = 5
+N_clus_max = 10
 MaxIter = 10 # Maximal iteration number
 # bw = 5 # Smoothing bandwidth
-freq_trun_vec = c(5) # Cut-off frequency
+freq_trun_vec = c(3,4,5,6,7) # Cut-off frequency
 conv_thres=1e-3
 max_iter=10
 # step_size = 0.5
@@ -65,8 +56,8 @@ max_time = max(sapply(edge_time_mat_list, function(edge_time_mat)max(edge_time_m
 total_time = max_time + 10
 t_vec = seq(0, total_time, 1)
 
-# for (subj in 1:length(edge_time_mat_list)) {
-for (subj in 1:2) {
+for (subj in 1:length(edge_time_mat_list)) {
+# for (subj in 1:2) {
   edge_time_mat_list_tmp = edge_time_mat_list[subj]
   ### Get estimation for candidate N_clus and freq_trun
   res_list = list()
@@ -202,9 +193,9 @@ for (subj in 1:2) {
              penalty_mat = penalty_mat,
              N_iteration = N_iteration,
              t_vec = t_vec)
-  folder_path = paste0('../Results/Rdata/RDA/', method, '/', file_vec[(subj+1)%/%2])
+  folder_path = paste0('../Results/Rdata/RDA/', method, '/', file_vec[subj])
   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-  file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
+  file_name = "L&R"
   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
   save(res, file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
 
