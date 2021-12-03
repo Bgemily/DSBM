@@ -2,7 +2,7 @@
 
 eval_loss_v2 = function(edge_time_mat_list, 
                         n0_mat_list, clusters_list, center_cdf_array,
-                        freq_trun = 15,
+                        freq_trun = Inf,
                         t_vec=seq(0,200,length.out=1000)){
 
   N_subj = length(edge_time_mat_list)

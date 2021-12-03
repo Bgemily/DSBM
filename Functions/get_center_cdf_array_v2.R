@@ -1,7 +1,7 @@
 
 ### Obtain connecting pattern for each pair of clusters using multiple subjects
 get_center_cdf_array_v2 = function(edge_time_mat_list, clusters_list, 
-                                   n0_mat_list=NULL, freq_trun=15,
+                                   n0_mat_list=NULL, freq_trun=Inf,
                                    t_vec=seq(0, 50, 0.05)){  
   time_unit = t_vec[2]-t_vec[1]
   N_subj = length(edge_time_mat_list)
@@ -38,18 +38,21 @@ get_center_cdf_array_v2 = function(edge_time_mat_list, clusters_list,
       cdf_array[q,l,] = ecdf(unlist(adjs_edge_time_submat_list))(t_vec)
       
       ### Smooth cdf_array by Fourier truncation
-      cdf_ql = cdf_array[q,l,]
-      ext_length = length(cdf_ql)%/%10
-      cdf_ql_extend = c(rep(head(cdf_ql,1), ext_length),
-                        cdf_ql,
-                        rep(tail(cdf_ql,1), ext_length))
-      fft_ql_extend = fft(cdf_ql_extend)
-      fft_ql_extend_trun = c(head(fft_ql_extend, freq_trun+1),
-                      rep(0, length(fft_ql_extend)-2*freq_trun-1),
-                      tail(fft_ql_extend, freq_trun))
-      cdf_ql_extend_trun = Re(fft(fft_ql_extend_trun, inverse = TRUE))
-      cdf_ql_trun = cdf_ql_extend_trun[(1+ext_length):(length(cdf_ql)+ext_length)]
-      cdf_array[q,l,] = cdf_ql_trun
+      if (freq_trun<Inf){
+        cdf_ql = cdf_array[q,l,]
+        ext_length = length(cdf_ql)%/%10
+        cdf_ql_extend = c(rep(head(cdf_ql,1), ext_length),
+                          cdf_ql,
+                          rep(tail(cdf_ql,1), ext_length))
+        fft_ql_extend = fft(cdf_ql_extend)
+        fft_ql_extend_trun = c(head(fft_ql_extend, freq_trun+1),
+                               rep(0, length(fft_ql_extend)-2*freq_trun-1),
+                               tail(fft_ql_extend, freq_trun))
+        cdf_ql_extend_trun = Re(fft(fft_ql_extend_trun, inverse = TRUE))
+        cdf_ql_trun = cdf_ql_extend_trun[(1+ext_length):(length(cdf_ql)+ext_length)]
+        cdf_array[q,l,] = cdf_ql_trun
+      }
+      
     }
   }
   

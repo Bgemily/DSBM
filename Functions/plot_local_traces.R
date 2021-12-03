@@ -17,7 +17,7 @@ plot_local_traces = function(locs, reduced.dFF, edge_time_mat=NULL, snapshot_min
             which(membership[order.temp]==2),
             which(membership[order.temp]==1))
   membership = membership[order.temp][order]
-  reduced.dFF = reduced.dFF[order.temp,][order,]
+  # reduced.dFF = reduced.dFF[order.temp,][order,]
   
   
   if(!is.null(edge_time_mat)){

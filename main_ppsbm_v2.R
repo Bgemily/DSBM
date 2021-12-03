@@ -28,7 +28,7 @@ library(doParallel)
 option_list = list(
   make_option(c("-n", "--N_trial"), type="integer", default=20, 
               help="number of repeated trials"),
-  make_option(c("s","--split"), type="integer", default=4)
+  make_option(c("s","--split"), type="integer", default=2)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -52,28 +52,29 @@ N_clus = 3
 time_shift_struc = max
 total_time = 200
 const = 40
-max_iter = 3 ### number of iterations when updating time shifts
 
 
 # Run simulations ---------------------------------------------------------
 
-### N_clus_est, V==0 -----
+### ARI vs SNR, V!=0 -----
 
 ### Parameters' possible values: 
 ### n
 N_node_persubj_list = list(30,42,54,66,78,90)
-N_node_persubj_list = list(90)
 ### beta
-conn_patt_sep_list = list(1.3,1.4,1.5,1.6,1.7,1.8)
-# conn_patt_sep_list = list(1.8)
+conn_patt_sep_list = list(1.3,1.4,1.5,1.6,1.7,1.8,1.9)
+### V
+time_shift_mean_vec_list = list(rep(15,N_clus), rep(20,N_clus),
+                                rep(25,N_clus), rep(30,N_clus),
+                                rep(35,N_clus), rep(40,N_clus))
 
 
 ### Method: apply_ppsbm_ICL ###
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0'
-method = 'apply_ppsbm_ICL'
+method = 'apply_ppsbm_v2'
 
-default_setting = 'pr=0.4,n=30,beta=1.3'
+default_setting = 'pr=0.9,n=30,beta=1.3,V=80'
 
 for (. in 1:split) {
   ### N_node
@@ -81,19 +82,20 @@ for (. in 1:split) {
     N_node = N_node_persubj_list[[i]]
     results <- foreach(j = 1:N_trial) %dopar% {
       SEED = sample(1:1e7,1)
-      tryCatch(apply_ppsbm_ICL(SEED = SEED, 
+      tryCatch(apply_ppsbm_v2(SEED = SEED, 
                                N_node_vec = rep(N_node,1),
-                               conn_prob_mean = 0.4, 
+                               conn_prob_mean = 0.9, 
                                conn_patt_sep = 1.3,
-                               time_shift_mean_vec = rep(20,3),
+                               time_shift_mean_vec = rep(40,N_clus),
                                t_vec = seq(0,200,length.out=200),
-                               Qmin = 1, Qmax = 5),
+                               Qmin = N_clus, Qmax = N_clus),
                error = function(x) print(SEED))
     }
     param_name = "n"
     param_value = N_node
-    folder_path = paste0(top_level_folder, '/', setup, '/', method, '/',
-                         default_setting, '/', param_name, '/', param_value)
+    folder_path = paste0(top_level_folder, '/', setup, '/', method, 
+                         '/', default_setting, 
+                         '/', param_name, '/', param_value)
     dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
 
     now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
@@ -102,30 +104,60 @@ for (. in 1:split) {
   }
 
 
-  # ### beta
-  # for (i in 1:length(conn_patt_sep_list)) {
-  #   conn_patt_sep = conn_patt_sep_list[[i]]
-  #   results <- foreach(j = 1:N_trial) %dopar% {
-  #     SEED = sample(1:1e7,1)
-  #     tryCatch(apply_ppsbm_ICL(SEED = SEED, 
-  #                              N_node_vec = rep(30,1),
-  #                              conn_prob_mean = 0.4, 
-  #                              conn_patt_sep = conn_patt_sep,
-  #                              time_shift_mean_vec = rep(0,3),
-  #                              t_vec = seq(0,200,length.out=200),
-  #                              Qmin = 1, Qmax = 5),
-  #              error = function(x) print(SEED))
-  #   }
-  #   param_name = "beta"
-  #   param_value = conn_patt_sep
-  #   folder_path = paste0(top_level_folder, '/', setup, '/', method, '/',
-  #                        default_setting, '/', param_name, '/', param_value)
-  #   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-  # 
-  #   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-  #   save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
-  #   rm(results)
-  # }
+  ### beta
+  for (i in 1:length(conn_patt_sep_list)) {
+    conn_patt_sep = conn_patt_sep_list[[i]]
+    results <- foreach(j = 1:N_trial) %dopar% {
+      SEED = sample(1:1e7,1)
+      tryCatch(apply_ppsbm_v2(SEED = SEED,
+                               N_node_vec = rep(30,1),
+                               conn_prob_mean = 0.9,
+                               conn_patt_sep = conn_patt_sep,
+                               time_shift_mean_vec = rep(40,N_clus),
+                               t_vec = seq(0,200,length.out=200),
+                               Qmin = N_clus, Qmax = N_clus),
+               error = function(x) print(SEED))
+    }
+    param_name = "beta"
+    param_value = conn_patt_sep
+    folder_path = paste0(top_level_folder, '/', setup, '/', method, 
+                         '/', default_setting, 
+                         '/', param_name, '/', param_value)
+    dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+
+    now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+    save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+    rm(results)
+  }
+  
+  
+  ### V
+  for (i in 1:length(time_shift_mean_vec_list)) {
+    time_shift_mean_vec = time_shift_mean_vec_list[[i]]
+    results <- foreach(j = 1:N_trial) %dopar% {
+      SEED = sample(1:1e7,1)
+      tryCatch(apply_ppsbm_v2(SEED = SEED,
+                               N_node_vec = rep(30,1),
+                               conn_prob_mean = 0.9,
+                               conn_patt_sep = 1.3,
+                               time_shift_mean_vec = time_shift_mean_vec,
+                               t_vec = seq(0,200,length.out=200),
+                               Qmin = N_clus, Qmax = N_clus),
+               error = function(x) print(SEED))
+    }
+    param_name = "V"
+    param_value = time_shift_mean_vec[1]*2
+    folder_path = paste0(top_level_folder, '/', setup, '/', method, 
+                         '/', default_setting, 
+                         '/', param_name, '/', param_value)
+    dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+    
+    now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+    save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+    rm(results)
+  }
+  
+  
 
 
 }

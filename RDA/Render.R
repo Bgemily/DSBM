@@ -24,15 +24,16 @@ for (subj_name in subj_name_vec) {
 
 
 ### Our method -------
-res_folder = "../Results/Rdata/RDA/CDF_Nclus3_randinit40/"
+res_folder = "../Results/Rdata/RDA/CDF_freqtrun4/"
 subj_name_vec = list.files(res_folder, full.names = FALSE, recursive = FALSE)
 
-dir.create("../Results/Html/CDF_Nclus3_randinit40/", recursive = TRUE)
+dir.create("../Results/Html/CDF_freqtrun4/", recursive = TRUE)
 for (subj_name in subj_name_vec) {
   rmarkdown::render("./RDA/Visualize_res_our.Rmd", 
                     params = list(subj_name=subj_name,
                                   data_folder=paste0('../',res_folder)),
-                    output_file = paste0("../../Results/Html/CDF_Nclus3_randinit40/",subj_name,'.html'))
+                    output_file = paste0("../../Results/Html/CDF_freqtrun4/",
+                                         subj_name,'.html'))
 }
 
 

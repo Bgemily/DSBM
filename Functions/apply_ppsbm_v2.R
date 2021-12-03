@@ -5,7 +5,7 @@ apply_ppsbm_v2 = function(### Parameters for generative model
                           SEED, N_subj=1, N_node_vec = rep(90,N_subj),
                           N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                           total_time=200, 
-                          conn_patt_var=1, conn_patt_sep = 1.5, const=40, conn_prob_mean = 1, conn_prob_rad = 0, 
+                          conn_patt_var=1, conn_patt_sep = 1.5, const=20, conn_prob_mean = 1, conn_prob_rad = 0, 
                           time_shift_struc=max, time_shift_mean_vec = rep(20,N_clus), 
                           time_shift_rad = min(time_shift_mean_vec),
                           ### Parameters for algorithms
@@ -65,7 +65,7 @@ apply_ppsbm_v2 = function(### Parameters for generative model
   
   clusters_list_est = list(res$clusters)
   
-  ### TODO: Modify the way for extracting estimated intensities (refer to RDA/Analysis.R)
+  ### Extract estimated intensities 
   center_cdf_array_est = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                  clusters_list = clusters_list_est, 
                                                  n0_mat_list = list(edge_time_mat*0), 
@@ -75,8 +75,7 @@ apply_ppsbm_v2 = function(### Parameters for generative model
                                                  clusters_list = clusters_list_est, 
                                                  n0_mat_list = list(matrix(0,nrow(edge_time_mat), 
                                                                            ncol(edge_time_mat))), 
-                                                 t_vec = t_vec, bw=bw)
-  
+                                                 t_vec = t_vec)
   
   
   # Compute errors of clusters, i.e. Z ------------------------------------

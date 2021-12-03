@@ -115,13 +115,19 @@ for(k in 1:length(path.list)){
   
   
   
-  # Thresholding the correlation matrix to obtain the connectivity matrix 
+  # Thresholding the correlation matrix to obtain the connectivity matrix
   # nodes are considered as connected if the mean of next 5 correlations is larger than the threshold
-  
   cor.full.ave = cor.full
   for(i in 1:(n.intervals-4)){
     cor.full.ave[i,,]=apply(cor.full[i:(min(i+4,n.intervals)),,,drop=F], c(2,3), mean)
   }
+  
+  # # Thresholding the correlation matrix to obtain the connectivity matrix 
+  # # nodes are considered as connected if the mean of next 10 correlations is larger than the threshold
+  # cor.full.ave = cor.full
+  # for(i in 1:(n.intervals-9)){
+  #   cor.full.ave[i,,]=apply(cor.full[i:(min(i+9,n.intervals)),,,drop=F], c(2,3), mean)
+  # }
   
   adj.full = cor.full.ave;
   for(i in 1:(dim(cor.full.ave)[1])){

@@ -34,7 +34,14 @@ for(m in 1:length(path_vec)){
   edge_time_mat_L = edge_time_mat_L[,-1]
   edge_time_mat_R = as.matrix(read.csv(paste(path, '/EdgeTime_R.csv', sep='')))
   edge_time_mat_R = edge_time_mat_R[,-1]
-
+  
+  # ### Remove nodes with extremely small edges
+  # ### Remark: threshold `5` is decided by outlier of #edges for 2nd subject
+  # non_iso_inds_L = which(rowSums(edge_time_mat_L<Inf)>5)
+  # non_iso_inds_R = which(rowSums(edge_time_mat_R<Inf)>5)
+  # edge_time_mat_L = edge_time_mat_L[non_iso_inds_L, non_iso_inds_L]
+  # edge_time_mat_R = edge_time_mat_R[non_iso_inds_R, non_iso_inds_R]
+  
   edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
 }
 
@@ -42,13 +49,13 @@ for(m in 1:length(path_vec)){
 # Apply algorithm (our) ---------------------------------------------------------
 
 
-method = "CDF_Ngrid30_randinit80"
+method = "CDF_freqtrun5"
 
 N_clus_min = 1 # Number of clusters
 N_clus_max = 5
 MaxIter = 10 # Maximal iteration number
 # bw = 5 # Smoothing bandwidth
-# freq_trun_vec = c(3,5,7,9) # Cut-off frequency
+freq_trun_vec = c(5) # Cut-off frequency
 conv_thres=1e-3
 max_iter=10
 # step_size = 0.5
@@ -56,28 +63,29 @@ N_restart = 80
 
 max_time = max(sapply(edge_time_mat_list, function(edge_time_mat)max(edge_time_mat[which(edge_time_mat<Inf)])))
 total_time = max_time + 10
-t_vec = seq(0, total_time, length.out=30)
+t_vec = seq(0, total_time, 1)
 
 # for (subj in 1:length(edge_time_mat_list)) {
-for (subj in 3:4) {
+for (subj in 1:2) {
   edge_time_mat_list_tmp = edge_time_mat_list[subj]
   ### Get estimation for candidate N_clus and freq_trun
   res_list = list()
   for (ind_N_clus in 1:length(N_clus_min:N_clus_max)) {
     res_list[[ind_N_clus]] = list()
     N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
-    for (ind_freq_trun in 1:1) {
-
+    for (ind_freq_trun in 1:length(freq_trun_vec)) {
+      freq_trun = freq_trun_vec[ind_freq_trun]
+      
       ### Get initialization
       seed_init = sample(1e5,1)
       set.seed(seed_init)
-      # res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
-      #                   N_clus = N_clus_tmp,
-      #                   t_vec = t_vec)
-      res = get_init_v5(edge_time_mat_list = edge_time_mat_list_tmp,
+      res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
                         N_clus = N_clus_tmp,
-                        N_restart = N_restart,
                         t_vec = t_vec)
+      # res = get_init_v5(edge_time_mat_list = edge_time_mat_list_tmp,
+      #                   N_clus = N_clus_tmp,
+      #                   N_restart = N_restart,
+      #                   t_vec = t_vec)
       
       clusters_list_init = res$clusters_list
       n0_vec_list_init = res$n0_vec_list
@@ -94,6 +102,7 @@ for (subj in 3:4) {
                             total_time = total_time,
                             max_iter=max_iter,
                             t_vec=t_vec,
+                            freq_trun = freq_trun,
                             conv_thres=conv_thres,
                             MaxIter=MaxIter)
       time_end = Sys.time()
@@ -108,18 +117,18 @@ for (subj in 3:4) {
       # ### Get initialization
       # max_time_cutoff = max(sapply(adj_edge_time_mat_list_tmp, function(edge_time_mat)max(edge_time_mat[which(edge_time_mat<Inf)])))
       # total_time_cutoff = max_time_cutoff + 10
-      # t_vec_cutoff = seq(0, total_time_cutoff, length.out=10)
-      # # res = get_init_v4(edge_time_mat_list = adj_edge_time_mat_list_tmp,
-      # #                   N_clus = N_clus_tmp,
-      # #                   t_vec = t_vec_cutoff)
+      # t_vec_cutoff = seq(0, total_time_cutoff, 1)
+      # res = get_init_v4(edge_time_mat_list = adj_edge_time_mat_list_tmp,
+      #                   N_clus = N_clus_tmp,
+      #                   t_vec = t_vec_cutoff)
       # # res = get_init_v3(edge_time_mat_list = adj_edge_time_mat_list_tmp,
       # #                   N_clus = N_clus_tmp,
       # #                   v_true_list = list(rep(0,nrow(adj_edge_time_mat_list_tmp[[1]]))),
       # #                   t_vec = t_vec_cutoff)
-      # res = get_init_v5(edge_time_mat_list = adj_edge_time_mat_list_tmp,
-      #                   N_clus = N_clus_tmp,
-      #                   N_restart = N_restart,
-      #                   t_vec = t_vec)
+      # # res = get_init_v5(edge_time_mat_list = adj_edge_time_mat_list_tmp,
+      # #                   N_clus = N_clus_tmp,
+      # #                   N_restart = N_restart,
+      # #                   t_vec = t_vec)
       # 
       # clusters_list_init = res$clusters_list
       # n0_vec_list_init = res$n0_vec_list
@@ -134,6 +143,7 @@ for (subj in 3:4) {
       #                       total_time = total_time_cutoff,
       #                       max_iter=max_iter,
       #                       t_vec=t_vec_cutoff,
+      #                       freq_trun = freq_trun,
       #                       conv_thres=conv_thres,
       #                       MaxIter=MaxIter)
       # res$v_vec_list[[1]] = res$v_vec_list[[1]]+res_tmp$v_vec_list[[1]]
@@ -160,6 +170,11 @@ for (subj in 3:4) {
   log_lik_vec = sel_mod_res$log_lik_vec
   penalty_2_vec = sel_mod_res$penalty_2_vec
   penalty_vec = sel_mod_res$penalty_vec
+  ICL_mat = sel_mod_res$ICL_mat
+  compl_log_lik_mat = sel_mod_res$compl_log_lik_mat 
+  log_lik_mat = sel_mod_res$log_lik_mat
+  penalty_2_mat = sel_mod_res$penalty_2_mat
+  penalty_mat = sel_mod_res$penalty_mat
 
   ### Retrieve estimation results of the best cluster number
   res = sel_mod_res$res_best
@@ -180,6 +195,11 @@ for (subj in 3:4) {
              log_lik_vec = log_lik_vec,
              penalty_2_vec = penalty_2_vec,
              penalty_vec = penalty_vec,
+             ICL_mat = ICL_mat,
+             compl_log_lik_mat = compl_log_lik_mat, 
+             log_lik_mat = log_lik_mat, 
+             penalty_2_mat = penalty_2_mat,
+             penalty_mat = penalty_mat,
              N_iteration = N_iteration,
              t_vec = t_vec)
   folder_path = paste0('../Results/Rdata/RDA/', method, '/', file_vec[(subj+1)%/%2])

@@ -16,7 +16,7 @@ main_v5 = function(### Parameters for generative model
   time_shift_rad = min(time_shift_mean_vec),
   t_vec = seq(0,total_time,length.out=1000),
   ### Parameters for algorithms
-  freq_trun=15, bw=5, 
+  freq_trun=Inf, bw=5, 
   conv_thres=1e-2, MaxIter=5,
   jitter_time_rad = 10, max_iter=10,
   opt_radius=total_time/2,
@@ -68,6 +68,7 @@ main_v5 = function(### Parameters for generative model
       set.seed(seed_init)
       res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
                         N_clus = N_clus_tmp,
+                        freq_trun = freq_trun,
                         t_vec = t_vec)
       # res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
       #                   N_clus = N_clus_tmp,

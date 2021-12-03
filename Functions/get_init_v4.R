@@ -1,6 +1,7 @@
 ### Initialization of clusters and n0_mat
 ### Initialize time shifts by earliest edge time.
 get_init_v4 = function(edge_time_mat_list, N_clus, 
+                       freq_trun=Inf,
                        t_vec=seq(0, 200, length.out=1000))
 {
   # print("####################")
@@ -38,6 +39,7 @@ get_init_v4 = function(edge_time_mat_list, N_clus,
     node_cdf_array = get_node_cdf_array_v2(edge_time_mat = edge_time_mat, 
                                            clusters = list(c(1:N_node)), 
                                            n0_mat = matrix(0,N_node,N_node), 
+                                           freq_trun = freq_trun,
                                            t_vec = t_vec)
     aligned_cdf_mat = t(sapply(1:N_node, function(i) shift_v2(f_origin=node_cdf_array[i,1,], 
                                                               n0=-n0_vec[i]) ))

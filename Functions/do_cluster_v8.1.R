@@ -5,7 +5,7 @@
 ### Update time shifts at each iteration
 do_cluster_v8.1 = function(edge_time_mat_list, N_clus, 
                          clusters_list_init, n0_vec_list_init, n0_mat_list_init,
-                         freq_trun=15, 
+                         freq_trun=Inf, 
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
                          MaxIter=10, conv_thres=5e-3, save_est_history=FALSE, 
                          fix_timeshift=FALSE,
@@ -270,13 +270,18 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   center_cdf_array_current -> center_cdf_array
   
   ### Save freq_trun_mat 
-  freq_trun_mat = matrix(data = 0, nrow=N_clus, ncol=N_clus)
-  for (q in 1:N_clus) {
-    for (k in 1:N_clus) {
-      # N_basis = sum(center_fft_array[q,k,]!=0)
-      freq_trun_mat[q,k] = freq_trun
+  if (freq_trun<Inf){
+    freq_trun_mat = matrix(data = 0, nrow=N_clus, ncol=N_clus)
+    for (q in 1:N_clus) {
+      for (k in 1:N_clus) {
+        # N_basis = sum(center_fft_array[q,k,]!=0)
+        freq_trun_mat[q,k] = freq_trun
+      }
     }
+  } else{
+    freq_trun_mat = NULL
   }
+  
   
   ### Get estimated pdf using kernel smoothing
   center_pdf_array = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 

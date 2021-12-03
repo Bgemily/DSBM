@@ -8,7 +8,7 @@
 est_n0_vec_v4.1 = function(edge_time_mat_list, 
                          clusters_list, center_cdf_array=NULL, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
-                         freq_trun = 15,
+                         freq_trun = Inf,
                          t_vec=seq(0,200,length.out=1000), step_size=0.02,
                          max_iter=5, epsilon=0.001, order_list=NULL)
 {

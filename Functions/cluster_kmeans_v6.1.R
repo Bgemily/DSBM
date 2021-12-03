@@ -8,7 +8,7 @@
 cluster_kmeans_v6.1 = function(edge_time_mat_list, 
                              clusters_list, n0_vec_list=NULL, n0_mat_list=NULL, 
                              center_cdf_array=NULL, 
-                             freq_trun = 15,
+                             freq_trun = Inf,
                              t_vec=seq(0,200,length.out=1000), order_list=NULL, 
                              fix_timeshift=FALSE,
                              ...)
