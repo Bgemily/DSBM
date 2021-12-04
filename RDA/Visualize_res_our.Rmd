@@ -5,7 +5,7 @@ author: "Zitong Zhang"
 output: html_document
 params: 
   subj_name: "func_20150417"
-  data_folder: "../../Results/Rdata/RDA/CDF_freqtrun5/"
+  data_folder: "../../Results/Rdata/RDA/CDF_freqtrun6_totaltime240/"
 ---
 
 ```{r setup, include=FALSE}
@@ -249,23 +249,6 @@ ggplot(data = data.frame(activeTime_vec=activeTime_vec,
 
 ```
 
-```{r}
-ind_vec = which(unlist(v_vec_list)!=0 & activeTime_vec==1)
-ind = ind_vec[1]
-
-for (i in 1:min(length(ind_vec),3)) {
-  ind = ind_vec[i]
-  data_trace = tibble(dFF=dFF_mat[ind,],time=(1:ncol(dFF_mat)*0.25)/60)
-  g = ggplot(data_trace, aes(x=time, y=dFF)) +
-    geom_line(alpha=0.3) +
-    # xlim(unlist(v_vec_list)[ind]+c(-1,1)) +
-    geom_vline(xintercept = unlist(v_vec_list)[ind])
-  print(g)
-}
-
-
-```
-
 
 
 ## Visualize estimated clusters with spatial location
@@ -282,21 +265,21 @@ data = cbind(data,
                       times=sapply(membership_list,length)))
 
 # lims = data.frame(coord=c("AP","DV","LR"), xmin=c(-0.5, 0, -2),xmax=c(9,140,3))
-g<- data %>% 
-  pivot_longer(cols = c('AP','LR','DV'), names_to = "coord", values_to = "loc") %>%
-  ggplot(aes(x=loc,
-                     group=membership,
-                     color=membership))+
-  geom_density( aes(), alpha=0.6, position = 'dodge') +
-  scale_color_manual(values=palette()[c(8,2:6)]) +
-  theme_bw()+
-  theme(legend.position = "none") +
-  facet_wrap(~coord, scales='free',ncol=1) +
-  xlab('') +
-  # scale_x_continuous(limits = c(-2, 6))+
-  theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
-  scale_y_continuous(position = "right")
-print(g)
+# g<- data %>% 
+#   pivot_longer(cols = c('AP','LR','DV'), names_to = "coord", values_to = "loc") %>%
+#   ggplot(aes(x=loc,
+#                      group=membership,
+#                      color=membership))+
+#   geom_density( aes(), alpha=0.6, position = 'dodge') +
+#   scale_color_manual(values=palette()[c(8,2:6)]) +
+#   theme_bw()+
+#   theme(legend.position = "none") +
+#   facet_wrap(~coord, scales='free',ncol=1) +
+#   xlab('') +
+#   # scale_x_continuous(limits = c(-2, 6))+
+#   theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
+#   scale_y_continuous(position = "right")
+# print(g)
 
 ```
 ```{r}
