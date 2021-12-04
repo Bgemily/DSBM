@@ -91,6 +91,7 @@ main_v5 = function(### Parameters for generative model
                                ...)
       time_end = Sys.time()
       time_estimation = time_end - time_start
+      time_estimation = as.numeric(time_estimation, units='secs')
       
       res$clusters_list -> clusters_list_est
       res$v_vec_list -> v_vec_list_est
