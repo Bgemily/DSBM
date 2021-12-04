@@ -1,13 +1,9 @@
 
 ### Generate network_list, run our algorithm using multiple cluster numbers, and output measurements of errors.
-### Based on v3.4.5 
-### Add arguments: N_clus_min, N_clus_max
-### Add output value: N_clus_est, correct_N_clus, ICL_vec, compl_log_lik_vec, penalty_vec
-### Add estimation of cluster number using ICL
-### Remove output value: t_vec (this is contained in network_param)
+### Based on v5
+### Use random initialization
 
-
-main_v5 = function(### Parameters for generative model
+main_v5.1 = function(### Parameters for generative model
   SEED, N_subj=1, N_node_vec = rep(90,N_subj),
   N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
   total_time=200, 
@@ -49,7 +45,7 @@ main_v5 = function(### Parameters for generative model
   
   
   
-
+  
   # Fit model for various cluster number ------------------------------------
   
   res_list = list()
@@ -66,17 +62,17 @@ main_v5 = function(### Parameters for generative model
       start = Sys.time()
       seed_init = sample(1e5,1)
       set.seed(seed_init)
-      res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
-                        N_clus = N_clus_tmp,
-                        freq_trun = freq_trun,
-                        t_vec = t_vec)
-      # res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
+      # res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
       #                   N_clus = N_clus_tmp,
-      #                   N_restart = N_restart,
+      #                   freq_trun = freq_trun,
       #                   t_vec = t_vec)
+      res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
+                        N_clus = N_clus_tmp,
+                        N_restart = N_restart,
+                        t_vec = t_vec)
       end = Sys.time()
       time_init = as.numeric(end-start, units='secs')
-
+      
       clusters_list_init = res$clusters_list
       n0_vec_list_init = res$n0_vec_list
       n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
@@ -103,10 +99,10 @@ main_v5 = function(### Parameters for generative model
       res_list[[ind_N_clus]][[ind_freq_trun]] = res
     }
   }
-
-
+  
+  
   # Select best cluster number using ICL ------------------------------------
-
+  
   sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list, 
                              N_node_vec = N_node_vec, 
                              N_clus_min = N_clus_min, 
@@ -127,7 +123,7 @@ main_v5 = function(### Parameters for generative model
   penalty_mat = sel_mod_res$penalty_mat
   
   # Retrieve estimation results of the best cluster number ------------------
-
+  
   res = sel_mod_res$res_best
   
   res$clusters_list -> clusters_list_est
@@ -348,7 +344,7 @@ main_v5 = function(### Parameters for generative model
                 loss_history=loss_history, 
                 cluster_time=cluster_time, 
                 align_time=align_time
-                ))
+    ))
   } else{
     return(list(network_param=network_param, 
                 N_node_vec_entropy=N_node_vec_entropy,
@@ -383,7 +379,7 @@ main_v5 = function(### Parameters for generative model
                 align_time=align_time
     ))
   }
-
+  
   
 }
 
