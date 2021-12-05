@@ -56,22 +56,42 @@ apply_ppsbm_v2 = function(### Parameters for generative model
   data = list(time.seq=time.seq, type.seq=type.seq, Time=total_time)
   Nijk = statistics(data, nrow(edge_time_mat), K=2^6, directed = FALSE)
   
+  time_start = Sys.time()
   # res = mainVEM(data=data, n=nrow(edge_time_mat), Qmin=3, directed=FALSE, method="kernel",
   #               d_part=0, n_perturb=0)
   res = mainVEM(data=list(Nijk=Nijk, Time=total_time), n=nrow(edge_time_mat), d_part=5, 
                 Qmin=Qmin, Qmax=Qmax, directed=FALSE, method="hist")[[1]]
+  time_end = Sys.time()
+  time_estimation = time_end - time_start
+  time_estimation = as.numeric(time_estimation, units='secs')
   res$clusters = mem2clus(apply(res$tau, 2, which.max)) 
   
   
   clusters_list_est = list(res$clusters)
   
   ### Extract estimated intensities 
-  center_cdf_array_est = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-                                                 clusters_list = clusters_list_est, 
-                                                 n0_mat_list = list(edge_time_mat*0), 
-                                                 t_vec = t_vec)
+    N_clus_est = length(clusters_list_est)
+    center_pdf_array_est = array(dim = c(N_clus_est,N_clus_est,length(t_vec)))
+    ind_qk = 1
+    for (q in 1:N_clus_est) {
+      for (k in q:N_clus_est) {
+        ### Extract estimated intensity for cluster pair (q,k)
+        intensity_tmp = exp(res$logintensities.ql[ind_qk, ])
+        ### Fix bug for ppsbm
+        intensity_tmp[intensity_tmp==1] = 0
+        ### Add breakpoints in time grid
+        rep_time = floor( (1:length(intensity_tmp))*length(t_vec)/length(intensity_tmp) ) -
+                    floor( (0:(length(intensity_tmp)-1))*length(t_vec)/length(intensity_tmp) )
+        intensity_tmp = rep(intensity_tmp, time = rep_time)
+
+        center_pdf_array_est[q,k, ] = intensity_tmp
+        center_pdf_array_est[k,q, ] = center_pdf_array_est[q,k, ]
+        ind_qk = ind_qk + 1
+      }
+    }
   
-  center_pdf_array_est = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
+  ### Estimate intensities using kernel smoothing
+  center_pdf_array_est_kernel = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                  clusters_list = clusters_list_est, 
                                                  n0_mat_list = list(matrix(0,nrow(edge_time_mat), 
                                                                            ncol(edge_time_mat))), 
@@ -96,9 +116,9 @@ apply_ppsbm_v2 = function(### Parameters for generative model
   z_hat = t(dummies::dummy(membership_est_vec))
   z_true = t(dummies::dummy(membership_true_list[[1]]))
   permn = ppsbm::permuteZEst(z = z_true, hat.z = z_hat)
-  center_pdf_array_est_permn = center_pdf_array_est[permn, permn, ]
   
-  ### Calculate distance 
+  ### Calculate imse for center_pdf_array_est 
+  center_pdf_array_est_permn = center_pdf_array_est[permn, permn, ]
   dist_mat = matrix(nrow=N_clus, ncol=N_clus)
   for (q in 1:N_clus) {
     for (k in 1:N_clus) {
@@ -107,6 +127,17 @@ apply_ppsbm_v2 = function(### Parameters for generative model
     }
   }
   F_mean_sq_err = mean(dist_mat[upper.tri(dist_mat, diag=TRUE)]^2)
+  
+  ### Calculate imse for center_pdf_array_est_kernel
+  center_pdf_array_est_kernel_permn = center_pdf_array_est_kernel[permn, permn, ]
+  dist_mat_kernel = matrix(nrow=N_clus, ncol=N_clus)
+  for (q in 1:N_clus) {
+    for (k in 1:N_clus) {
+      dist_mat_kernel[q,k] = sqrt(sum( (center_pdf_array_est_kernel_permn[q,k,] - pdf_true_array[q,k,])^2 * 
+                                  (t_vec[2]-t_vec[1]) ))
+    }
+  }
+  F_mean_sq_err_kernel = mean(dist_mat_kernel[upper.tri(dist_mat_kernel, diag=TRUE)]^2)
   
   
   # Extract network related parameters -----------------------------------------
@@ -124,8 +155,10 @@ apply_ppsbm_v2 = function(### Parameters for generative model
   
   return(list(network_param=network_param, 
               t_vec=t_vec,
+              time_estimation=time_estimation,
               clusters_list_est=clusters_list_est,
               ARI_vec=ARI_vec, ARI_mean=ARI_mean,
+              F_mean_sq_err_kernel=F_mean_sq_err_kernel,
               F_mean_sq_err=F_mean_sq_err))
 }
 
