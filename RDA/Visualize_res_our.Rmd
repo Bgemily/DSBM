@@ -5,7 +5,7 @@ author: "Zitong Zhang"
 output: html_document
 params: 
   subj_name: "func_20150417"
-  data_folder: "../../Results/Rdata/RDA/CDF_freqtrun6_totaltime240/"
+  data_folder: "../../Results/Rdata/RDA/CDF_freqtrun4_totaltime280/"
 ---
 
 ```{r setup, include=FALSE}
@@ -151,6 +151,36 @@ order_clus_2 = order(rowSums(apply(center_pdf_array_list[[2]],
 ### Visualize estimated connecting intensities 
 clus_size_list = lapply(clusters_list, function(clusters)sapply(clusters,length))
 
+pdf_array_1 = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE][1:3,1:3,]
+pdf_array_2 = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE][1:3,1:3,]
+### Manually shift intensities
+global_shift = 20
+pdf_array_2[,,1:(length(t_vec)-global_shift)] = pdf_array_2[,,(global_shift+1):length(t_vec)]
+pdf_array_2[,,(length(t_vec)-global_shift+1):length(t_vec)] = 0
+
+pdf_array_list = list(pdf_array_1, pdf_array_2)
+clus_size_vec_1 = clus_size_list[[1]][order_clus_1][1:3]
+clus_size_vec_2 = clus_size_list[[2]][order_clus_2][1:3]
+tmp = plot_pdf_array_v3(pdf_array_list = pdf_array_list, 
+                       clus_size_vec_1 = clus_size_vec_1,
+                       clus_size_vec_2 = clus_size_vec_2,
+                       t_vec = t_vec, 
+                       y_lim = c(0,0.02+max(unlist(pdf_array_list))))
+big.df = tmp$big.df
+inter_quan_len_df = big.df %>%
+  mutate(inter_quan_len = quantile_95-quantile_5) %>%
+  select(ind_subj, clus.pair, inter_quan_len) %>%
+  group_by(clus.pair, ind_subj) %>%
+  summarise(inter_quan_len=unique(inter_quan_len)) %>%
+  ungroup()
+g3 = tmp$g
+g3 = g3 + coord_cartesian(xlim = c(0,200))
+print(g3)
+print(inter_quan_len_df)
+```
+
+```{r}
+
 g1 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE], 
                         pdf_true_array = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE],
                         clus_size_vec = clus_size_list[[1]][order_clus_1],
@@ -163,13 +193,6 @@ g2 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[2]][order_clus_2,
 
 grid.arrange(g1, g2, ncol=2)
 
-# pdf_array_list = list(center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE],center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE])
-# pdf_true_array = (pdf_array_list[[1]]+pdf_array_list[[2]])/2
-# g3 = plot_pdf_array_v2(pdf_array_list = pdf_array_list, 
-#                         pdf_true_array = pdf_true_array,
-#                         clus_size_vec = clus_size_list[[1]][order_clus_1]+clus_size_list[[2]][order_clus_2],
-#                         t_vec = t_vec, x_lim = c(), y_lim = c(0,max(unlist(center_pdf_array_list[[2]]))))
-# g3
 
 ```
 
@@ -199,9 +222,11 @@ data = tibble(v_vec=unlist(v_vec_list),
 
 g4 <- data %>%
   ggplot(aes(x=v_vec,group=as.factor(membership),
+             fill=as.factor(membership),
                      color=as.factor(membership)))+
-  geom_density( aes(), alpha=0.6, position = 'dodge') +
-  scale_fill_manual(values=palette()[1+1:3]) +
+  geom_histogram( aes(), bins = 15, alpha=0.6) +
+  scale_color_manual(values=palette()[1+1:4]) +
+  scale_fill_manual(values=palette()[1+1:4]) +
   theme_bw()+
   theme(legend.position = "none") +
   # facet_wrap(~subj) +

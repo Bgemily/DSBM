@@ -70,7 +70,7 @@ apply_ppsbm_v2 = function(### Parameters for generative model
   clusters_list_est = list(res$clusters)
   
   ### Extract estimated intensities 
-    N_clus_est = length(clusters_list_est)
+    N_clus_est = length(clusters_list_est[[1]])
     center_pdf_array_est = array(dim = c(N_clus_est,N_clus_est,length(t_vec)))
     ind_qk = 1
     for (q in 1:N_clus_est) {
@@ -116,6 +116,11 @@ apply_ppsbm_v2 = function(### Parameters for generative model
   z_hat = t(dummies::dummy(membership_est_vec))
   z_true = t(dummies::dummy(membership_true_list[[1]]))
   permn = ppsbm::permuteZEst(z = z_true, hat.z = z_hat)
+  if(nrow(z_hat)<nrow(z_true)){
+    permn_tmp = rep(setdiff(1:nrow(z_true),permn),nrow(z_true))
+    permn_tmp[sort(unique(apply(res$tau, 2, which.max)))] = permn
+    permn = permn_tmp
+  }
   
   ### Calculate imse for center_pdf_array_est 
   center_pdf_array_est_permn = center_pdf_array_est[permn, permn, ]
