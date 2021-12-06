@@ -347,16 +347,17 @@ fill_color = c(`0`=palette()[8],
                `5`=palette()[6])
 ### Left spine
 g1 = data_2_left %>%
-  ggplot(mapping = aes(fill=membership,x=mnx)) +
+  mutate(membership=factor(membership,levels=c(0,1,2,3,4))) %>%
+  ggplot(mapping = aes(fill=mnx,x=membership)) +
   scale_fill_manual(values=fill_color) +
   geom_bar(position="fill") +
   geom_text(data = data_2_left %>% 
-              count(mnx, membership) %>% group_by(mnx) %>% 
-              summarise(perc=round(n/sum(n),3), membership=membership) %>% 
-              arrange(desc(membership), .by_group = TRUE) ,
-            aes(x = mnx, label = scales::percent(perc), y=perc, fill=NULL), 
+              count(membership, mnx) %>% group_by(membership) %>% 
+              summarise(perc=round(n/sum(n),3), mnx=mnx) %>% 
+              arrange(desc(mnx), .by_group = TRUE) ,
+            aes(x = membership, label = scales::percent(perc), y=perc, fill=NULL), 
             position = position_fill(0.5), size=2.5)+
-  scale_x_discrete(labels=c("mnx+","mnx-"))+
+  # scale_x_discrete(labels=c("mnx+","mnx-"))+
   xlab("")+
   theme_bw()+
   theme(legend.position = 'none', 
@@ -369,16 +370,17 @@ g1 = data_2_left %>%
 
 ### Right spine
 g2 = data_2_right %>%
-  ggplot(mapping = aes(fill=membership,x=mnx)) +
+  mutate(membership=factor(membership,levels=c(1,2,3,4))) %>%
+  ggplot(mapping = aes(fill=mnx,x=membership)) +
   scale_fill_manual(values=fill_color) +
   geom_bar(position="fill") +
   geom_text(data = data_2_right %>% 
-              count(mnx, membership) %>% group_by(mnx) %>% 
-              summarise(perc=round(n/sum(n),3), membership=membership) %>% 
-              arrange(desc(membership), .by_group = TRUE) ,
-            aes(x = mnx, label = scales::percent(perc), y=perc, fill=NULL), 
+              count(membership, mnx) %>% group_by(membership) %>% 
+              summarise(perc=round(n/sum(n),3), mnx=mnx) %>% 
+              arrange(desc(mnx), .by_group = TRUE) ,
+            aes(x = membership, label = scales::percent(perc), y=perc, fill=NULL), 
             position = position_fill(0.5), size=2.5)+
-  scale_x_discrete(labels=c("mnx+","mnx-"))+
+  # scale_x_discrete(labels=c("mnx+","mnx-"))+
   xlab("")+
   theme_bw()+
   theme(legend.position = 'none', 

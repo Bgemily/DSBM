@@ -70,7 +70,7 @@ time_shift_mean_vec_list = list(rep(15,N_clus), rep(20,N_clus),
 
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vnot0_v4'
-method = 'apply_ppsbm_v2'
+method = 'apply_ppsbm_v3'
 default_setting = 'pr=0.9,n=30,beta=1.3,V=80'
 
 for (. in 1:split) {
@@ -167,7 +167,7 @@ conn_patt_sep_list = list(1.05,1.1,1.2,1.3,1.4,1.5)
 
 top_level_folder = "../Results/Rdata"
 setup = 'SNR_Vis0_v4'
-method = 'apply_ppsbm_v2'
+method = 'apply_ppsbm_v3'
 default_setting = 'pr=0.9,n=30,beta=1.05,V=0'
 
 for (. in 1:split) {

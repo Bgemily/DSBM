@@ -24,26 +24,11 @@ for (subj_name in subj_name_vec) {
 
 
 ### Our method -------
-res_name_vec = c("CDF_freqtrun4_totaltime220",
-                 "CDF_freqtrun4_totaltime240",
-                 "CDF_freqtrun4_totaltime260",
-                 "CDF_freqtrun4_totaltime280",
-                 "CDF_freqtrun4_totaltime300",
-                 "CDF_freqtrun5_totaltime220",
-                 "CDF_freqtrun5_totaltime240",
-                 "CDF_freqtrun5_totaltime260",
-                 "CDF_freqtrun5_totaltime280",
-                 "CDF_freqtrun5_totaltime300"
-                 # "CDF_freqtrun6_totaltime220",
-                 # "CDF_freqtrun6_totaltime240",
-                 # "CDF_freqtrun6_totaltime260",
-                 # "CDF_freqtrun6_totaltime280",
-                 # "CDF_freqtrun6_totaltime300"
-                 )
+res_name_vec = c("CDF_freqtrun4_totaltime280")
 for (res_name in res_name_vec) {
   res_folder = paste0("../Results/Rdata/RDA/",res_name,"/")
   subj_name_vec = list.files(res_folder, full.names = FALSE, recursive = FALSE)
-  
+  subj_name_vec = c("func_20150417")
   dir.create(paste0("../Results/Html/",res_name,"/"), recursive = TRUE)
   for (subj_name in subj_name_vec) {
     rmarkdown::render("./RDA/Visualize_res_our.Rmd", 

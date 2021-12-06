@@ -44,7 +44,7 @@ get_center_cdf_array_v2 = function(edge_time_mat_list, clusters_list,
         cdf_ql_extend = c(rep(head(cdf_ql,1), ext_length),
                           cdf_ql,
                           rep(tail(cdf_ql,1), ext_length))
-        fft_ql_extend = fft(cdf_ql_extend)
+        fft_ql_extend = fft(cdf_ql_extend) / length(cdf_ql_extend)
         fft_ql_extend_trun = c(head(fft_ql_extend, freq_trun+1),
                                rep(0, length(fft_ql_extend)-2*freq_trun-1),
                                tail(fft_ql_extend, freq_trun))

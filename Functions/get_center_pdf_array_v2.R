@@ -28,6 +28,9 @@ get_center_pdf_array_v2 = function(edge_time_mat_list, clusters_list,
         edge_time_submat_list[[m]] = edge_time_submat
       }
       pdf_array[q,l,] = get_pdf_vec(edge_time_vec=unlist(edge_time_submat_list), t_vec=t_vec, ...)
+      if(length(unlist(edge_time_submat_list))==0){
+        pdf_array[q,l,] = rep(0,length(t_vec))
+      }
     }
   }
   
