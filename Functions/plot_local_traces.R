@@ -7,7 +7,7 @@ library(reshape2)
 library(gridExtra)
 
 plot_local_traces = function(locs, reduced.dFF, edge_time_mat=NULL, snapshot_mins=c(30,120,240), 
-                             membership,
+                             membership=1,
                              window_length=1, id_vec=NULL, show_plot=FALSE,  scale=2){
   order.temp = order(locs[,1], decreasing = TRUE)
   order.temp = c(order.temp[locs[order.temp,2]<0], order.temp[locs[order.temp,2]>0])
@@ -45,7 +45,7 @@ plot_local_traces = function(locs, reduced.dFF, edge_time_mat=NULL, snapshot_min
       ggplot(aes(x = time, y = id, height = dFF, group=id, color=membership),fill="white") +
       geom_ridgeline(scale=scale, min_height=-0.1, alpha=0, size=0.5) +
       scale_color_manual(values = palette()[c(8,2:4)], aesthetics = c('color'))+
-      xlab(paste(round((t[1]-1)/240/60,digits = 1), "h"))+
+      xlab(paste(round((t[1]-1)/240,digits = 1), "min"))+
       # theme_bw()+
       theme(legend.position = "none", axis.text.x=element_blank(), 
             axis.ticks.x = element_blank(), axis.text.y = element_blank(),

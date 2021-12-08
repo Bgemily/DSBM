@@ -3,7 +3,7 @@ plot_pdf_array_v3 = function(pdf_array_list,
                              clus_size_vec_1,
                              clus_size_vec_2,
                              t_vec, 
-                             y_lim=c(0, 0.04),x_lim=NULL)
+                             y_lim=c(0, 0.04),xlim=c(0,200))
 {
   
   # library(tidyverse)
@@ -23,12 +23,6 @@ plot_pdf_array_v3 = function(pdf_array_list,
       ### Get intensity between cluster (q,l) for L and R spines
       pdf_array_mat = sapply(pdf_array_list, function(pdf_array)pdf_array[q,l,]) # length(t_vec)*ind_subj
       colnames(pdf_array_mat) = paste0('ind_subj', seq(ncol(pdf_array_mat)))
-      ### Keep intensity from L if q>l and R if q<l
-      if (q>l) {
-        pdf_array_mat = pdf_array_mat[,1,drop=FALSE]
-      } else if (q<l) {
-        pdf_array_mat = pdf_array_mat[,2,drop=FALSE]
-      }
       
       pdf_array_mat = cbind(t=t_vec, pdf_array_mat)
       
@@ -54,7 +48,7 @@ plot_pdf_array_v3 = function(pdf_array_list,
                     col2rgb(intensity_color_mat[l,l]) )
         intensity_color_mat[q,l] = rgb(red = rgb_ave[1],
                                        green = rgb_ave[2],
-                                       blue = rgb_ave[3], 
+                                       blue = rgb_ave[3],
                                        maxColorValue = 255)
         intensity_color_mat[l,q] = intensity_color_mat[q,l]
       }
@@ -62,69 +56,99 @@ plot_pdf_array_v3 = function(pdf_array_list,
   }
   big.df = big.df %>%
     group_by(ind_subj, clus.pair) %>% 
-    mutate(quantile_5 = sum(cumsum(pdf_val)/sum(pdf_val)<(5/100)),
-           quantile_95 = sum(cumsum(pdf_val)/sum(pdf_val)<(95/100))) %>%
+    mutate(quantile_5 = sum(cumsum(pdf_val)/sum(pdf_val)<(2.5/100)),
+           quantile_95 = sum(cumsum(pdf_val)/sum(pdf_val)<(97.5/100))) %>%
+    mutate(pdf_val_quan_5 = pdf_val[t==quantile_5],
+           pdf_val_quan_95 = pdf_val[t==quantile_95]) %>%
     ungroup()
   
-  g <- big.df %>%
-    mutate(ind_subj = as.factor(ind_subj), 
-           clus.pair=as.factor(clus.pair)) %>%
-    ggplot(aes(x=t, y=pdf_val, group=ind_subj, 
-               color=clus.pair,
-               # alpha=type_group, 
-               # size=type_group, 
-               linetype=ind_subj)) +
-    geom_line()+
-    geom_vline(aes(xintercept = quantile_5, color=clus.pair, linetype=ind_subj),
-               alpha = 0.7) +
-    geom_vline(aes(xintercept = quantile_95, color=clus.pair, linetype=ind_subj),
-               alpha = 0.7) +
-    scale_color_manual(values = intensity_color_mat,
-                       name=NULL,aesthetics = "color") +
-    # scale_alpha_manual(values=c(`1`=0.7, `0`=0.5), name=NULL) +
-    # scale_size_manual(values=c(`1`=0.5, `0`=0.5), name=NULL)+
-    # scale_linetype_manual(values=c(`1`=1, `0`=2),) + 
-    scale_y_continuous(position = "right", limits = y_lim)+
-    facet_wrap(~clus.pair) +
-    xlab("Time(min)") + ylab(NULL) +
-    theme_bw() +
-    theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
-    theme(legend.position = 'none') +
-    theme(strip.background = element_blank(),  
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          strip.text.x = element_blank())  
-  
+  ### Get labels
   label_df = big.df %>%
     group_by(clus.pair, ind_subj) %>%
     summarise(conn_prob = round(sum(pdf_val)*(t_vec[2]-t_vec[1]),digits=2))
-  clus_size_vec = rep(NA,nrow(label_df))
-  clus_size_vec[label_df$clus.pair %in% c("(1,1)","(2,2)","(3,3)","(4,4)") & 
-              label_df$ind_subj == 'ind_subj1'] = clus_size_vec_1
-  clus_size_vec[label_df$clus.pair %in% c("(1,1)","(2,2)","(3,3)","(4,4)") & 
-              label_df$ind_subj == 'ind_subj2'] = clus_size_vec_2
   
-  label_df = label_df %>% 
+  for (q in 1:k1) {
+    for (l in 1:k2) {
+      label_df[label_df$clus.pair==paste0('(',q,',',l,')') & 
+                 label_df$ind_subj == 'ind_subj1',
+               'clus_size'] = paste0("(", clus_size_vec_1[q], "x", clus_size_vec_1[l], ")")
+      label_df[label_df$clus.pair==paste0('(',q,',',l,')') & 
+                 label_df$ind_subj == 'ind_subj2',
+               'clus_size'] = paste0("(", clus_size_vec_2[q], "x", clus_size_vec_2[l], ")")
+    }
+  }
+  
+  label_df = label_df %>%
     ungroup() %>%
-    mutate(clus_size = clus_size_vec) %>%
-    group_by(clus.pair) %>%
-    summarise(ind_subj=ind_subj,
-              label = paste0('Pr = ', paste0(conn_prob,collapse=","),
-                          ifelse(is.na(clus_size),
-                                 yes = '', no = paste0('\n', "  = ",paste0(clus_size,collapse=",") )) ) ) %>%
+    # group_by(clus.pair) %>%
+    mutate(ind_subj=ind_subj,
+              label = paste0(conn_prob,
+                             ifelse(is.na(clus_size),
+                                    yes = '', 
+                                    no = paste0('\n', clus_size )) ) ) %>%
     ungroup()
   
   
-  
-  g = g + 
-    geom_label(data = label_df, x=Inf, y=Inf, 
-               mapping = aes(label=label), size=3, color='black',
-               vjust = "inward", hjust = "inward",
-               show.legend = FALSE, inherit.aes = FALSE)
-  
-  if(!is.null(x_lim)){
-    g = g + xlim(x_lim)
+  ### Draw plots
+  g_list = list()
+  for (q in 1:k1) {
+    for (l in q:k2) {
+      g <- big.df %>%
+        mutate(ind_subj = as.factor(ind_subj), 
+               clus.pair=as.factor(clus.pair)) %>%
+        filter(clus.pair==paste0('(',q,',',l,')')) %>%
+        ggplot(aes(x=t, y=pdf_val, group=ind_subj, 
+                   color=clus.pair,
+                   # size=type_group, 
+                   linetype=ind_subj)) +
+        geom_line(alpha=0.7)+
+        geom_segment(aes(x=quantile_5,xend=quantile_95, 
+                         y=0, yend=0,
+                         # alpha = 0.1,
+                         color=clus.pair, linetype=ind_subj), 
+                     inherit.aes = FALSE,
+                     arrow=arrow(angle = 45,
+                                 length = unit(0.08, "inches"), 
+                                 ends='both'),
+                     alpha=0.9) +
+        # geom_segment(aes(x=quantile_5,xend=quantile_5, 
+        #                  y=-y_lim[2]/20, yend=y_lim[2]/20,
+        #                  color=clus.pair), 
+        #              alpha = 1, size=0.5) +
+        # geom_segment(aes(x=quantile_95,xend=quantile_95, 
+        #                  y=-y_lim[2]/20, yend=y_lim[2]/20,
+        #                  color=clus.pair), 
+        #              alpha = 1, size=0.5) +
+        scale_color_manual(values = intensity_color_mat[q,l],
+                           name=NULL,aesthetics = "color") +
+        scale_y_continuous(position = "right")+
+        facet_wrap(~clus.pair) +
+        xlab(NULL) + ylab(NULL) +
+        theme_bw() +
+        theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
+        theme(legend.position = 'none') +
+        theme(strip.background = element_blank(),  
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              strip.text.x = element_blank())  + 
+        coord_cartesian(xlim = xlim, ylim = y_lim)
+      g = g + 
+        geom_text(data = label_df[label_df$clus.pair==paste0('(',q,',',l,')'),], 
+                   x=c(150,200), y=y_lim[2],
+                   mapping = aes(label=label),
+                  size=3, color='black',
+                  # position = position_dodge(width = .9),
+                   vjust = "inward", hjust = "inward",
+                  check_overlap = TRUE,
+                  # label.padding = unit(0.15, "lines"),
+                   show.legend = FALSE, inherit.aes = FALSE)
+      
+      g_list = c(g_list, list(g))
+    }
   }
+  layout_mat = matrix(NA,3,3)
+  layout_mat[upper.tri(layout_mat, diag = TRUE)] = c(1,2,4,3,5,6)
+  g = arrangeGrob(grobs=g_list, layout_matrix=layout_mat)
   
   return(list(g=g, big.df=big.df))
   

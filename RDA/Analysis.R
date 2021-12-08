@@ -22,18 +22,17 @@ library(ppsbm)
 data_folder = "../Processed_FunctionalData/"
 path_vec = list.files(data_folder, full.names = TRUE)
 file_vec = list.files(data_folder, full.names = FALSE)
-
-edge_time_mat_list = vector(mode = "list", length = length(path_vec))
-
-
+edge_time_mat_list = vector(mode = "list", length = length(path_vec)*2)
 for(m in 1:length(path_vec)){ 
   path = path_vec[m]
   
   ### Read information from data
-  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
-  edge_time_mat = edge_time_mat[,-1]
+  edge_time_mat_L = as.matrix(read.csv(paste(path, '/EdgeTime_L.csv', sep='')))
+  edge_time_mat_L = edge_time_mat_L[,-1]
+  edge_time_mat_R = as.matrix(read.csv(paste(path, '/EdgeTime_R.csv', sep='')))
+  edge_time_mat_R = edge_time_mat_R[,-1]
   
-  edge_time_mat_list[m] = list(edge_time_mat)
+  edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
 }
 
 
@@ -61,7 +60,7 @@ for (ind_freq_trun in 1:length(freq_trun_vec)) {
   for (ind_total_time_cutoff in 1:length(total_time_cutoff_vec)) {
     freq_trun = freq_trun_vec[ind_freq_trun]
     total_time_cutoff = total_time_cutoff_vec[ind_total_time_cutoff]
-    for (subj in 1:4){
+    for (subj in 3:4){
       ### Apply method with freq_trun and total_time_cutoff
       edge_time_mat_list_tmp = edge_time_mat_list[subj]
       ### Get estimation for candidate N_clus and freq_trun
@@ -197,7 +196,7 @@ for (ind_freq_trun in 1:length(freq_trun_vec)) {
       
       
       ### Save result with freq_trun and total_time_cutoff
-      method = paste0("CDF_freqtrun",freq_trun,
+      method = paste0("CDF_v3_freqtrun",freq_trun,
                       "_","totaltime",total_time_cutoff)
       folder_path = paste0('../Results/Rdata/RDA/', method, '/', file_vec[(subj+1)%/%2])
       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)

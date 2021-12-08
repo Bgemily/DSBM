@@ -18,11 +18,11 @@ library(ggplot2)
 # ARI/F_mse/v_mse vs iteration number -------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v8_est_history_freqtrun20/Our_init/pr=0.9,n=30,beta=1.6,V=80/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v8_est_history_freqtrun20/N_restart/1/pr=0.9,n=30,beta=1.6,V=80/"
-path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v8_est_history_freqtrun20/N_restart/3/pr=0.9,n=30,beta=1.6,V=80/"
-path_vec[4] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v8_est_history_freqtrun20/N_restart/5/pr=0.9,n=30,beta=1.6,V=80/"
-path_vec[5] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v8_est_history_freqtrun20/N_restart/10/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v12_est_history_freqtrun7/Our_init/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v12_est_history_freqtrun7/N_restart/1/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v12_est_history_freqtrun7/N_restart/3/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[4] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v12_est_history_freqtrun7/N_restart/5/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[5] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v12_est_history_freqtrun7/N_restart/10/pr=0.9,n=30,beta=1.6,V=80/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -31,7 +31,7 @@ for (param_name in param_name_vec) {
   ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
   results_list = lapply(path_vec, function(folder_path)
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
-                           measurement=c("ARI_history", 
+                           measurement=c("ARI_history", "ARI_mean",
                                          "F_mean_sq_err_history", 
                                          'time_init',
                                          "v_mean_sq_err_history")))
@@ -101,7 +101,7 @@ for (param_name in param_name_vec) {
 # cdf vs pdf vs ppsbm ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v7_freqtrun20/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v11_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
 path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v3_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
 path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/apply_ppsbm_v3/pr=0.9,n=30,beta=1.3,V=80/"
 
@@ -186,7 +186,7 @@ for (param_name in param_name_vec) {
 # cdf vs pdf  ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v7_freqtrun20/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v11_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
 path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v3_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
 
 
@@ -395,7 +395,7 @@ for (param_name in param_name_vec) {
 
 path_vec = rep(0,2)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v9_ICL/pr=0.9,n=60,beta=1.9,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v13_ICL/pr=0.9,n=60,beta=1.9,V=80/"
 
 param_name_vec = list.files(path_vec[1])
 

@@ -42,7 +42,7 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
     center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                clusters_list = clusters_list, 
                                                n0_mat_list = n0_mat_list, 
-                                               freq_trun = freq_trun, 
+                                               freq_trun = Inf, 
                                                t_vec = t_vec)
   }
   
@@ -58,7 +58,7 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
     node_cdf_array = get_node_cdf_array_v2(edge_time_mat = edge_time_mat, 
                                             clusters = clusters, 
                                             n0_mat = n0_mat, 
-                                           freq_trun = freq_trun, 
+                                           freq_trun = Inf, 
                                            t_vec = t_vec)
     
     ### Update clusters
@@ -106,9 +106,8 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
     for (q in 1:N_clus) {
       dist_mat[,q] = rowSums(dist_array[,q,]*weights)
     }
-    
-      
 
+    
     ### Update memberships and clusters
     for (i in 1:N_node) {
       dist_vec = dist_mat[i, ]
@@ -145,7 +144,7 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
                                              n0_mat_list = n0_mat_list, 
-                                             freq_trun = freq_trun, 
+                                             freq_trun = Inf, 
                                              t_vec = t_vec)
   # browser(); mean(clusters_list[[1]][[1]])
   
@@ -164,7 +163,7 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
     center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                                clusters_list = clusters_list, 
                                                n0_mat_list = n0_mat_list, 
-                                               freq_trun = freq_trun, 
+                                               freq_trun = Inf, 
                                                t_vec = t_vec)
   } else {
     res = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, 

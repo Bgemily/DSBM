@@ -165,7 +165,9 @@ tmp = plot_pdf_array_v3(pdf_array_list = pdf_array_list,
                        clus_size_vec_1 = clus_size_vec_1,
                        clus_size_vec_2 = clus_size_vec_2,
                        t_vec = t_vec, 
-                       y_lim = c(0,0.02+max(unlist(pdf_array_list))))
+                       y_lim = c(0,max(unlist(pdf_array_list))))
+g3 = tmp$g
+grid.arrange(g3)
 big.df = tmp$big.df
 inter_quan_len_df = big.df %>%
   mutate(inter_quan_len = quantile_95-quantile_5) %>%
@@ -173,9 +175,6 @@ inter_quan_len_df = big.df %>%
   group_by(clus.pair, ind_subj) %>%
   summarise(inter_quan_len=unique(inter_quan_len)) %>%
   ungroup()
-g3 = tmp$g
-g3 = g3 + coord_cartesian(xlim = c(0,200))
-print(g3)
 print(inter_quan_len_df)
 ```
 
@@ -220,11 +219,64 @@ data = tibble(v_vec=unlist(v_vec_list),
               membership=c(membership_list[[1]][non_iso_inds_list[[1]]], membership_list[[2]][non_iso_inds_list[[2]]]), 
               subj=rep(1:length(v_vec_list), times=sapply(v_vec_list,length)))
 
-g4 <- data %>%
+v_range = data %>%
+  filter(membership<=3) %>%
+  group_by(membership) %>%
+  summarise(y0 = min(v_vec),
+         y25 = quantile(v_vec, 0.25),
+         y50 = median(v_vec),
+         y75 = quantile(v_vec, 0.75),
+         y100 = max(v_vec)) %>%
+  ungroup()
+
+
+g4 <- v_range %>%
+  ggplot()+
+  geom_boxplot(aes(ymin = y0, lower = y25, middle = y50, 
+                   upper = y75, ymax = y100,
+                   x=as.factor(membership),
+                   group=as.factor(membership),
+                   color=as.factor(membership)),
+               stat = "identity") +
+  scale_color_manual(values=palette()[1+1:3]) +
+  theme_bw()+
+  theme(legend.position = "none") +
+  # facet_wrap(~subj) +
+  theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
+  xlab('Membership')
+
+print(g4)
+
+```
+
+```{r}
+v_range = data %>%
+  filter(membership<=3) %>%
+  group_by(membership) %>%
+  summarise(y0 = min(v_vec),
+         y25 = quantile(v_vec, 0.25),
+         y50 = median(v_vec),
+         y75 = quantile(v_vec, 0.75),
+         y100 = max(v_vec)) %>%
+  ungroup()
+g5 <- data %>%
+  filter(membership<=3) %>%
   ggplot(aes(x=v_vec,group=as.factor(membership),
-             fill=as.factor(membership),
-                     color=as.factor(membership)))+
-  geom_histogram( aes(), bins = 15, alpha=0.6) +
+             color=as.factor(membership)))+
+  geom_histogram( aes(y = ..density.., fill=as.factor(membership)), bins = 15, position = 'identity', alpha=0.4, size=0) +
+  geom_density( aes(), alpha=0.6) +
+  geom_segment(aes(x=v_range$min,xend=v_range$max, 
+                         y=0, yend=0,
+                         # alpha = 0.1,
+                         color=as_factor(v_range$membership)), 
+               inherit.aes = FALSE,
+               arrow=arrow(angle = 90,
+                           length = unit(0.08, "inches"), 
+                           ends='both'),
+               size = 1,
+               alpha=0.9) +
+  # geom_point(aes(x=v_range$median, y=0,
+  #                color=as_factor(v_range$membership)), size=2) +
   scale_color_manual(values=palette()[1+1:4]) +
   scale_fill_manual(values=palette()[1+1:4]) +
   theme_bw()+
@@ -234,10 +286,9 @@ g4 <- data %>%
   theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
   xlab('Time shifts (min)')
 
-print(g4)
-
-
+print(g5)
 ```
+
 
 ```{r}
 ### Get Wan's result
@@ -271,6 +322,33 @@ ggplot(data = data.frame(activeTime_vec=activeTime_vec,
   scale_color_manual(values=palette()[c(8,2:6)]) +
   xlab('Patterning time by Wan (pp. e7)') +
   ylab('Our estimation')
+
+```
+```{r}
+ind1 = which(unlist(v_vec_list)>20 & activeTime_vec<=1 &
+              unlist(membership_list)==1)[1]
+ind2 = which(abs(unlist(v_vec_list)-unlist(v_vec_list)[ind1])<10 &
+               abs(activeTime_vec-unlist(v_vec_list)[ind1])<10 &
+              unlist(membership_list)==1)[1]
+unlist(v_vec_list)[ind1]
+activeTime_vec[ind1]
+unlist(v_vec_list)[ind2]
+activeTime_vec[ind2]
+
+plot_local_traces(locs = locs_mat[c(ind2, ind1),], reduced.dFF = dFF_mat[c(ind2, ind1),], snapshot_mins = c(0,43,48,49), window_length=1)
+
+### Cluster 2
+ind3 = which(unlist(v_vec_list)<200 & unlist(v_vec_list)>150 & activeTime_vec<=1 &
+              unlist(membership_list)==2)[1]
+ind4 = which(abs(unlist(v_vec_list)-unlist(v_vec_list)[ind3])<50 &
+               abs(activeTime_vec-unlist(v_vec_list))<50 &
+              unlist(membership_list)==2)[1]
+unlist(v_vec_list)[ind3]
+activeTime_vec[ind3]
+unlist(v_vec_list)[ind4]
+activeTime_vec[ind4]
+
+plot_local_traces(locs = locs_mat[c(ind4, ind3),], reduced.dFF = dFF_mat[c(ind4, ind3),], snapshot_mins = c(0,157,171,193),window_length=1)
 
 ```
 

@@ -164,7 +164,7 @@ est_n0_vec_v4.1 = function(edge_time_mat_list,
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
                                              n0_mat_list = n0_mat_list, 
-                                             freq_trun = freq_trun, 
+                                             freq_trun = Inf, 
                                              t_vec = t_vec)
   
   return(list(center_cdf_array=center_cdf_array, 

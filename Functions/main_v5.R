@@ -68,7 +68,7 @@ main_v5 = function(### Parameters for generative model
       set.seed(seed_init)
       res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
                         N_clus = N_clus_tmp,
-                        freq_trun = freq_trun,
+                        freq_trun = Inf,
                         t_vec = t_vec)
       # res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
       #                   N_clus = N_clus_tmp,
