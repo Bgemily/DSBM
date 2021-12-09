@@ -22,13 +22,34 @@ for (subj_name in subj_name_vec) {
                     output_file = paste0("../../Results/Html/CDF_freqtrun4/",subj_name,'.html'))
 }
 
-
 ### Our method -------
-res_name_vec = c("CDF_freqtrun4_totaltime280")
+res_name_vec = c("CDF_freqtrun4_totaltime280","CDF_v3_freqtrun3_totaltime295")
+# res_name_vec = list.files("../Results/Rdata/RDA/", pattern="CDF_v3_*",
+#                           full.names = FALSE, recursive = FALSE)[-(1:16)]
 for (res_name in res_name_vec) {
   res_folder = paste0("../Results/Rdata/RDA/",res_name,"/")
   subj_name_vec = list.files(res_folder, full.names = FALSE, recursive = FALSE)
   subj_name_vec = c("func_20150417")
+  dir.create(paste0("../Results/Html_v2/",res_name,"/"), recursive = TRUE)
+  for (subj_name in subj_name_vec) {
+    rmarkdown::render("./RDA/Visualize_res_our_v2.Rmd", 
+                      params = list(subj_name=subj_name,
+                                    data_folder=paste0('../',res_folder)),
+                      output_file = paste0("../../Results/Html_v2/",res_name,"/",
+                                           subj_name,'.html'))
+  }
+  
+}
+
+
+### Our method -------
+res_name_vec = c("CDF_v3_freqtrun3_totaltime295")
+# res_name_vec = list.files("../Results/Rdata/RDA/", pattern="CDF_v3_*",
+#                           full.names = FALSE, recursive = FALSE)[-(1:16)]
+for (res_name in res_name_vec) {
+  res_folder = paste0("../Results/Rdata/RDA/",res_name,"/")
+  subj_name_vec = list.files(res_folder, full.names = FALSE, recursive = FALSE)
+  # subj_name_vec = c("func_20150417")
   dir.create(paste0("../Results/Html/",res_name,"/"), recursive = TRUE)
   for (subj_name in subj_name_vec) {
     rmarkdown::render("./RDA/Visualize_res_our.Rmd", 
@@ -38,7 +59,25 @@ for (res_name in res_name_vec) {
                                            subj_name,'.html'))
   }
   
+### Our method (restart) -------
+  res_name_vec = c("CDF_v5_debug_freqtrun3_totaltime280")
+  # res_name_vec = list.files("../Results/Rdata/RDA/", pattern="CDF_v3_*",
+  #                           full.names = FALSE, recursive = FALSE)[-(1:16)]
+  for (res_name in res_name_vec) {
+    res_folder = paste0("../Results/Rdata/RDA/",res_name,"/")
+    subj_name_vec = list.files(res_folder, full.names = FALSE, recursive = FALSE)
+    # subj_name_vec = c("func_20150417")
+    dir.create(paste0("../Results/Html/",res_name,"/"), recursive = TRUE)
+    for (subj_name in subj_name_vec) {
+      rmarkdown::render("./RDA/Visualize_res_our_debug.Rmd", 
+                        params = list(subj_name=subj_name,
+                                      data_folder=paste0('../',res_folder)),
+                        output_file = paste0("../../Results/Html/",res_name,"/",
+                                             subj_name,'.html'))
+    }
+    
 }
+
 
 
 

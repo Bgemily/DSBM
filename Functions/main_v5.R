@@ -24,6 +24,7 @@ main_v5 = function(### Parameters for generative model
   freq_trun_vec=NULL,
   save_est_history=FALSE,
   N_restart=1,
+  fix_timeshift=FALSE,
   ...)
 {
   
@@ -66,10 +67,18 @@ main_v5 = function(### Parameters for generative model
       start = Sys.time()
       seed_init = sample(1e5,1)
       set.seed(seed_init)
-      res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
-                        N_clus = N_clus_tmp,
-                        freq_trun = Inf,
-                        t_vec = t_vec)
+      if (fix_timeshift) {
+        res = get_init_v3(edge_time_mat_list = edge_time_mat_list, 
+                          N_clus = N_clus_tmp, 
+                          v_true_list = v_true_list, 
+                          jitter_time_rad = 0,
+                          t_vec = t_vec)
+      } else{
+        res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
+                          N_clus = N_clus_tmp,
+                          freq_trun = Inf,
+                          t_vec = t_vec)
+      }
       # res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
       #                   N_clus = N_clus_tmp,
       #                   N_restart = N_restart,
@@ -92,7 +101,8 @@ main_v5 = function(### Parameters for generative model
                             save_est_history = save_est_history,
                             freq_trun = freq_trun,
                             conv_thres = conv_thres,
-                            MaxIter = MaxIter,
+                            MaxIter = MaxIter, 
+                            fix_timeshift = fix_timeshift,
                             ...)
       time_end = Sys.time()
       time_estimation = time_end - time_start

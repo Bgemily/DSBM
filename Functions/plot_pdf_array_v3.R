@@ -56,8 +56,8 @@ plot_pdf_array_v3 = function(pdf_array_list,
   }
   big.df = big.df %>%
     group_by(ind_subj, clus.pair) %>% 
-    mutate(quantile_5 = sum(cumsum(pdf_val)/sum(pdf_val)<(2.5/100)),
-           quantile_95 = sum(cumsum(pdf_val)/sum(pdf_val)<(97.5/100))) %>%
+    mutate(quantile_5 = sum(cumsum(pdf_val)/sum(pdf_val)<(5/100)),
+           quantile_95 = sum(cumsum(pdf_val)/sum(pdf_val)<(95/100))) %>%
     mutate(pdf_val_quan_5 = pdf_val[t==quantile_5],
            pdf_val_quan_95 = pdf_val[t==quantile_95]) %>%
     ungroup()
@@ -101,47 +101,57 @@ plot_pdf_array_v3 = function(pdf_array_list,
                    color=clus.pair,
                    # size=type_group, 
                    linetype=ind_subj)) +
-        geom_line(alpha=0.7)+
-        geom_segment(aes(x=quantile_5,xend=quantile_95, 
-                         y=0, yend=0,
-                         # alpha = 0.1,
-                         color=clus.pair, linetype=ind_subj), 
-                     inherit.aes = FALSE,
-                     arrow=arrow(angle = 45,
-                                 length = unit(0.08, "inches"), 
-                                 ends='both'),
-                     alpha=0.9) +
-        # geom_segment(aes(x=quantile_5,xend=quantile_5, 
-        #                  y=-y_lim[2]/20, yend=y_lim[2]/20,
-        #                  color=clus.pair), 
-        #              alpha = 1, size=0.5) +
-        # geom_segment(aes(x=quantile_95,xend=quantile_95, 
-        #                  y=-y_lim[2]/20, yend=y_lim[2]/20,
-        #                  color=clus.pair), 
-        #              alpha = 1, size=0.5) +
+        geom_line(alpha=1)+
         scale_color_manual(values = intensity_color_mat[q,l],
                            name=NULL,aesthetics = "color") +
+        scale_linetype_discrete(name='',labels=c('ind_subj1'=label_df[label_df$clus.pair==paste0('(',q,',',l,')')
+                                                                      &label_df$ind_subj=='ind_subj1', "label"][[1]],
+                                                 'ind_subj2'=label_df[label_df$clus.pair==paste0('(',q,',',l,')')
+                                                                      &label_df$ind_subj=='ind_subj2', "label"][[1]]))+
         scale_y_continuous(position = "right")+
         facet_wrap(~clus.pair) +
         xlab(NULL) + ylab(NULL) +
         theme_bw() +
-        theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
-        theme(legend.position = 'none') +
+        theme(axis.ticks.y = element_blank(), 
+              axis.text.y = element_blank(), 
+              axis.title.y = element_blank(),
+              axis.ticks.x = element_blank(), 
+              axis.text.x = element_blank(), 
+              axis.title.x = element_blank()) +
+        theme(legend.position = c(.95, .95),
+              legend.justification = c("right", "top")) +
+        guides(color=FALSE, linetype=guide_legend(direction = 'horizontal')) +
         theme(strip.background = element_blank(),  
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(),
-              strip.text.x = element_blank())  + 
+              strip.text.x = element_blank(),
+              plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"))  + 
         coord_cartesian(xlim = xlim, ylim = y_lim)
-      g = g + 
-        geom_text(data = label_df[label_df$clus.pair==paste0('(',q,',',l,')'),], 
-                   x=c(150,200), y=y_lim[2],
-                   mapping = aes(label=label),
-                  size=3, color='black',
-                  # position = position_dodge(width = .9),
-                   vjust = "inward", hjust = "inward",
-                  check_overlap = TRUE,
-                  # label.padding = unit(0.15, "lines"),
-                   show.legend = FALSE, inherit.aes = FALSE)
+      g = g +
+        geom_segment(data = big.df %>% filter(clus.pair==paste0('(',q,',',l,')')) %>%
+                       group_by(clus.pair, ind_subj) %>% 
+                       summarise(quantile_5=unique(quantile_5),
+                                 quantile_95=unique(quantile_95)) %>% 
+                       ungroup() %>% mutate(clus.pair=as_factor(clus.pair), 
+                                            ind_subj=as.factor(ind_subj)),
+                     aes(x=quantile_5,xend=quantile_95, 
+                         y=y_lim[1], yend=y_lim[1],
+                         color=clus.pair, linetype=ind_subj), 
+                     inherit.aes = FALSE,
+                     arrow=arrow(angle = 0,
+                                 length = unit(0.08, "inches"), 
+                                 ends='both'),
+                     alpha=0.4, size=1) 
+      # g = g + 
+      #   geom_text(data = label_df[label_df$clus.pair==paste0('(',q,',',l,')'),], 
+      #              x=c(150,200), y=y_lim[2],
+      #              mapping = aes(label=label),
+      #             size=3, color='black',
+      #             # position = position_dodge(width = .9),
+      #              vjust = "inward", hjust = "inward",
+      #             check_overlap = TRUE,
+      #             # label.padding = unit(0.15, "lines"),
+      #              show.legend = FALSE, inherit.aes = FALSE)
       
       g_list = c(g_list, list(g))
     }
@@ -150,7 +160,7 @@ plot_pdf_array_v3 = function(pdf_array_list,
   layout_mat[upper.tri(layout_mat, diag = TRUE)] = c(1,2,4,3,5,6)
   g = arrangeGrob(grobs=g_list, layout_matrix=layout_mat)
   
-  return(list(g=g, big.df=big.df))
+  return(list(g=g, big.df=big.df, g_list=g_list))
   
   # fill curves with colors
   # g + geom_rect(data=big.df, 
