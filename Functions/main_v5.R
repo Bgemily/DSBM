@@ -22,6 +22,7 @@ main_v5 = function(### Parameters for generative model
   opt_radius=total_time/2,
   N_clus_min=N_clus-2, N_clus_max=N_clus+2,
   freq_trun_vec=NULL,
+  fix_timeshift=FALSE,
   ...)
 {
   
@@ -57,8 +58,17 @@ main_v5 = function(### Parameters for generative model
       freq_trun = freq_trun_vec[ind_freq_trun]
       
       ### Get initialization -----------
-      res = get_init_v4(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp, 
-                        t_vec = t_vec)
+      if (fix_timeshift) {
+        res = get_init_v3(edge_time_mat_list = edge_time_mat_list, 
+                          N_clus = N_clus_tmp, 
+                          v_true_list = v_true_list, 
+                          jitter_time_rad = 0,
+                          t_vec = t_vec)
+      } else{
+        res = get_init_v4(edge_time_mat_list = edge_time_mat_list, 
+                          N_clus = N_clus_tmp, 
+                          t_vec = t_vec)
+      }
       
       clusters_list_init = res$clusters_list
       n0_vec_list_init = res$n0_vec_list
@@ -88,6 +98,7 @@ main_v5 = function(### Parameters for generative model
                                freq_trun=freq_trun, 
                                conv_thres=conv_thres, MaxIter=MaxIter,
                                opt_radius=opt_radius,
+                               fix_timeshift=fix_timeshift,
                                ...)
       time_end = Sys.time()
       time_estimation = time_end - time_start

@@ -9,6 +9,7 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
                           total_time = 200, t_vec=seq(0,total_time,length.out=1000),
                           MaxIter=10, conv_thres=5e-3, 
                           opt_radius=max(t_vec)/2,
+                          fix_timeshift=FALSE,
                           ...)
 {
   
@@ -80,6 +81,7 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
                                 freq_trun = freq_trun, step_size = step_size,
                                 t_vec=t_vec, order_list=NULL, 
                                 opt_radius=opt_radius,
+                                fix_timeshift=fix_timeshift,
                                 ...)
       clusters_list_update[m] = res$clusters_list
       n0_vec_list_update[m] = res$n0_vec_list
@@ -201,6 +203,7 @@ do_cluster_v14.2.1 = function(edge_time_mat_list, N_clus,
                                 center_pdf_array = center_pdf_array_current,
                                 t_vec=t_vec, order_list=NULL, 
                                 opt_radius=opt_radius,
+                                fix_timeshift=fix_timeshift,
                                 ...)
       clusters_list_update = res$clusters_list
       n0_vec_list_update = res$n0_vec_list
