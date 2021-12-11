@@ -66,7 +66,7 @@ N_clus_min = 1 # Number of clusters
 N_clus_max = 5
 MaxIter = 10 # Maximal iteration number
 # bw = 5 # Smoothing bandwidth
-freq_trun_vec = c(2) # Cut-off frequency
+freq_trun_vec = c(3) # Cut-off frequency
 total_time_cutoff_vec = c(200)
 conv_thres=1e-3
 max_iter=10
@@ -82,24 +82,22 @@ for (ind_freq_trun in 1:length(freq_trun_vec)) {
   for (ind_total_time_cutoff in 1:length(total_time_cutoff_vec)) {
     freq_trun = freq_trun_vec[ind_freq_trun]
     total_time_cutoff = total_time_cutoff_vec[ind_total_time_cutoff]
-    for (subj in 4:3){
-      ICL_best = -Inf
-      res_best = NULL
-      res_multi_restart = list()
-      ICL_history = matrix(nrow=N_restart,ncol=length(N_clus_min:N_clus_max))
-      compl_log_lik_history = matrix(nrow=N_restart,ncol=length(N_clus_min:N_clus_max))
-      seed_restart = sample(1e5,1)
-      set.seed(seed_restart)
-      
-      time_start = Sys.time()
-      for (ind_restart in 1:N_restart){
-        ### Apply method with freq_trun and total_time_cutoff
-        edge_time_mat_list_tmp = edge_time_mat_list[subj]
-        ### Get estimation for candidate N_clus and freq_trun
-        res_list = list()
-        for (ind_N_clus in 1:length(N_clus_min:N_clus_max)) {
-          res_list[[ind_N_clus]] = list()
-          N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
+    res_list_L = res_list_R = list()
+    compl_loglik_sum_vec = penalty_vec = ICL_vec = c()
+    for (ind_N_clus in 1:length(N_clus_min:N_clus_max)) {
+      N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
+      res_list_L[[ind_N_clus]] = list()
+      res_list_R[[ind_N_clus]] = list()
+      compl_loglik_sum = 0
+      for (subj in 4:3) {
+        compl_log_lik_best = -Inf
+        res_best = NULL
+        seed_restart = sample(1e5,1)
+        set.seed(seed_restart)
+        for (ind_restart in 1:N_restart) {
+          ### Apply method with freq_trun and total_time_cutoff
+          edge_time_mat_list_tmp = edge_time_mat_list[subj]
+          res_list_tmp = list(list())
           for (ind_freq_trun_tmp in 1:1) {
             ### Get initialization
             res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
@@ -180,73 +178,85 @@ for (ind_freq_trun in 1:length(freq_trun_vec)) {
             res$t_vec=t_vec_cutoff
             
             # Save results of N_clus_tmp
-            res_list[[ind_N_clus]][[ind_freq_trun_tmp]] = res
+            res_list_tmp[[1]][[1]] = res
             
           }
+          ### Calculate loglik
+          sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
+                                     N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
+                                     N_clus_min = N_clus_tmp,
+                                     N_clus_max = N_clus_tmp,
+                                     result_list = res_list_tmp,
+                                     total_time = total_time_cutoff)
+          
+          compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+          penalty_vec = sel_mod_res$penalty_vec
+          ### Update compl_log_lik_best and res_best
+          if (compl_log_lik_vec>compl_log_lik_best) {
+            compl_log_lik_best = c(compl_log_lik_vec)
+            res_best = res_list_tmp[[1]][[1]]
+            res_best$compl_log_lik_vec = compl_log_lik_vec
+            res_best$penalty_vec = penalty_vec
+          }
+        }
+        compl_loglik_sum = compl_loglik_sum + compl_log_lik_best
+        if (subj%%2==1) {
+          res_list_L[[ind_N_clus]] = res_best
+        } else{
+          res_list_R[[ind_N_clus]] = res_best
         }
         
-        ### Select best cluster number using ICL
-        sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
-                                   N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
-                                   N_clus_min = N_clus_min,
-                                   N_clus_max = N_clus_max,
-                                   result_list = res_list,
-                                   total_time = total_time_cutoff)
-        
-        N_clus_est = sel_mod_res$N_clus_est
-        ICL_vec = sel_mod_res$ICL_vec
-        compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
-        log_lik_vec = sel_mod_res$log_lik_vec
-        penalty_2_vec = sel_mod_res$penalty_2_vec
-        penalty_vec = sel_mod_res$penalty_vec
-        ICL_mat = sel_mod_res$ICL_mat
-        compl_log_lik_mat = sel_mod_res$compl_log_lik_mat 
-        log_lik_mat = sel_mod_res$log_lik_mat
-        penalty_2_mat = sel_mod_res$penalty_2_mat
-        penalty_mat = sel_mod_res$penalty_mat
-        
-        ### Retrieve estimation results of the best cluster number
-        res = sel_mod_res$res_best
-        res$clusters_list -> clusters_list_est
-        res$v_vec_list -> v_vec_list_est
-        res$center_pdf_array -> center_pdf_array_est
-        res$N_iteration -> N_iteration
-        
-        ### Save result
-        res = list(res_list = res_list,
-                   edge_time_mat = edge_time_mat_list_tmp[[1]],
-                   clusters_list = clusters_list_est[[1]],
-                   center_pdf_array = center_pdf_array_est,
-                   v_vec = v_vec_list_est[[1]],
-                   N_clus_est = N_clus_est,
-                   ICL_vec = ICL_vec,
-                   compl_log_lik_vec = compl_log_lik_vec,
-                   log_lik_vec = log_lik_vec,
-                   penalty_2_vec = penalty_2_vec,
-                   penalty_vec = penalty_vec,
-                   ICL_mat = ICL_mat,
-                   compl_log_lik_mat = compl_log_lik_mat, 
-                   log_lik_mat = log_lik_mat, 
-                   penalty_2_mat = penalty_2_mat,
-                   penalty_mat = penalty_mat,
-                   N_iteration = N_iteration,
-                   t_vec = t_vec_cutoff)
-        
-        ### Update res_best and ICL_best
-        if (max(res$ICL_vec)>ICL_best){
-          ICL_best = max(res$ICL_vec)
-          res_best = res
-        }
-        ICL_history[ind_restart, ] = res$ICL_vec
-        compl_log_lik_history[ind_restart, ] = res$compl_log_lik_vec
-        res_multi_restart[ind_restart] = list(res)
       }
-      time_end = Sys.time()
-      time_total = time_end - time_start
       
+      
+      compl_loglik_sum_vec[ind_N_clus] = compl_loglik_sum
+      ### Compute penalty
+      N_node_vec = nrow(edge_time_mat_list[[3]])+nrow(edge_time_mat_list[[4]])
+      N_basis_mat = matrix(2*freq_trun+1, nrow=N_clus_tmp, ncol=N_clus_tmp)
+      penalty_tmp = (N_clus_tmp-1)/2*sum(log(N_node_vec)) + 
+        sum(N_basis_mat[upper.tri(N_basis_mat)],diag(N_basis_mat))/2*sum(log(N_node_vec*(N_node_vec-1)/2))
+      penalty_vec[ind_N_clus] = penalty_tmp
+      
+      ICL_vec[ind_N_clus] = compl_loglik_sum_vec[ind_N_clus] - penalty_vec[ind_N_clus]
+      
+    }
+    N_clus_est = (N_clus_min:N_clus_max)[which.max(ICL_vec)]
+    res_L = res_list_L[[which.max(ICL_vec)]]
+    res_R = res_list_R[[which.max(ICL_vec)]]
+    
+    ### Save results
+    for (subj in 3:4) {
+      if (subj%%2==1) {
+        res = res_L
+      } else{
+        res = res_R
+      }
+      ### Retrieve estimation results of the best cluster number
+      res$clusters_list -> clusters_list_est
+      res$v_vec_list -> v_vec_list_est
+      res$center_pdf_array -> center_pdf_array_est
+      res$N_iteration -> N_iteration
+      
+      ### Save result
+      res = list(edge_time_mat = edge_time_mat_list[[subj]],
+                 clusters_list = clusters_list_est[[1]],
+                 center_pdf_array = center_pdf_array_est,
+                 v_vec = v_vec_list_est[[1]],
+                 N_clus_est = N_clus_est,
+                 ICL_vec = ICL_vec,
+                 compl_log_lik_vec = compl_loglik_sum_vec,
+                 # log_lik_vec = log_lik_vec,
+                 # penalty_2_vec = penalty_2_vec,
+                 penalty_vec = penalty_vec,
+                 # ICL_mat = ICL_mat,
+                 # compl_log_lik_mat = compl_log_lik_mat, 
+                 # log_lik_mat = log_lik_mat, 
+                 # penalty_2_mat = penalty_2_mat,
+                 # penalty_mat = penalty_mat,
+                 # N_iteration = N_iteration,
+                 t_vec = t_vec_cutoff)
       ### Save result with freq_trun and total_time_cutoff
-      res = res_best
-      method = paste0("CDF_v12_rmvtop", 
+      method = paste0("CDF_v16_sameNclus", 
                       "_Nrestart",N_restart,
                       "_freqtrun",freq_trun,
                       "_","totaltime",total_time_cutoff)
@@ -254,11 +264,13 @@ for (ind_freq_trun in 1:length(freq_trun_vec)) {
       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
       file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
       now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-      save(res,ICL_history,compl_log_lik_history,time_total,
-           seed_restart, 
+      save(res,
+           # ICL_history,compl_log_lik_history,time_total,
+           # seed_restart, 
            file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
       
     }
+    
   }
 }
 

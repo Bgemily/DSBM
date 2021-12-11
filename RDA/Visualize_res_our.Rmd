@@ -5,7 +5,7 @@ author: "Zitong Zhang"
 output: html_document
 params: 
   subj_name: "func_20150417"
-  data_folder: "../../Results/Rdata/RDA/CDF_v12_rmvtop_Nrestart10_freqtrun2_totaltime260/"
+  data_folder: "../../Results/Rdata/RDA/CDF_v16_sameNclus_Nrestart20_freqtrun2_totaltime200/"
 ---
 
 ```{r setup, include=FALSE}

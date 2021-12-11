@@ -90,6 +90,7 @@ for (compl_log_lik_history in compl_log_lik_history_list) {
                      function(x)max(compl_log_lik_history[1:x]))
  plot(max_loglik,type='b') 
  abline(v=which.max(max_loglik),col=2)
+ print(max(max_loglik))
 }
 ```
 
