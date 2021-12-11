@@ -5,7 +5,7 @@ author: "Zitong Zhang"
 output: html_document
 params: 
   subj_name: "func_20150417"
-  data_folder: "../../Results/Rdata/RDA/CDF_freqtrun4_totaltime280/"
+  data_folder: "../../Results/Rdata/RDA/CDF_v12_rmvtop_Nrestart10_freqtrun2_totaltime260/"
 ---
 
 ```{r setup, include=FALSE}
@@ -107,12 +107,14 @@ data_folder = paste0(params$data_folder, params$subj_name, "/")
 path_vec = list.files(data_folder, full.names = TRUE, recursive = TRUE)
 
 res_list = vector(mode = "list", length = length(path_vec))
-
+ICL_history_list = compl_log_lik_history_list = list()
 for(m in 1:length(path_vec)){ 
   path = path_vec[m]
   ### Read in results from data
   load(path)
   res_list[[m]] = res
+  ICL_history_list[[m]] = ICL_history
+  compl_log_lik_history_list[[m]] = compl_log_lik_history
 }
 
 
@@ -154,29 +156,6 @@ clus_size_list = lapply(clusters_list, function(clusters)sapply(clusters,length)
 pdf_array_1 = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE]#[1:3,1:3,]
 pdf_array_2 = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE]#[1:3,1:3,]
 
-# ### Manually shift intensities
-# global_shift = 20
-# pdf_array_2[,,1:(length(t_vec)-global_shift)] = pdf_array_2[,,(global_shift+1):length(t_vec)]
-# pdf_array_2[,,(length(t_vec)-global_shift+1):length(t_vec)] = 0
-# 
-# pdf_array_list = list(pdf_array_1, pdf_array_2)
-# clus_size_vec_1 = clus_size_list[[1]][order_clus_1]#[1:3]
-# clus_size_vec_2 = clus_size_list[[2]][order_clus_2]#[1:3]
-# tmp = plot_pdf_array_v3(pdf_array_list = pdf_array_list, 
-#                        clus_size_vec_1 = clus_size_vec_1,
-#                        clus_size_vec_2 = clus_size_vec_2,
-#                        t_vec = t_vec, 
-#                        y_lim = c(-0.01,max(unlist(pdf_array_list))))
-# g3 = tmp$g
-# grid.arrange(g3)
-# big.df = tmp$big.df
-# inter_quan_len_df = big.df %>%
-#   mutate(inter_quan_len = quantile_95-quantile_5) %>%
-#   select(ind_subj, clus.pair, inter_quan_len) %>%
-#   group_by(clus.pair, ind_subj) %>%
-#   summarise(inter_quan_len=unique(inter_quan_len)) %>%
-#   ungroup()
-# print(inter_quan_len_df)
 ```
 
 ```{r}
@@ -197,6 +176,25 @@ grid.arrange(g1, g2, ncol=2)
 ```
 
 
+```{r}
+for (ind_subj in 1:length(ICL_history_list)) {
+  ICL_history = ICL_history_list[[ind_subj]]
+  compl_log_lik_history = compl_log_lik_history_list[[ind_subj]]
+  plot(apply(ICL_history,2,max),type='b',ylim=range(ICL_history))
+  for (ind_row in 1:nrow(ICL_history)) {
+    lines(ICL_history[ind_row,],type='p')
+  }
+  
+  plot(apply(compl_log_lik_history,2,max),type='b',ylim=range(compl_log_lik_history))
+  for (ind_row in 1:nrow(compl_log_lik_history)) {
+    lines(compl_log_lik_history[ind_row,],type='p')
+  }
+
+}
+
+
+
+```
 
 <!-- ## Visualize estimated time shifts -->
 <!-- ```{r} -->
@@ -216,8 +214,8 @@ grid.arrange(g1, g2, ncol=2)
 
 <!-- ```{r} -->
 <!-- ### Plot time shifts distribution -->
-<!-- data = tibble(v_vec=unlist(v_vec_list),  -->
-<!--               membership=c(membership_list[[1]][non_iso_inds_list[[1]]], membership_list[[2]][non_iso_inds_list[[2]]]),  -->
+<!-- data = tibble(v_vec=unlist(v_vec_list), -->
+<!--               membership=c(membership_list[[1]][non_iso_inds_list[[1]]], membership_list[[2]][non_iso_inds_list[[2]]]), -->
 <!--               subj=rep(1:length(v_vec_list), times=sapply(v_vec_list,length))) -->
 
 <!-- g5 <- data %>% -->
@@ -242,63 +240,64 @@ grid.arrange(g1, g2, ncol=2)
 <!-- ``` -->
 
 
-<!-- ```{r} -->
-<!-- ### Get Wan's result -->
-<!-- dat=readMat(paste('../../Raw_data/to_shizhe/','Leader_', -->
-<!--                   substr(params$subj_name, start=nchar(params$subj_name)-7, -->
-<!--                          stop=nchar(params$subj_name)), -->
-<!--                   '.mat',sep='')) -->
-<!-- activeTime_vec = dat$activeTime * 60 -->
-<!-- activeTime_vec = activeTime_vec[c(inds_L[non_iso_inds_L], -->
-<!--                                   inds_R[non_iso_inds_R])] -->
-<!-- data = tibble(v_vec=activeTime_vec,  -->
-<!--               membership=c(membership_list[[1]][non_iso_inds_list[[1]]], membership_list[[2]][non_iso_inds_list[[2]]]),  -->
-<!--               subj=rep(1:length(v_vec_list), times=sapply(v_vec_list,length))) -->
+<!-- <!-- ```{r} --> -->
+<!-- <!-- ### Get Wan's result --> -->
+<!-- <!-- dat=readMat(paste('../../Raw_data/to_shizhe/','Leader_', --> -->
+<!-- <!--                   substr(params$subj_name, start=nchar(params$subj_name)-7, --> -->
+<!-- <!--                          stop=nchar(params$subj_name)), --> -->
+<!-- <!--                   '.mat',sep='')) --> -->
+<!-- <!-- activeTime_vec = dat$activeTime * 60 --> -->
+<!-- <!-- activeTime_vec = activeTime_vec[c(inds_L[non_iso_inds_L], --> -->
+<!-- <!--                                   inds_R[non_iso_inds_R])] --> -->
+<!-- <!-- data = tibble(v_vec=activeTime_vec, --> -->
+<!-- <!--               membership=c(membership_list[[1]][non_iso_inds_list[[1]]], membership_list[[2]][non_iso_inds_list[[2]]]), --> -->
+<!-- <!--               subj=rep(1:length(v_vec_list), times=sapply(v_vec_list,length))) --> -->
 
-<!-- g6 <- data %>% -->
-<!--   filter(membership<=3) %>% -->
-<!--   group_by(membership) %>% -->
-<!--   mutate(N_node = n()) %>% -->
-<!--   ggplot(aes(x=v_vec,group=as.factor(membership), -->
-<!--              size=N_node, -->
-<!--              color=as.factor(membership)))+ -->
-<!--   geom_density( aes(), alpha=0.6, linetype=2) + -->
-<!--   scale_color_manual(values=palette()[1+1:4]) + -->
-<!--   scale_fill_manual(values=palette()[1+1:4]) + -->
-<!--   scale_size(range=c(0.3,1)) + -->
-<!--   theme_bw()+ -->
-<!--   theme(legend.position = "none") + -->
-<!--   # facet_wrap(~subj) + -->
-<!--   scale_x_continuous() + -->
-<!--   theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) + -->
-<!--   xlab('Time shifts (min)') -->
+<!-- <!-- g6 <- data %>% --> -->
+<!-- <!--   filter(membership<=3) %>% --> -->
+<!-- <!--   group_by(membership) %>% --> -->
+<!-- <!--   mutate(N_node = n()) %>% --> -->
+<!-- <!--   ggplot(aes(x=v_vec,group=as.factor(membership), --> -->
+<!-- <!--              size=N_node, --> -->
+<!-- <!--              color=as.factor(membership)))+ --> -->
+<!-- <!--   geom_density( aes(), alpha=0.6, linetype=2) + --> -->
+<!-- <!--   scale_color_manual(values=palette()[1+1:4]) + --> -->
+<!-- <!--   scale_fill_manual(values=palette()[1+1:4]) + --> -->
+<!-- <!--   scale_size(range=c(0.3,1)) + --> -->
+<!-- <!--   theme_bw()+ --> -->
+<!-- <!--   theme(legend.position = "none") + --> -->
+<!-- <!--   # facet_wrap(~subj) + --> -->
+<!-- <!--   scale_x_continuous() + --> -->
+<!-- <!--   theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) + --> -->
+<!-- <!--   xlab('Time shifts (min)') --> -->
 
-<!-- print(g6) -->
+<!-- <!-- print(g6) --> -->
 
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- ### Get Wan's result -->
-<!-- dat=readMat(paste('../../Raw_data/to_shizhe/','Leader_',substr(params$subj_name, start=nchar(params$subj_name)-7, stop=nchar(params$subj_name)),'.mat',sep='')) -->
-<!-- activeTime_vec = dat$activeTime * 60 -->
-<!-- patternTime_vec = dat$patternTime * 60 -->
+<!-- <!-- ``` --> -->
 
-<!-- ### Let time shift for non-active nodes be NA -->
-<!-- for (m in 1:length(v_vec_list)) { -->
-<!--   N_node = nrow(locs_mat_list[[m]]) -->
-<!--   v_vec_tmp = rep(NA,N_node) -->
-<!--   v_vec_tmp[non_iso_inds_list[[m]]] = v_vec_list[[m]] -->
-<!--   v_vec_list[[m]] = v_vec_tmp -->
-<!-- } -->
+<!-- <!-- ```{r} --> -->
+<!-- <!-- ### Get Wan's result --> -->
+<!-- <!-- dat=readMat(paste('../../Raw_data/to_shizhe/','Leader_',substr(params$subj_name, start=nchar(params$subj_name)-7, stop=nchar(params$subj_name)),'.mat',sep='')) --> -->
+<!-- <!-- activeTime_vec = dat$activeTime * 60 --> -->
+<!-- <!-- patternTime_vec = dat$patternTime * 60 --> -->
 
-<!-- ggplot(data = data.frame(activeTime_vec=activeTime_vec, -->
-<!--                          v_vec=unlist(v_vec_list), -->
-<!--                          mem=as_factor(unlist(membership_list)) -->
-<!--                          )) +  -->
-<!--   geom_point(aes(x=activeTime_vec, y=v_vec, color=mem)) + -->
-<!--   scale_color_manual(values=palette()[c(8,2:6)]) + -->
-<!--   xlab('Activation time by Wan (pp. e7)') + -->
-<!--   ylab('Our estimation') -->
-<!-- ``` -->
+<!-- <!-- ### Let time shift for non-active nodes be NA --> -->
+<!-- <!-- for (m in 1:length(v_vec_list)) { --> -->
+<!-- <!--   N_node = nrow(locs_mat_list[[m]]) --> -->
+<!-- <!--   v_vec_tmp = rep(NA,N_node) --> -->
+<!-- <!--   v_vec_tmp[non_iso_inds_list[[m]]] = v_vec_list[[m]] --> -->
+<!-- <!--   v_vec_list[[m]] = v_vec_tmp --> -->
+<!-- <!-- } --> -->
+
+<!-- <!-- ggplot(data = data.frame(activeTime_vec=activeTime_vec, --> -->
+<!-- <!--                          v_vec=unlist(v_vec_list), --> -->
+<!-- <!--                          mem=as_factor(unlist(membership_list)) --> -->
+<!-- <!--                          )) + --> -->
+<!-- <!--   geom_point(aes(x=activeTime_vec, y=v_vec, color=mem)) + --> -->
+<!-- <!--   scale_color_manual(values=palette()[c(8,2:6)]) + --> -->
+<!-- <!--   xlab('Activation time by Wan (pp. e7)') + --> -->
+<!-- <!--   ylab('Our estimation') --> -->
+<!-- <!-- ``` --> -->
 
 
 
@@ -310,23 +309,23 @@ grid.arrange(g1, g2, ncol=2)
 
 <!-- data = as.data.frame(reduce(locs_mat_list,rbind)) -->
 <!-- colnames(data) = c('AP','LR','DV') -->
-<!-- data = cbind(data,  -->
+<!-- data = cbind(data, -->
 <!--              membership=as.factor(unlist(membership_list)), -->
 <!--              subj=rep(1:length(membership_list), -->
 <!--                       times=sapply(membership_list,length))) -->
 
 <!-- library(plotly) -->
-<!-- fig = plot_ly(data, x = ~LR, y = ~AP, z = ~DV, color = ~membership,  -->
+<!-- fig = plot_ly(data, x = ~LR, y = ~AP, z = ~DV, color = ~membership, -->
 <!--               # colors = c(palette()[c(8,2:6)]), -->
-<!--               colors = c(`0`=palette()[8],  -->
+<!--               colors = c(`0`=palette()[8], -->
 <!--                          `1`=palette()[2], -->
 <!--                          `2`=palette()[3], -->
 <!--                          `3`=palette()[4], -->
 <!--                          `4`=palette()[5], -->
 <!--                          `5`=palette()[6]), -->
-<!--               type = "scatter3d")  -->
+<!--               type = "scatter3d") -->
 <!-- fig = fig %>% -->
-<!--   layout(scene = list(aspectmode='manual', aspectratio = list(x=2, y=1, z=1))) -->
+<!--   layout(scene = list(aspectmode='manual', aspectratio = list(x=1.5, y=1, z=1))) -->
 <!-- fig -->
 <!-- ``` -->
 

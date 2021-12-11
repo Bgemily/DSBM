@@ -38,11 +38,10 @@ get_init_v4 = function(edge_time_mat_list, N_clus,
     N_node = nrow(edge_time_mat)
     node_cdf_array = get_node_cdf_array_v2(edge_time_mat = edge_time_mat, 
                                            clusters = list(c(1:N_node)), 
-                                           n0_mat = matrix(0,N_node,N_node), 
+                                           n0_mat = matrix(n0_vec,nrow=N_node,ncol=N_node), 
                                            freq_trun = freq_trun,
                                            t_vec = t_vec)
-    aligned_cdf_mat = t(sapply(1:N_node, function(i) shift_v2(f_origin=node_cdf_array[i,1,], 
-                                                              n0=-n0_vec[i]) ))
+    aligned_cdf_mat = t(sapply(1:N_node, function(i) node_cdf_array[i,1,] ))
     membership = cluster::pam(x=aligned_cdf_mat, k=N_clus, diss=FALSE, cluster.only=TRUE)
     membership_list[[m]] = membership
 

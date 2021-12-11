@@ -44,12 +44,12 @@ for (param_name in param_name_vec) {
 
   results_df = results_df %>% 
     mutate(param_value = as_factor(param_value)) %>%
-    pivot_longer(cols = starts_with("ARI"), names_to = "Iter_ARI", values_to = "ARI") %>% 
+    pivot_longer(cols = starts_with("ARI_history"), names_to = "Iter_ARI", values_to = "ARI") %>% 
     pivot_longer(cols = starts_with("F_mean_sq_err"), names_to = "Iter_F_mean_sq_err", values_to = "F_mean_sq_err") %>% 
     pivot_longer(cols = starts_with("v_mean_sq_err"), names_to = "Iter_v_mean_sq_err", values_to = "v_mean_sq_err")
     
   results_df = results_df %>% 
-    mutate(method=fct_relevel(method,"10 rand init", "20 rand init", after=Inf),
+    mutate(method=fct_relevel(method,"10 rand init", after=Inf),
            method=fct_relevel(method,"Our init", after=0),
            Iter_ARI=fct_relevel(Iter_ARI,"ARI_history10","ARI_history11", after = Inf),
            Iter_F_mean_sq_err=fct_relevel(Iter_F_mean_sq_err,"F_mean_sq_err_history10","F_mean_sq_err_history11", after = Inf),
@@ -92,13 +92,11 @@ for (param_name in param_name_vec) {
     summarise(time_init = mean(time_init, na.rm=TRUE)) %>%
     mutate(method=fct_relevel(method,"10 rand init",after=Inf)) %>%
     ggplot(mapping = aes(x=method, y=time_init,group=1)) +
-    geom_point()
-    stat_summary(geom="point",alpha=0.7,
-                 fun = "mean")
+    geom_point() 
   
 }
 
-# cdf vs pdf vs ppsbm ------------------------------------------------------------
+# cdf vs pdf vs ppsbm (V!=0) ------------------------------------------------------------
 path_vec = rep(0,6)
 
 path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v11_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
@@ -115,7 +113,7 @@ for (param_name in param_name_vec) {
   results_list = lapply(path_vec, function(folder_path)
     extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
                            measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", 
-                                         # "N_iteration",
+                                         "N_iteration",
                                          "time_estimation")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
                          bind_cols(results_list[[3]],"method"="PPSBM"),
@@ -132,8 +130,88 @@ for (param_name in param_name_vec) {
   ### Plot ARI/F_mse vs n/beta/V
   for (measurement in c("1-ARI","f_mse","V_mse",
                         # "N_iteration",
-                        # "time_per_iter",
+                        "time_per_iter",
                         "time_est")) {
+    pdf(file=paste0("../Results/Plots/Temp/", 
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement),
+                    '_', 'vs', '_', 
+                    switch(param_name,"beta"='beta','n'='p','V'='V'),
+                    ".pdf"), 
+        width = 5, height = 5)
+    g = results_df %>% 
+      ggplot(aes(x=param_value, 
+                 y=switch(measurement,
+                          "1-ARI" = 1-ARI_mean,
+                          "f_mse" = F_mean_sq_err,
+                          "time_est"= time_estimation,
+                          # "N_iteration" = N_iteration,
+                          "time_per_iter" = time_estimation/N_iteration,
+                          "V_mse" = v_mean_sq_err), 
+                 linetype=method,
+                 color=method)) +
+      stat_summary(aes(group=method), position = position_dodge(.0),
+                   # geom="pointrange", 
+                   alpha=0.7,
+                   # fun.min = function(x)quantile(x,0.25),
+                   # fun.max = function(x)quantile(x,0.75),
+                   # fun.min = function(x)mean(x)-sd(x),
+                   # fun.max = function(x)mean(x)+sd(x),
+                   geom="point",
+                   fun = "mean") +
+      stat_summary(aes(group=method),position = position_dodge(.0),
+                   geom="line",
+                   alpha=0.8,
+                   fun = "mean") +
+      theme(legend.position = "bottom") +
+      guides(color=guide_legend(nrow=2,byrow=TRUE)) +
+      coord_cartesian(ylim = switch(measurement,
+                                    "time_est" = c(0,350),
+                                    "V_mse" = c(0,150),
+                                    "f_mse" = c(),
+                                    "1-ARI" = c(0,1) )) +
+      ylab(measurement) +
+      xlab(switch(param_name, 'n'='N_node',param_name))
+    
+    print(g)
+    dev.off()
+  }
+  
+}
+
+
+
+
+# cdf vs pdf vs ppsbm (V==0) ------------------------------------------------------------
+path_vec = rep(0,6)
+
+path_vec[1] = "../Results/Rdata/SNR_Vis0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.05,V=0/"
+# path_vec[2] = "../Results/Rdata/SNR_Vis0_v4/main_v5_pdf_v3_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[3] = "../Results/Rdata/SNR_Vis0_v4/apply_ppsbm_v3/pr=0.9,n=30,beta=1.05,V=0/"
+
+
+param_name_vec = list.files(path_vec[1])
+
+### For each parameter (n/beta/V), extract results and visualize results
+for (param_name in param_name_vec) {
+  
+  ### Extract results for n/beta/V. Output: param_value (n/beta/V's value) | ARI | F_mse | V_mse | method
+  results_list = lapply(path_vec, function(folder_path)
+    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name), 
+                           measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err", 
+                                         # "N_iteration",
+                                         "time_estimation")))
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
+                         bind_cols(results_list[[3]],"method"="PPSBM"),
+                         # bind_cols(results_list[[2]],"method"="PDF")
+  )
+  
+  ### Manipulate column "param_value"
+  results_df = results_df %>%
+    mutate(param_value = factor(param_value, levels = sort(unique(param_value),
+                                                           decreasing = param_name=="V")) )
+  
+  ### Plot ARI/F_mse vs n/beta/V
+  for (measurement in c("1-ARI","f_mse")) {
     pdf(file=paste0("../Results/Plots/Temp/", 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement),
                     '_', 'vs', '_', 
@@ -266,6 +344,74 @@ for (param_name in param_name_vec) {
 
 
 
+# ICL/log_lik/penalty vs N_clus -----------------------------
+
+path_vec = rep(0,2)
+
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v13_ICL/pr=0.9,n=60,beta=1.9,V=80/"
+
+param_name_vec = list.files(path_vec[1])
+
+### For each parameter (n/beta/V), extract results and visualize results
+for (param_name in param_name_vec) {
+  
+  ### Extract results for n/beta/V. Output: freq_trun | ICL | log-lik | penalty
+  func_tmp = function(folder_path, param_name) {
+    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
+                           measurement = c("ICL_mat"))
+  }
+  results_list = lapply(path_vec, func_tmp, param_name=param_name)
+  results_df = results_list[[1]]
+  
+  ### Plot ICL vs N_clus vs freq_trun
+  z = matrix(colMeans(results_df)[-1], nrow=10,ncol=5) 
+  library(plotly)
+  fig = plot_ly(x = 1:5, y = 1:10, z = z,
+                type='surface') %>% 
+    layout(scene = list( xaxis=list(title='Number of clusters'),
+                         yaxis=list(title='Frequency truncation'),
+                         zaxis=list(title='ICL')))
+  fig
+  htmlwidgets::saveWidget(fig, "../Results/Plots/Temp/ICL_vs_Nclus_vs_freqtrun.html", 
+                          selfcontained = F, libdir = "lib")
+  
+  # for (measurement in c("ICL","compl_log_lik",'log_lik',"penalty","penalty_2")) {
+  #   pdf(file=paste0("../Results/Plots/Temp/", 
+  #                   if_else(measurement=="1-ARI", true = "ARI", false = measurement), 
+  #                   '_', 'N_clus', ".pdf"), 
+  #       width = 4, height = 2.5)
+  #   g = results_df %>% 
+  #     ggplot(aes(x=switch(measurement,
+  #                         "ICL" = N_clus_ICL,
+  #                         "compl_log_lik" = N_clus_compl_log_lik, 
+  #                         "log_lik" = N_clus_log_lik, 
+  #                         "penalty_2" = N_clus_penalty_2,
+  #                         "penalty" = N_clus_penalty),
+  #                y=switch(measurement,
+  #                         "ICL" = ICL,
+  #                         "compl_log_lik" = compl_log_lik,
+  #                         "log_lik" = log_lik,
+  #                         "penalty_2" = penalty_2,
+  #                         "penalty" = penalty), 
+  #                color=freq_trun)) +
+  #     stat_summary(aes(group=freq_trun),position = position_dodge(.0),
+  #                  geom="line",alpha=0.7,
+  #                  fun = "mean") +
+  #     # theme(legend.position = "none") +
+  #     guides(color=guide_legend(title="Frequency truncation")) +
+  #     scale_y_continuous() +
+  #     ylab(measurement) +
+  #     scale_x_discrete(labels=1:5) +
+  #     xlab("Number of clusters")
+  #   
+  #   print(g)
+  #   dev.off()
+  # }
+  
+  
+}
+
+
 # pdf performance vs N_node (V!=0) ------------------------------------------------------------
 path_vec = rep(0,5)
 
@@ -389,74 +535,6 @@ for (param_name in param_name_vec) {
   
 }
 
-
-
-# ICL/log_lik/penalty vs N_clus -----------------------------
-
-path_vec = rep(0,2)
-
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v13_ICL/pr=0.9,n=60,beta=1.9,V=80/"
-
-param_name_vec = list.files(path_vec[1])
-
-### For each parameter (n/beta/V), extract results and visualize results
-for (param_name in param_name_vec) {
-  
-  ### Extract results for n/beta/V. Output: freq_trun | ICL | log-lik | penalty
-  func_tmp = function(folder_path, param_name) {
-    extract_measurement_v2(folder_path = paste0(folder_path,"/",param_name),
-                           measurement = c("ICL_mat"))
-  }
-  results_list = lapply(path_vec, func_tmp, param_name=param_name)
-  results_df = results_list[[1]]
-  
-  ### Plot ICL vs N_clus vs freq_trun
-  z = matrix(colMeans(results_df)[-1], nrow=10,ncol=5) 
-  library(plotly)
-  fig = plot_ly(x = 1:5, y = 1:10, z = z,
-                type='surface') %>% 
-    layout(scene = list( xaxis=list(title='Number of clusters'),
-                         yaxis=list(title='Frequency truncation'),
-                         zaxis=list(title='ICL')))
-  fig
-  htmlwidgets::saveWidget(fig, "../Results/Plots/Temp/ICL_vs_Nclus_vs_freqtrun.html", 
-                          selfcontained = F, libdir = "lib")
-  
-  # for (measurement in c("ICL","compl_log_lik",'log_lik',"penalty","penalty_2")) {
-  #   pdf(file=paste0("../Results/Plots/Temp/", 
-  #                   if_else(measurement=="1-ARI", true = "ARI", false = measurement), 
-  #                   '_', 'N_clus', ".pdf"), 
-  #       width = 4, height = 2.5)
-  #   g = results_df %>% 
-  #     ggplot(aes(x=switch(measurement,
-  #                         "ICL" = N_clus_ICL,
-  #                         "compl_log_lik" = N_clus_compl_log_lik, 
-  #                         "log_lik" = N_clus_log_lik, 
-  #                         "penalty_2" = N_clus_penalty_2,
-  #                         "penalty" = N_clus_penalty),
-  #                y=switch(measurement,
-  #                         "ICL" = ICL,
-  #                         "compl_log_lik" = compl_log_lik,
-  #                         "log_lik" = log_lik,
-  #                         "penalty_2" = penalty_2,
-  #                         "penalty" = penalty), 
-  #                color=freq_trun)) +
-  #     stat_summary(aes(group=freq_trun),position = position_dodge(.0),
-  #                  geom="line",alpha=0.7,
-  #                  fun = "mean") +
-  #     # theme(legend.position = "none") +
-  #     guides(color=guide_legend(title="Frequency truncation")) +
-  #     scale_y_continuous() +
-  #     ylab(measurement) +
-  #     scale_x_discrete(labels=1:5) +
-  #     xlab("Number of clusters")
-  #   
-  #   print(g)
-  #   dev.off()
-  # }
-  
-  
-}
 
 
 # Cluster number selection (V==0) -----------------------------------------

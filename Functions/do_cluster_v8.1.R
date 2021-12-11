@@ -44,13 +44,13 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
   
   
   ### Evaluate loss function
-  loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
-                      n0_mat_list = n0_mat_list, 
-                      clusters_list = clusters_list, 
-                      freq_trun = Inf,
-                      center_cdf_array = center_cdf_array, 
-                      t_vec = t_vec)$loss
-  loss_history = c(loss_history, loss)
+  # loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
+  #                     n0_mat_list = n0_mat_list, 
+  #                     clusters_list = clusters_list, 
+  #                     freq_trun = Inf,
+  #                     center_cdf_array = center_cdf_array, 
+  #                     t_vec = t_vec)$loss
+  # loss_history = c(loss_history, loss)
   
   
   
@@ -126,13 +126,13 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
       
       
       ### Test: Evaluate loss
-      loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list[m],
-                          n0_mat_list = n0_mat_list_current[m],
-                          clusters_list = clusters_list_current[m],
-                          center_cdf_array = center_cdf_array_current, 
-                          freq_trun = Inf,
-                          t_vec = t_vec)$loss
-      loss_history = c(loss_history, loss)
+      # loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list[m],
+      #                     n0_mat_list = n0_mat_list_current[m],
+      #                     clusters_list = clusters_list_current[m],
+      #                     center_cdf_array = center_cdf_array_current, 
+      #                     freq_trun = Inf,
+      #                     t_vec = t_vec)$loss
+      # loss_history = c(loss_history, loss)
       
       ### Save estimation
       if (save_est_history==TRUE) {
@@ -176,13 +176,13 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
                                                      t_vec = t_vec)
   
   ### Evaluate loss function
-  loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
-                      n0_mat_list = n0_mat_list_current, 
-                      clusters_list = clusters_list_current, 
-                      center_cdf_array = center_cdf_array_current, 
-                      freq_trun = Inf,
-                      t_vec = t_vec)$loss
-  loss_history = c(loss_history, loss)
+  # loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
+  #                     n0_mat_list = n0_mat_list_current, 
+  #                     clusters_list = clusters_list_current, 
+  #                     center_cdf_array = center_cdf_array_current, 
+  #                     freq_trun = Inf,
+  #                     t_vec = t_vec)$loss
+  # loss_history = c(loss_history, loss)
   
   
   
@@ -214,12 +214,12 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
       align_time = align_time + res$align_time
       
       ### Evaluate loss function
-      loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
-                          n0_mat_list = n0_mat_list_update, 
-                          clusters_list = clusters_list_update, 
-                          freq_trun = freq_trun,
-                          center_cdf_array = center_cdf_array_update, t_vec = t_vec)$loss
-      loss_history = c(loss_history, loss)
+      # loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
+      #                     n0_mat_list = n0_mat_list_update, 
+      #                     clusters_list = clusters_list_update, 
+      #                     freq_trun = freq_trun,
+      #                     center_cdf_array = center_cdf_array_update, t_vec = t_vec)$loss
+      # loss_history = c(loss_history, loss)
       
       ### Evaluate stopping criterion
       delta_n0_vec = sum((unlist(n0_vec_list_update)-unlist(n0_vec_list_current))^2) / 

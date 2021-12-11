@@ -14,7 +14,7 @@ get_pdf_vec = function(edge_time_vec, t_vec=seq(0, 50, 0.05), bw=NULL, intensity
       d = density(jumps, bw = bw)
     }
     else{
-      d = density(jumps)
+      d = density(jumps, from = t_vec[1], to = tail(t_vec,1))
     }
     
     f_density = approxfun(d, yleft = 0, yright = 0)

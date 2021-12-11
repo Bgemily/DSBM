@@ -23,7 +23,7 @@ for (subj_name in subj_name_vec) {
 }
 
 ### Our method -------
-res_name_vec = c("CDF_freqtrun4_totaltime280","CDF_v3_freqtrun3_totaltime295")
+res_name_vec = c("CDF_v14_keeptop_Nrestart20_freqtrun3_totaltime200")
 # res_name_vec = list.files("../Results/Rdata/RDA/", pattern="CDF_v3_*",
 #                           full.names = FALSE, recursive = FALSE)[-(1:16)]
 for (res_name in res_name_vec) {
@@ -43,9 +43,9 @@ for (res_name in res_name_vec) {
 
 
 ### Our method -------
-res_name_vec = c("CDF_v3_freqtrun3_totaltime295")
-# res_name_vec = list.files("../Results/Rdata/RDA/", pattern="CDF_v3_*",
-#                           full.names = FALSE, recursive = FALSE)[-(1:16)]
+# res_name_vec = c("CDF_v12_rmvtop_Nrestart10_freqtrun3_totaltime200")
+res_name_vec = list.files("../Results/Rdata/RDA/", pattern="CDF_v12_rmvtop*",
+                          full.names = FALSE, recursive = FALSE)
 for (res_name in res_name_vec) {
   res_folder = paste0("../Results/Rdata/RDA/",res_name,"/")
   subj_name_vec = list.files(res_folder, full.names = FALSE, recursive = FALSE)
@@ -58,9 +58,11 @@ for (res_name in res_name_vec) {
                       output_file = paste0("../../Results/Html/",res_name,"/",
                                            subj_name,'.html'))
   }
+}
   
 ### Our method (restart) -------
-  res_name_vec = c("CDF_v5_debug_freqtrun3_totaltime280")
+  res_name_vec = c("CDF_v13_rmvtop_Nrestart20_freqtrun3_totaltime200",
+                   "CDF_v14_keeptop_Nrestart20_freqtrun3_totaltime200")
   # res_name_vec = list.files("../Results/Rdata/RDA/", pattern="CDF_v3_*",
   #                           full.names = FALSE, recursive = FALSE)[-(1:16)]
   for (res_name in res_name_vec) {

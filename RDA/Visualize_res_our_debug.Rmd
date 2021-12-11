@@ -5,7 +5,7 @@ author: "Zitong Zhang"
 output: html_document
 params: 
   subj_name: "func_20150417"
-  data_folder: "../../Results/Rdata/RDA/CDF_v5_debug_freqtrun3_totaltime280/"
+  data_folder: "../../Results/Rdata/RDA/CDF_v9_rmvtop_Nrestart20_freqtrun3_totaltime290/"
 ---
 
 ```{r setup, include=FALSE}
@@ -34,12 +34,16 @@ data_folder = paste0(params$data_folder, params$subj_name, "/")
 path_vec = list.files(data_folder, full.names = TRUE, recursive = TRUE)
 
 res_list = vector(mode = "list", length = length(path_vec))
+ICL_history_list = compl_log_lik_history_list = time_total_list = list()
 
 for(m in 1:length(path_vec)){ 
   path = path_vec[m]
   ### Read in results from data
   load(path)
   res_list[[m]] = res
+  ICL_history_list[[m]] = ICL_history
+  compl_log_lik_history_list[[m]] = compl_log_lik_history
+  time_total_list[[m]] = time_total
 }
 
 
@@ -57,6 +61,7 @@ n0_mat_list = lapply(v_vec_list, function(v_vec) n0_vec2mat(n0_vec = v_vec/(t_ve
 ```{r}
 clus_size_list = lapply(clusters_list, function(clusters)sapply(clusters,length))
 
+g_list = list()
 for (i in 1:length(center_pdf_array_list)) {
   order_clus = order(rowSums(apply(center_pdf_array_list[[i]], 
       MARGIN = c(1,2),
@@ -69,26 +74,22 @@ for (i in 1:length(center_pdf_array_list)) {
                         clus_size_vec = clus_size_list[[i]][order_clus],
                         t_vec = t_vec, x_lim = c(), y_lim = c(0,max(pdf_array)))
  
-  print(g1)
+  g_list[[i]] = g1
 }
+
+do.call(grid.arrange, c(g_list,ncol=length(g_list)))
 
 ```
 
+
+
+## Max likelihood vs Iteration
 ```{r}
-ICL_mat = t(sapply(res_list,'[[','ICL_vec'))
-plot(ICL_mat[1,],type='b',ylim=range(ICL_mat))
-lines(ICL_mat[2,],type='b',col=2)
-lines(ICL_mat[3,],type='b',col=3)
-lines(ICL_mat[4,],type='b',col=4)
-lines(ICL_mat[5,],type='b',col=5)
-
-
-compl_log_lik_mat = t(sapply(res_list,'[[','compl_log_lik_vec'))
-plot(compl_log_lik_mat[1,],type='b',ylim=range(compl_log_lik_mat))
-lines(compl_log_lik_mat[2,],type='b',col=2)
-lines(compl_log_lik_mat[3,],type='b',col=3)
-lines(compl_log_lik_mat[4,],type='b',col=4)
-lines(compl_log_lik_mat[5,],type='b',col=5)
-
+for (compl_log_lik_history in compl_log_lik_history_list) {
+ max_loglik = sapply(1:length(compl_log_lik_history),
+                     function(x)max(compl_log_lik_history[1:x]))
+ plot(max_loglik,type='b') 
+ abline(v=which.max(max_loglik),col=2)
+}
 ```
 

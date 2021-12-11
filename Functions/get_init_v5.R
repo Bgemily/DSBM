@@ -43,16 +43,20 @@ get_init_v5 = function(edge_time_mat_list, N_clus,
     }
     
     ### Calculate loss
-    n0_mat_list = n0_vec2mat(n0_vec = n0_vec_list)
-    center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-                                               clusters_list = clusters_list, 
-                                               n0_mat_list = n0_mat_list, 
-                                               t_vec = t_vec)
-    loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
-                        n0_mat_list = n0_mat_list, 
-                        clusters_list = clusters_list, 
-                        center_cdf_array = center_cdf_array, 
-                        t_vec = t_vec)$loss
+    if (N_restart==1) {
+      loss = 0 ### When N_restart==1, no need to calculate loss
+    } else {
+      n0_mat_list = n0_vec2mat(n0_vec = n0_vec_list)
+      center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
+                                                 clusters_list = clusters_list, 
+                                                 n0_mat_list = n0_mat_list, 
+                                                 t_vec = t_vec)
+      loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
+                          n0_mat_list = n0_mat_list, 
+                          clusters_list = clusters_list, 
+                          center_cdf_array = center_cdf_array, 
+                          t_vec = t_vec)$loss
+    }
     
     ### Update init_best
     if(loss < loss_best){

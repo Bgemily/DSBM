@@ -82,7 +82,8 @@ plot_pdf_array_v3 = function(pdf_array_list,
     ungroup() %>%
     # group_by(clus.pair) %>%
     mutate(ind_subj=ind_subj,
-              label = paste0(conn_prob,
+              label = paste0(ifelse(ind_subj=='ind_subj1','L','R'), '\n',
+                             conn_prob,
                              ifelse(is.na(clus_size),
                                     yes = '', 
                                     no = paste0('\n', clus_size )) ) ) %>%
@@ -119,8 +120,11 @@ plot_pdf_array_v3 = function(pdf_array_list,
               axis.text.x = element_blank(), 
               axis.title.x = element_blank()) +
         theme(legend.position = c(.95, .95),
+              legend.key.size = unit(-1, 'cm'), 
               legend.justification = c("right", "top")) +
-        guides(color=FALSE, linetype=guide_legend(direction = 'horizontal')) +
+        guides(color=FALSE, linetype=guide_legend(direction = 'horizontal', 
+                                                  override.aes = list(size = 0))
+               ) +
         theme(strip.background = element_blank(),  
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(),

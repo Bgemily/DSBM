@@ -26,34 +26,34 @@ edge_time_mat_list = vector(mode = "list", length = length(path_vec)*2)
 for(m in 1:length(path_vec)){ 
   path = path_vec[m]
   
-  ### Read information from data
-  edge_time_mat_L = as.matrix(read.csv(paste(path, '/EdgeTime_L.csv', sep='')))
-  edge_time_mat_L = edge_time_mat_L[,-1]
-  edge_time_mat_R = as.matrix(read.csv(paste(path, '/EdgeTime_R.csv', sep='')))
-  edge_time_mat_R = edge_time_mat_R[,-1]
-
-  edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
-  
-  # ### Remove neurons with large coordinate along DV axis
-  # edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
-  # edge_time_mat = edge_time_mat[,-1]
-  # avai.inds = as.matrix(read.csv(paste(path,'/AvaiNeurons.csv',sep='')))
-  # avai.inds = avai.inds[,-1];
-  # locs.all = as.matrix(read.csv(paste(path,'/locs_all.csv',sep='')))
-  # locs.all = locs.all[,-1]
-  # locs_mat = locs.all[avai.inds,]
-  # inds_L = which(locs_mat[,2]<0)
-  # inds_R = which(locs_mat[,2]>0)
-  # locs_mat_L = locs_mat[inds_L,]
-  # locs_mat_R = locs_mat[inds_R,]
-  # edge_time_mat_L = edge_time_mat[inds_L, inds_L]
-  # edge_time_mat_R = edge_time_mat[inds_R, inds_R]
-  # avai_inds_L = which(rowSums(edge_time_mat_L<Inf)>0 & locs_mat_L[,3]<=64)
-  # avai_inds_R = which(rowSums(edge_time_mat_R<Inf)>0 & locs_mat_R[,3]<=64)
-  # edge_time_mat_L = edge_time_mat_L[avai_inds_L, avai_inds_L]
-  # edge_time_mat_R = edge_time_mat_R[avai_inds_R, avai_inds_R]
+  # ### Read information from data
+  # edge_time_mat_L = as.matrix(read.csv(paste(path, '/EdgeTime_L.csv', sep='')))
+  # edge_time_mat_L = edge_time_mat_L[,-1]
+  # edge_time_mat_R = as.matrix(read.csv(paste(path, '/EdgeTime_R.csv', sep='')))
+  # edge_time_mat_R = edge_time_mat_R[,-1]
   # 
   # edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
+  
+  ### Remove neurons with large coordinate along DV axis
+  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
+  edge_time_mat = edge_time_mat[,-1]
+  avai.inds = as.matrix(read.csv(paste(path,'/AvaiNeurons.csv',sep='')))
+  avai.inds = avai.inds[,-1];
+  locs.all = as.matrix(read.csv(paste(path,'/locs_all.csv',sep='')))
+  locs.all = locs.all[,-1]
+  locs_mat = locs.all[avai.inds,]
+  inds_L = which(locs_mat[,2]<0)
+  inds_R = which(locs_mat[,2]>0)
+  locs_mat_L = locs_mat[inds_L,]
+  locs_mat_R = locs_mat[inds_R,]
+  edge_time_mat_L = edge_time_mat[inds_L, inds_L]
+  edge_time_mat_R = edge_time_mat[inds_R, inds_R]
+  avai_inds_L = which(rowSums(edge_time_mat_L<Inf)>0 & locs_mat_L[,3]<=64)
+  avai_inds_R = which(rowSums(edge_time_mat_R<Inf)>0 & locs_mat_R[,3]<=64)
+  edge_time_mat_L = edge_time_mat_L[avai_inds_L, avai_inds_L]
+  edge_time_mat_R = edge_time_mat_R[avai_inds_R, avai_inds_R]
+
+  edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
   
 }
 
@@ -62,16 +62,16 @@ for(m in 1:length(path_vec)){
 
 # method = "CDF_freqtrun5"
 
-N_clus_min = 2 # Number of clusters
+N_clus_min = 1 # Number of clusters
 N_clus_max = 5
 MaxIter = 10 # Maximal iteration number
 # bw = 5 # Smoothing bandwidth
-freq_trun_vec = c(4) # Cut-off frequency
-total_time_cutoff_vec = c(300,280,260,240,220,200,180,160,140,120)
+freq_trun_vec = c(2) # Cut-off frequency
+total_time_cutoff_vec = c(200)
 conv_thres=1e-3
 max_iter=10
 # step_size = 0.5
-N_restart = 80
+N_restart = 20
 
 max_time = max(sapply(edge_time_mat_list, function(edge_time_mat)max(edge_time_mat[which(edge_time_mat<Inf)])))
 total_time = max_time + 10
@@ -82,13 +82,17 @@ for (ind_freq_trun in 1:length(freq_trun_vec)) {
   for (ind_total_time_cutoff in 1:length(total_time_cutoff_vec)) {
     freq_trun = freq_trun_vec[ind_freq_trun]
     total_time_cutoff = total_time_cutoff_vec[ind_total_time_cutoff]
-    for (subj in 3:4){
+    for (subj in 4:3){
       ICL_best = -Inf
       res_best = NULL
-      ICL_history = matrix(nrow=10,ncol=length(N_clus_min:N_clus_max))
+      res_multi_restart = list()
+      ICL_history = matrix(nrow=N_restart,ncol=length(N_clus_min:N_clus_max))
+      compl_log_lik_history = matrix(nrow=N_restart,ncol=length(N_clus_min:N_clus_max))
       seed_restart = sample(1e5,1)
       set.seed(seed_restart)
-      for (ind_restart in 1:10){
+      
+      time_start = Sys.time()
+      for (ind_restart in 1:N_restart){
         ### Apply method with freq_trun and total_time_cutoff
         edge_time_mat_list_tmp = edge_time_mat_list[subj]
         ### Get estimation for candidate N_clus and freq_trun
@@ -103,16 +107,25 @@ for (ind_freq_trun in 1:length(freq_trun_vec)) {
                               t_vec = t_vec)
             
             clusters_list_init = res$clusters_list
+            
             ### Add noise to initial clusters
-            mem_init = clus2mem(clusters = clusters_list_init[[1]])
-            clus_size = sapply(clusters_list_init[[1]], length)
             seed_init = sample(1e5,1)
             set.seed(seed_init)
-            ind = sample(unlist(clusters_list_init[[1]][clus_size>4]),4)
-            mem_init[ind] = (mem_init[ind]+
-                               sample(1:(N_clus_tmp-1),length(ind),replace=TRUE)) %% N_clus_tmp
-            mem_init[mem_init==0] = N_clus_tmp
-            clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
+            if (ind_restart>1) {
+              # res = get_init_v5(edge_time_mat_list = edge_time_mat_list_tmp,
+              #                   N_clus = N_clus_tmp,
+              #                   N_restart = 1,
+              #                   t_vec = t_vec)
+              # clusters_list_init = res$clusters_list
+              
+              mem_init = clus2mem(clusters = clusters_list_init[[1]])
+              clus_size = sapply(clusters_list_init[[1]], length)
+              ind = sample(unlist(clusters_list_init[[1]][clus_size>4]),4)
+              mem_init[ind] = (mem_init[ind]+
+                                 sample(1:(N_clus_tmp-1),length(ind),replace=TRUE)) %% N_clus_tmp
+              mem_init[mem_init==0] = N_clus_tmp
+              clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
+            }
             
             n0_vec_list_init = res$n0_vec_list
             n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
@@ -178,7 +191,7 @@ for (ind_freq_trun in 1:length(freq_trun_vec)) {
                                    N_clus_min = N_clus_min,
                                    N_clus_max = N_clus_max,
                                    result_list = res_list,
-                                   total_time = total_time)
+                                   total_time = total_time_cutoff)
         
         N_clus_est = sel_mod_res$N_clus_est
         ICL_vec = sel_mod_res$ICL_vec
@@ -225,17 +238,25 @@ for (ind_freq_trun in 1:length(freq_trun_vec)) {
           res_best = res
         }
         ICL_history[ind_restart, ] = res$ICL_vec
+        compl_log_lik_history[ind_restart, ] = res$compl_log_lik_vec
+        res_multi_restart[ind_restart] = list(res)
       }
+      time_end = Sys.time()
+      time_total = time_end - time_start
       
       ### Save result with freq_trun and total_time_cutoff
       res = res_best
-      method = paste0("CDF_v5_Nrestart10_freqtrun",freq_trun,
+      method = paste0("CDF_v12_rmvtop", 
+                      "_Nrestart",N_restart,
+                      "_freqtrun",freq_trun,
                       "_","totaltime",total_time_cutoff)
       folder_path = paste0('../Results/Rdata/RDA/', method, '/', file_vec[(subj+1)%/%2])
       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
       file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
       now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-      save(res,ICL_history,seed_restart, file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
+      save(res,ICL_history,compl_log_lik_history,time_total,
+           seed_restart, 
+           file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
       
     }
   }

@@ -62,6 +62,8 @@ select_model = function(edge_time_mat_list, N_node_vec,
           if (min(adjst_edge_time_qk_vec)<0) {
             adjst_edge_time_qk_vec = adjst_edge_time_qk_vec - min(adjst_edge_time_qk_vec)
           }
+          ### Remove adjusted edge times after total_time
+          adjst_edge_time_qk_vec[adjst_edge_time_qk_vec>total_time] = Inf
           ### counts: number of edges whose (adjusted) edge time is close to each breakpoint in t_vec
           counts = hist(adjst_edge_time_qk_vec, breaks=t_vec, plot=FALSE, right=FALSE)$counts
           counts = c(counts,0)
