@@ -5,7 +5,7 @@ author: "Zitong Zhang"
 output: html_document
 params: 
   subj_name: "func_20150417"
-  data_folder: "../../Results/Rdata/RDA/CDF_v16_sameNclus_Nrestart20_freqtrun2_totaltime200/"
+  data_folder: "../../Results/Rdata/RDA_v3/CDF_v8_rmv1+3_keeptop_Nrestart1_totaltime336/"
 ---
 
 ```{r setup, include=FALSE}
@@ -26,113 +26,81 @@ library(R.matlab)
 library(data.table)
 ```
 
-## Read in network information for the L/R side 
+## Read in network information and data analysis results
 ```{r}
 # Get network information for the L/R side 
-path = paste0("../../Processed_FunctionalData/",params$subj_name,"/")
-path_vec = c(path)
+path_data = paste0("../../Processed_FunctionalData/",params$subj_name,"/")
 
-edge_time_mat_list = vector(mode = "list", length = 2)
-locs_mat_list = vector(mode = "list", length = 2)
-mnx_vec_list = vector(mode = "list", length = 2)
-dFF_mat_list = vector(mode = "list", length = 2)
-iso_inds_list = vector(mode = "list", length = 2)
-non_iso_inds_list = vector(mode = "list", length = 2)
+### Read information from data
+edge_time_mat = as.matrix(read.csv(paste(path_data, '/EdgeTime.csv', sep='')))
+edge_time_mat = edge_time_mat[,-1]
 
+avai.inds = as.matrix(read.csv(paste(path_data,'/AvaiNeurons.csv',sep='')))
+avai.inds = avai.inds[,-1];
 
-for(m in 1:length(path_vec)){ 
-  path = path_vec[m]
-  
-  ### Read information from data
-  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
-  edge_time_mat = edge_time_mat[,-1]
-  
-  avai.inds = as.matrix(read.csv(paste(path,'/AvaiNeurons.csv',sep='')))
-  avai.inds = avai.inds[,-1];
-  
-  locs.all = as.matrix(read.csv(paste(path,'/locs_all.csv',sep='')))
-  locs.all = locs.all[,-1]
-  locs_mat = locs.all[avai.inds,]
-  
-  mnx.all = as.matrix(read.csv(paste(path,'/mnx.csv',sep='')))
-  mnx.all = mnx.all[,-1]
-  mnx_vec = mnx.all[avai.inds]
-  
-  dFF.all = as.matrix(fread(paste(path,'/dFF.csv',sep='')))
-  dFF.all = dFF.all[,-1]
-  dFF_mat = dFF.all[avai.inds,]
-  
-  ### Split each zebrafish into left and right
-  inds_L = which(locs_mat[,2]<0)
-  inds_R = which(locs_mat[,2]>0)
-  
-  edge_time_mat_L = edge_time_mat[inds_L, inds_L]
-  edge_time_mat_R = edge_time_mat[inds_R, inds_R]
-  
-  locs_mat_L = locs_mat[inds_L,]
-  locs_mat_R = locs_mat[inds_R,]
-  
-  mnx_vec_L = mnx_vec[inds_L]
-  mnx_vec_R = mnx_vec[inds_R]
-  
-  dFF_mat_L = dFF_mat[inds_L,]
-  dFF_mat_R = dFF_mat[inds_R,]
-  
-  
-  iso_inds_L = which(rowSums(edge_time_mat_L<Inf)<=0)
-  iso_inds_R = which(rowSums(edge_time_mat_R<Inf)<=0)
-  
-  non_iso_inds_L = setdiff(1:nrow(edge_time_mat_L), iso_inds_L)
-  non_iso_inds_R = setdiff(1:nrow(edge_time_mat_R), iso_inds_R)
-  
-  edge_time_mat_L = edge_time_mat_L[non_iso_inds_L, non_iso_inds_L]
-  edge_time_mat_R = edge_time_mat_R[non_iso_inds_R, non_iso_inds_R]
-  
-  edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
-  locs_mat_list[c(2*m-1,2*m)] = list(locs_mat_L, locs_mat_R)
-  mnx_vec_list[c(2*m-1,2*m)] = list(mnx_vec_L, mnx_vec_R)
-  dFF_mat_list[c(2*m-1,2*m)] = list(dFF_mat_L, dFF_mat_R)
-  
-  iso_inds_list[c(2*m-1,2*m)] = list(iso_inds_L, iso_inds_R)
-  non_iso_inds_list[c(2*m-1,2*m)] = list(non_iso_inds_L, non_iso_inds_R)
-  
-}
+locs.all = as.matrix(read.csv(paste(path_data,'/locs_all.csv',sep='')))
+locs.all = locs.all[,-1]
+locs_mat = locs.all[avai.inds,]
+
+mnx.all = as.matrix(read.csv(paste(path_data,'/mnx.csv',sep='')))
+mnx.all = mnx.all[,-1]
+mnx_vec = mnx.all[avai.inds]
+
+dFF.all = as.matrix(fread(paste(path_data,'/dFF.csv',sep='')))
+dFF.all = dFF.all[,-1]
+dFF_mat = dFF.all[avai.inds,]
+
 
 ```
 
-## Read in data analysis results
 ```{r}
-### Read in data analysis results
 data_folder = paste0(params$data_folder, params$subj_name, "/") 
 path_vec = list.files(data_folder, full.names = TRUE, recursive = TRUE)
 
-res_list = vector(mode = "list", length = length(path_vec))
-ICL_history_list = compl_log_lik_history_list = list()
+edge_time_mat_list = vector(mode = "list", length = 2)
+avai_inds_list = list()
+locs_mat_list = vector(mode = "list", length = 2)
+mnx_vec_list = vector(mode = "list", length = 2)
+dFF_mat_list = vector(mode = "list", length = 2)
+
+res_list = list()
+clusters_list = list()
+center_pdf_array_list = list()
+v_vec_list = list()
+
+ICL_history_list = list()
+compl_log_lik_history_list = list()
+
 for(m in 1:length(path_vec)){ 
   path = path_vec[m]
   ### Read in results from data
   load(path)
+  
+  N_clus_est = which.max(ICL_history)
+  res = res_Nclus[[3]][[1]]
   res_list[[m]] = res
+  
+  edge_time_mat_list[[m]] = res$edge_time_mat
+  avai_inds_list[[m]] = res$avai_inds
+  locs_mat_list[[m]] = locs_mat[res$avai_inds, ]
+  mnx_vec_list[[m]] = mnx_vec[res$avai_inds]
+  dFF_mat_list[[m]] = dFF_mat[res$avai_inds, ]
+  
+  clusters_list[[m]] = res$clusters_list[[1]]
+  center_pdf_array_list[[m]]= res$center_pdf_array
+  v_vec_list[[m]] = res$v_vec
+  
   ICL_history_list[[m]] = ICL_history
   compl_log_lik_history_list[[m]] = compl_log_lik_history
 }
 
 
-### Collect from all subjects: clusters_list, center_pdf_array, v_vec
-clusters_list = lapply(res_list, function(res) res$clusters_list)
-center_pdf_array_list = lapply(res_list, function(res) res$center_pdf_array)
-v_vec_list = lapply(res_list, function(res) res$v_vec)
 t_vec = res$t_vec
 n0_mat_list = lapply(v_vec_list, function(v_vec) n0_vec2mat(n0_vec = v_vec/(t_vec[2]-t_vec[1])))
 
-### Fix spike intensity 
-for (ind in 1:length(center_pdf_array_list)) {
-  if (dim(center_pdf_array_list[[ind]])[3]<length(t_vec)) {
-    center_pdf_array_list[[ind]] = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list[ind], clusters_list = clusters_list[ind], n0_mat_list = n0_mat_list[ind], t_vec = t_vec)
-}
-}
 
 ```
+
 
 
 ## Visualize estimated intensities
@@ -163,12 +131,12 @@ pdf_array_2 = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE]
 g1 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE], 
                         pdf_true_array = center_pdf_array_list[[1]][order_clus_1,order_clus_1, ,drop=FALSE],
                         clus_size_vec = clus_size_list[[1]][order_clus_1],
-                        t_vec = t_vec, x_lim = c(), y_lim = c(0,max(unlist(center_pdf_array_list[[1]]))))
+                        t_vec = t_vec, x_lim = c(), y_lim = c(0,max(unlist(center_pdf_array_list))))
 
 g2 = plot_pdf_array_v2(pdf_array_list = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE], 
                         pdf_true_array = center_pdf_array_list[[2]][order_clus_2,order_clus_2, ,drop=FALSE],
                         clus_size_vec = clus_size_list[[2]][order_clus_2],
-                        t_vec = t_vec, x_lim = c(), y_lim = c(0,max(unlist(center_pdf_array_list[[2]]))))
+                        t_vec = t_vec, x_lim = c(), y_lim = c(0,max(unlist(center_pdf_array_list))))
 
 grid.arrange(g1, g2, ncol=2)
 
@@ -177,228 +145,199 @@ grid.arrange(g1, g2, ncol=2)
 
 
 ```{r}
-for (ind_subj in 1:length(ICL_history_list)) {
+print(which.max(ICL_history_list[[1]]+ICL_history_list[[2]]))
+for (ind_subj in 1:length(compl_log_lik_history_list)) {
   ICL_history = ICL_history_list[[ind_subj]]
   compl_log_lik_history = compl_log_lik_history_list[[ind_subj]]
   plot(apply(ICL_history,2,max),type='b',ylim=range(ICL_history))
   for (ind_row in 1:nrow(ICL_history)) {
     lines(ICL_history[ind_row,],type='p')
   }
-  
+
   plot(apply(compl_log_lik_history,2,max),type='b',ylim=range(compl_log_lik_history))
   for (ind_row in 1:nrow(compl_log_lik_history)) {
     lines(compl_log_lik_history[ind_row,],type='p')
   }
-
+  if (ncol(compl_log_lik_history)>=4) {
+    print(compl_log_lik_history)
+  }
+  
 }
-
-
 
 ```
 
-<!-- ## Visualize estimated time shifts -->
-<!-- ```{r} -->
-<!-- ### Get memberships for ALL nodes -->
-<!-- membership_list = lapply(clusters_list, clus2mem) -->
-<!-- membership_list[[1]] = clus2mem(clusters_list[[1]][order_clus_1]) -->
-<!-- membership_list[[2]] = clus2mem(clusters_list[[2]][order_clus_2]) -->
 
 
-<!-- for (m in 1:length(membership_list)) { -->
-<!--   N_node = nrow(locs_mat_list[[m]]) -->
-<!--   mem_tmp = rep(0,N_node) -->
-<!--   mem_tmp[non_iso_inds_list[[m]]] = membership_list[[m]] -->
-<!--   membership_list[[m]] = mem_tmp -->
-<!-- } -->
-<!-- ``` -->
+## Visualize estimated time shifts
+```{r}
+### Get memberships for ALL nodes
+membership_list = lapply(clusters_list, clus2mem)
+membership_list[[1]] = clus2mem(clusters_list[[1]][order_clus_1])
+membership_list[[2]] = clus2mem(clusters_list[[2]][order_clus_2])
 
-<!-- ```{r} -->
-<!-- ### Plot time shifts distribution -->
-<!-- data = tibble(v_vec=unlist(v_vec_list), -->
-<!--               membership=c(membership_list[[1]][non_iso_inds_list[[1]]], membership_list[[2]][non_iso_inds_list[[2]]]), -->
-<!--               subj=rep(1:length(v_vec_list), times=sapply(v_vec_list,length))) -->
+```
 
-<!-- g5 <- data %>% -->
-<!--   filter(membership<=3) %>% -->
-<!--   group_by(membership) %>% -->
-<!--   mutate(N_node = n()) %>% -->
-<!--   ggplot(aes(x=v_vec,group=as.factor(membership), -->
-<!--              size=N_node, -->
-<!--              color=as.factor(membership)))+ -->
-<!--   geom_density( aes(), alpha=0.6) + -->
-<!--   scale_color_manual(values=palette()[1+1:4]) + -->
-<!--   scale_fill_manual(values=palette()[1+1:4]) + -->
-<!--   scale_size(range=c(0.3,1)) + -->
-<!--   theme_bw()+ -->
-<!--   theme(legend.position = "none") + -->
-<!--   # facet_wrap(~subj) + -->
-<!--   scale_x_continuous() + -->
-<!--   theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) + -->
-<!--   xlab('Time shifts (min)') -->
+```{r}
+### Plot time shifts distribution
+data = tibble(v_vec=unlist(v_vec_list),
+              membership=unlist(membership_list),
+              subj=rep(1:length(v_vec_list), times=sapply(v_vec_list,length)))
 
-<!-- print(g5) -->
-<!-- ``` -->
+g5 <- data %>%
+  filter(membership<=3) %>%
+  group_by(membership) %>%
+  mutate(N_node = n()) %>%
+  ggplot(aes(x=v_vec,group=as.factor(membership),
+             size=N_node,
+             color=as.factor(membership)))+
+  geom_density( aes(), alpha=0.6) +
+  scale_color_manual(values=palette()[1+1:4]) +
+  scale_fill_manual(values=palette()[1+1:4]) +
+  scale_size(range=c(0.3,1)) +
+  theme_bw()+
+  theme(legend.position = "none") +
+  # facet_wrap(~subj) +
+  scale_x_continuous() +
+  theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
+  xlab('Time shifts (min)')
 
-
-<!-- <!-- ```{r} --> -->
-<!-- <!-- ### Get Wan's result --> -->
-<!-- <!-- dat=readMat(paste('../../Raw_data/to_shizhe/','Leader_', --> -->
-<!-- <!--                   substr(params$subj_name, start=nchar(params$subj_name)-7, --> -->
-<!-- <!--                          stop=nchar(params$subj_name)), --> -->
-<!-- <!--                   '.mat',sep='')) --> -->
-<!-- <!-- activeTime_vec = dat$activeTime * 60 --> -->
-<!-- <!-- activeTime_vec = activeTime_vec[c(inds_L[non_iso_inds_L], --> -->
-<!-- <!--                                   inds_R[non_iso_inds_R])] --> -->
-<!-- <!-- data = tibble(v_vec=activeTime_vec, --> -->
-<!-- <!--               membership=c(membership_list[[1]][non_iso_inds_list[[1]]], membership_list[[2]][non_iso_inds_list[[2]]]), --> -->
-<!-- <!--               subj=rep(1:length(v_vec_list), times=sapply(v_vec_list,length))) --> -->
-
-<!-- <!-- g6 <- data %>% --> -->
-<!-- <!--   filter(membership<=3) %>% --> -->
-<!-- <!--   group_by(membership) %>% --> -->
-<!-- <!--   mutate(N_node = n()) %>% --> -->
-<!-- <!--   ggplot(aes(x=v_vec,group=as.factor(membership), --> -->
-<!-- <!--              size=N_node, --> -->
-<!-- <!--              color=as.factor(membership)))+ --> -->
-<!-- <!--   geom_density( aes(), alpha=0.6, linetype=2) + --> -->
-<!-- <!--   scale_color_manual(values=palette()[1+1:4]) + --> -->
-<!-- <!--   scale_fill_manual(values=palette()[1+1:4]) + --> -->
-<!-- <!--   scale_size(range=c(0.3,1)) + --> -->
-<!-- <!--   theme_bw()+ --> -->
-<!-- <!--   theme(legend.position = "none") + --> -->
-<!-- <!--   # facet_wrap(~subj) + --> -->
-<!-- <!--   scale_x_continuous() + --> -->
-<!-- <!--   theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) + --> -->
-<!-- <!--   xlab('Time shifts (min)') --> -->
-
-<!-- <!-- print(g6) --> -->
-
-<!-- <!-- ``` --> -->
-
-<!-- <!-- ```{r} --> -->
-<!-- <!-- ### Get Wan's result --> -->
-<!-- <!-- dat=readMat(paste('../../Raw_data/to_shizhe/','Leader_',substr(params$subj_name, start=nchar(params$subj_name)-7, stop=nchar(params$subj_name)),'.mat',sep='')) --> -->
-<!-- <!-- activeTime_vec = dat$activeTime * 60 --> -->
-<!-- <!-- patternTime_vec = dat$patternTime * 60 --> -->
-
-<!-- <!-- ### Let time shift for non-active nodes be NA --> -->
-<!-- <!-- for (m in 1:length(v_vec_list)) { --> -->
-<!-- <!--   N_node = nrow(locs_mat_list[[m]]) --> -->
-<!-- <!--   v_vec_tmp = rep(NA,N_node) --> -->
-<!-- <!--   v_vec_tmp[non_iso_inds_list[[m]]] = v_vec_list[[m]] --> -->
-<!-- <!--   v_vec_list[[m]] = v_vec_tmp --> -->
-<!-- <!-- } --> -->
-
-<!-- <!-- ggplot(data = data.frame(activeTime_vec=activeTime_vec, --> -->
-<!-- <!--                          v_vec=unlist(v_vec_list), --> -->
-<!-- <!--                          mem=as_factor(unlist(membership_list)) --> -->
-<!-- <!--                          )) + --> -->
-<!-- <!--   geom_point(aes(x=activeTime_vec, y=v_vec, color=mem)) + --> -->
-<!-- <!--   scale_color_manual(values=palette()[c(8,2:6)]) + --> -->
-<!-- <!--   xlab('Activation time by Wan (pp. e7)') + --> -->
-<!-- <!--   ylab('Our estimation') --> -->
-<!-- <!-- ``` --> -->
+print(g5)
+```
 
 
+```{r}
+### Get Wan's result
+dat=readMat(paste('../../Raw_data/to_shizhe/','Leader_',
+                  substr(params$subj_name, start=nchar(params$subj_name)-7,
+                         stop=nchar(params$subj_name)),
+                  '.mat',sep=''))
+activeTime_vec = dat$activeTime * 60
+activeTime_vec = activeTime_vec[unlist(avai_inds_list)]
+data = tibble(v_vec=activeTime_vec,
+              membership=unlist(membership_list),
+              subj=rep(1:length(v_vec_list), times=sapply(v_vec_list,length)))
 
-<!-- ## Visualize estimated clusters with spatial location -->
+g6 <- data %>%
+  filter(membership<=3) %>%
+  group_by(membership) %>%
+  mutate(N_node = n()) %>%
+  ggplot(aes(x=v_vec,group=as.factor(membership),
+             size=N_node,
+             color=as.factor(membership)))+
+  geom_density( aes(), alpha=0.6, linetype=2) +
+  scale_color_manual(values=palette()[1+1:4]) +
+  scale_fill_manual(values=palette()[1+1:4]) +
+  scale_size(range=c(0.3,1)) +
+  theme_bw()+
+  theme(legend.position = "none") +
+  # facet_wrap(~subj) +
+  scale_x_continuous() +
+  theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
+  xlab('Time shifts (min)')
 
-<!-- ```{r} -->
+print(g6)
 
-<!-- ### Spatial location  ---- -->
-
-<!-- data = as.data.frame(reduce(locs_mat_list,rbind)) -->
-<!-- colnames(data) = c('AP','LR','DV') -->
-<!-- data = cbind(data, -->
-<!--              membership=as.factor(unlist(membership_list)), -->
-<!--              subj=rep(1:length(membership_list), -->
-<!--                       times=sapply(membership_list,length))) -->
-
-<!-- library(plotly) -->
-<!-- fig = plot_ly(data, x = ~LR, y = ~AP, z = ~DV, color = ~membership, -->
-<!--               # colors = c(palette()[c(8,2:6)]), -->
-<!--               colors = c(`0`=palette()[8], -->
-<!--                          `1`=palette()[2], -->
-<!--                          `2`=palette()[3], -->
-<!--                          `3`=palette()[4], -->
-<!--                          `4`=palette()[5], -->
-<!--                          `5`=palette()[6]), -->
-<!--               type = "scatter3d") -->
-<!-- fig = fig %>% -->
-<!--   layout(scene = list(aspectmode='manual', aspectratio = list(x=1.5, y=1, z=1))) -->
-<!-- fig -->
-<!-- ``` -->
+```
 
 
-<!-- <!-- ## Visualize estimated clusters with mnx+/- indicator --> -->
+## Visualize estimated clusters with spatial location
 
-<!-- <!-- ```{r} --> -->
-<!-- <!-- ### mnx decomposition  ---- --> -->
+```{r}
 
-<!-- <!-- data = tibble(subj=rep(1:length(membership_list),sapply(membership_list,length)), --> -->
-<!-- <!--               membership=unlist(membership_list), --> -->
-<!-- <!--               mnx=as.factor(unlist(mnx_vec_list)),  --> -->
-<!-- <!--               islet=NA)  --> -->
+### Spatial location  ----
 
-<!-- <!-- data_2 = data %>%  --> -->
-<!-- <!--   mutate(mnx=factor(mnx,levels=c(1,0)), islet=as.factor(as.numeric(islet)),  --> -->
-<!-- <!--          membership=factor(membership, levels=c(0,max(membership):1)))  --> -->
+data = as.data.frame(reduce(locs_mat_list,rbind))
+colnames(data) = c('AP','LR','DV')
+data = cbind(data,
+             membership=as.factor(unlist(membership_list)),
+             subj=rep(1:length(membership_list),
+                      times=sapply(membership_list,length)))
 
-<!-- <!-- data_2_left = data_2 %>% filter(subj==1) %>% mutate(membership=fct_drop(membership)) --> -->
-<!-- <!-- data_2_right = data_2 %>% filter(subj==2) %>% mutate(membership=fct_drop(membership)) --> -->
+library(plotly)
+fig = plot_ly(data, x = ~LR, y = ~AP, z = ~DV, color = ~membership,
+              # colors = c(palette()[c(8,2:6)]),
+              colors = c(`0`=palette()[8],
+                         `1`=palette()[2],
+                         `2`=palette()[3],
+                         `3`=palette()[4],
+                         `4`=palette()[5],
+                         `5`=palette()[6]),
+              type = "scatter3d")
+fig = fig %>%
+  layout(scene = list(aspectmode='manual', aspectratio = list(x=1.5, y=1, z=1)))
+fig
+```
 
-<!-- <!-- fill_color = c(`0`=palette()[8], --> -->
-<!-- <!--                `1`=palette()[2], --> -->
-<!-- <!--                `2`=palette()[3], --> -->
-<!-- <!--                `3`=palette()[4], --> -->
-<!-- <!--                `4`=palette()[5], --> -->
-<!-- <!--                `5`=palette()[6]) --> -->
-<!-- <!-- ### Left spine --> -->
-<!-- <!-- g1 = data_2_left %>% --> -->
-<!-- <!--   mutate(membership=factor(membership,levels=c(0,1,2,3,4))) %>% --> -->
-<!-- <!--   ggplot(mapping = aes(fill=mnx,x=membership)) + --> -->
-<!-- <!--   scale_fill_manual(values=fill_color) + --> -->
-<!-- <!--   geom_bar(position="fill") + --> -->
-<!-- <!--   geom_text(data = data_2_left %>%  --> -->
-<!-- <!--               count(membership, mnx) %>% group_by(membership) %>%  --> -->
-<!-- <!--               summarise(perc=round(n/sum(n),3), mnx=mnx) %>%  --> -->
-<!-- <!--               arrange(desc(mnx), .by_group = TRUE) , --> -->
-<!-- <!--             aes(x = membership, label = scales::percent(perc), y=perc, fill=NULL),  --> -->
-<!-- <!--             position = position_fill(0.5), size=2.5)+ --> -->
-<!-- <!--   # scale_x_discrete(labels=c("mnx+","mnx-"))+ --> -->
-<!-- <!--   xlab("")+ --> -->
-<!-- <!--   theme_bw()+ --> -->
-<!-- <!--   theme(legend.position = 'none',  --> -->
-<!-- <!--         panel.grid  = element_blank(), --> -->
-<!-- <!--         # axis.text = element_blank(), --> -->
-<!-- <!--         axis.text.y = element_blank(),  --> -->
-<!-- <!--         axis.title = element_blank(),   --> -->
-<!-- <!--         axis.title.y = element_blank(),  --> -->
-<!-- <!--         axis.ticks.y = element_blank()) --> -->
 
-<!-- <!-- ### Right spine --> -->
-<!-- <!-- g2 = data_2_right %>% --> -->
-<!-- <!--   mutate(membership=factor(membership,levels=c(1,2,3,4))) %>% --> -->
-<!-- <!--   ggplot(mapping = aes(fill=mnx,x=membership)) + --> -->
-<!-- <!--   scale_fill_manual(values=fill_color) + --> -->
-<!-- <!--   geom_bar(position="fill") + --> -->
-<!-- <!--   geom_text(data = data_2_right %>%  --> -->
-<!-- <!--               count(membership, mnx) %>% group_by(membership) %>%  --> -->
-<!-- <!--               summarise(perc=round(n/sum(n),3), mnx=mnx) %>%  --> -->
-<!-- <!--               arrange(desc(mnx), .by_group = TRUE) , --> -->
-<!-- <!--             aes(x = membership, label = scales::percent(perc), y=perc, fill=NULL),  --> -->
-<!-- <!--             position = position_fill(0.5), size=2.5)+ --> -->
-<!-- <!--   # scale_x_discrete(labels=c("mnx+","mnx-"))+ --> -->
-<!-- <!--   xlab("")+ --> -->
-<!-- <!--   theme_bw()+ --> -->
-<!-- <!--   theme(legend.position = 'none',  --> -->
-<!-- <!--         panel.grid  = element_blank(), --> -->
-<!-- <!--         # axis.text = element_blank(), --> -->
-<!-- <!--         axis.text.y = element_blank(),  --> -->
-<!-- <!--         axis.title = element_blank(),   --> -->
-<!-- <!--         axis.title.y = element_blank(),  --> -->
-<!-- <!--         axis.ticks.y = element_blank()) --> -->
+## Visualize estimated clusters with mnx+/- indicator
 
-<!-- <!-- grid.arrange(g1, g2, ncol=2) --> -->
-<!-- <!-- ``` --> -->
+```{r}
+### mnx decomposition  ----
+
+data = tibble(subj=rep(1:length(membership_list),sapply(membership_list,length)),
+              membership=unlist(membership_list),
+              mnx=as.factor(unlist(mnx_vec_list)),
+              islet=NA)
+
+data_2 = data %>%
+  mutate(mnx=factor(mnx,levels=c(1,0)), islet=as.factor(as.numeric(islet)),
+         membership=factor(membership, levels=c(0,max(membership):1)))
+
+data_2_left = data_2 %>% filter(subj==1) %>% mutate(membership=fct_drop(membership))
+data_2_right = data_2 %>% filter(subj==2) %>% mutate(membership=fct_drop(membership))
+
+fill_color = c(`0`=palette()[8],
+               `1`=palette()[2],
+               `2`=palette()[3],
+               `3`=palette()[4],
+               `4`=palette()[5],
+               `5`=palette()[6])
+### Left spine
+g1 = data_2_left %>%
+  mutate(membership=factor(membership,levels=c(0,1,2,3,4))) %>%
+  ggplot(mapping = aes(fill=mnx,x=membership)) +
+  scale_fill_manual(values=fill_color) +
+  geom_bar(position="fill") +
+  geom_text(data = data_2_left %>%
+              count(membership, mnx) %>% group_by(membership) %>%
+              summarise(perc=round(n/sum(n),3), mnx=mnx) %>%
+              arrange(desc(mnx), .by_group = TRUE) ,
+            aes(x = membership, label = scales::percent(perc), y=perc, fill=NULL),
+            position = position_fill(0.5), size=2.5)+
+  # scale_x_discrete(labels=c("mnx+","mnx-"))+
+  xlab("")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.grid  = element_blank(),
+        # axis.text = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+### Right spine
+g2 = data_2_right %>%
+  mutate(membership=factor(membership,levels=c(1,2,3,4))) %>%
+  ggplot(mapping = aes(fill=mnx,x=membership)) +
+  scale_fill_manual(values=fill_color) +
+  geom_bar(position="fill") +
+  geom_text(data = data_2_right %>%
+              count(membership, mnx) %>% group_by(membership) %>%
+              summarise(perc=round(n/sum(n),3), mnx=mnx) %>%
+              arrange(desc(mnx), .by_group = TRUE) ,
+            aes(x = membership, label = scales::percent(perc), y=perc, fill=NULL),
+            position = position_fill(0.5), size=2.5)+
+  # scale_x_discrete(labels=c("mnx+","mnx-"))+
+  xlab("")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.grid  = element_blank(),
+        # axis.text = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+grid.arrange(g1, g2, ncol=2)
+```
 

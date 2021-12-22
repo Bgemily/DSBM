@@ -348,7 +348,7 @@ for (param_name in param_name_vec) {
 
 path_vec = rep(0,2)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v13_ICL/pr=0.9,n=60,beta=1.9,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v14_ICL/pr=0.9,n=60,beta=1.9,V=80/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -363,17 +363,19 @@ for (param_name in param_name_vec) {
   results_list = lapply(path_vec, func_tmp, param_name=param_name)
   results_df = results_list[[1]]
   
-  ### Plot ICL vs N_clus vs freq_trun
-  z = matrix(colMeans(results_df)[-1], nrow=10,ncol=5) 
-  library(plotly)
-  fig = plot_ly(x = 1:5, y = 1:10, z = z,
-                type='surface') %>% 
-    layout(scene = list( xaxis=list(title='Number of clusters'),
-                         yaxis=list(title='Frequency truncation'),
-                         zaxis=list(title='ICL')))
-  fig
-  htmlwidgets::saveWidget(fig, "../Results/Plots/Temp/ICL_vs_Nclus_vs_freqtrun.html", 
-                          selfcontained = F, libdir = "lib")
+  plot(colMeans(results_df[,2:6]), type='b')
+  
+  # ### Plot ICL vs N_clus vs freq_trun
+  # z = matrix(colMeans(results_df)[-1], nrow=10,ncol=5) 
+  # library(plotly)
+  # fig = plot_ly(x = 1:5, y = 1:10, z = z,
+  #               type='surface') %>% 
+  #   layout(scene = list( xaxis=list(title='Number of clusters'),
+  #                        yaxis=list(title='Frequency truncation'),
+  #                        zaxis=list(title='ICL')))
+  # fig
+  # htmlwidgets::saveWidget(fig, "../Results/Plots/Temp/ICL_vs_Nclus_vs_freqtrun.html", 
+  #                         selfcontained = F, libdir = "lib")
   
   # for (measurement in c("ICL","compl_log_lik",'log_lik',"penalty","penalty_2")) {
   #   pdf(file=paste0("../Results/Plots/Temp/", 

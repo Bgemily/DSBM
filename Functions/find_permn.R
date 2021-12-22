@@ -16,7 +16,7 @@ find_permn = function(center_cdf_array_from, center_cdf_array_to){
     ### V2: cross-correlation
     dist = 0
     for (q in 1:N_clus) {
-      for (k in 1:N_clus) {
+      for (k in q:N_clus) {
         center_cdf_1 = center_cdf_array_from[permn, permn, ][q,k,]
         center_cdf_2 = center_cdf_array_to[q,k,]
         if (var(center_cdf_1)==0) {

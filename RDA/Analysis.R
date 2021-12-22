@@ -15,6 +15,14 @@ library(cluster)
 library(mclust)
 library(reshape2)
 library(ppsbm)
+library(foreach)
+library(doParallel)
+
+
+# Parallel computing setup ------------------------------
+
+N_cores = 20
+registerDoParallel(cores=N_cores)
 
 
 # Get network information for the L/R side ------------------------------------
@@ -60,14 +68,10 @@ for(m in 1:length(path_vec)){
 
 # Apply algorithm (our) ---------------------------------------------------------
 
-# method = "CDF_freqtrun5"
-
-N_clus_min = 1 # Number of clusters
-N_clus_max = 5
+N_clus_min = 4 # Number of clusters
+N_clus_max = 4
 MaxIter = 10 # Maximal iteration number
 # bw = 5 # Smoothing bandwidth
-freq_trun_vec = c(3) # Cut-off frequency
-total_time_cutoff_vec = c(200)
 conv_thres=1e-3
 max_iter=10
 # step_size = 0.5
@@ -77,204 +81,704 @@ max_time = max(sapply(edge_time_mat_list, function(edge_time_mat)max(edge_time_m
 total_time = max_time + 10
 t_vec = seq(0, total_time, 1)
 
+N_clus_tmp = 4
 
-for (ind_freq_trun in 1:length(freq_trun_vec)) {
-  for (ind_total_time_cutoff in 1:length(total_time_cutoff_vec)) {
-    freq_trun = freq_trun_vec[ind_freq_trun]
-    total_time_cutoff = total_time_cutoff_vec[ind_total_time_cutoff]
-    res_list_L = res_list_R = list()
-    compl_loglik_sum_vec = penalty_vec = ICL_vec = c()
-    for (ind_N_clus in 1:length(N_clus_min:N_clus_max)) {
-      N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
-      res_list_L[[ind_N_clus]] = list()
-      res_list_R[[ind_N_clus]] = list()
-      compl_loglik_sum = 0
-      for (subj in 4:3) {
-        compl_log_lik_best = -Inf
-        res_best = NULL
-        seed_restart = sample(1e5,1)
-        set.seed(seed_restart)
-        for (ind_restart in 1:N_restart) {
-          ### Apply method with freq_trun and total_time_cutoff
-          edge_time_mat_list_tmp = edge_time_mat_list[subj]
-          res_list_tmp = list(list())
-          for (ind_freq_trun_tmp in 1:1) {
-            ### Get initialization
-            res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
-                              N_clus = N_clus_tmp,
-                              t_vec = t_vec)
-            
-            clusters_list_init = res$clusters_list
-            
-            ### Add noise to initial clusters
-            seed_init = sample(1e5,1)
-            set.seed(seed_init)
-            if (ind_restart>1) {
-              # res = get_init_v5(edge_time_mat_list = edge_time_mat_list_tmp,
-              #                   N_clus = N_clus_tmp,
-              #                   N_restart = 1,
-              #                   t_vec = t_vec)
-              # clusters_list_init = res$clusters_list
-              
-              mem_init = clus2mem(clusters = clusters_list_init[[1]])
-              clus_size = sapply(clusters_list_init[[1]], length)
-              ind = sample(unlist(clusters_list_init[[1]][clus_size>4]),4)
-              mem_init[ind] = (mem_init[ind]+
-                                 sample(1:(N_clus_tmp-1),length(ind),replace=TRUE)) %% N_clus_tmp
-              mem_init[mem_init==0] = N_clus_tmp
-              clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
-            }
-            
-            n0_vec_list_init = res$n0_vec_list
-            n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
-            
-            # Apply algorithm
-            ### Estimation z,v,f based on cdf
-            time_start = Sys.time()
-            res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list_tmp,
-                                  N_clus = N_clus_tmp,
-                                  clusters_list_init = clusters_list_init,
-                                  n0_vec_list_init = n0_vec_list_init,
-                                  n0_mat_list_init = n0_mat_list_init,
-                                  total_time = total_time,
-                                  max_iter=max_iter,
-                                  t_vec=t_vec,
-                                  freq_trun = freq_trun,
-                                  conv_thres=conv_thres,
-                                  MaxIter=MaxIter)
-            time_end = Sys.time()
-            time_estimation = time_end - time_start
-            N_iteration = res$N_iteration
-            res$seed_init = seed_init
-            res_tmp = res
-            
-            # Apply algorithm to shifted edge time matrix
-            adj_edge_time_mat_list_tmp = list(edge_time_mat_list_tmp[[1]] -
-                                                res$n0_mat_list[[1]]*(t_vec[2]-t_vec[1]))
-            ### Get initialization
-            t_vec_cutoff = seq(0, total_time_cutoff, 1)
-            res = get_init_v4(edge_time_mat_list = adj_edge_time_mat_list_tmp,
-                              N_clus = N_clus_tmp,
-                              t_vec = t_vec_cutoff)
-            
-            clusters_list_init = res$clusters_list
-            n0_vec_list_init = res$n0_vec_list
-            n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
-            ### Estimate z,v,f based on shifted edge time matrix
-            res = do_cluster_v8.1(edge_time_mat_list = adj_edge_time_mat_list_tmp,
-                                  N_clus = N_clus_tmp,
-                                  clusters_list_init = clusters_list_init,
-                                  n0_vec_list_init = n0_vec_list_init,
-                                  n0_mat_list_init = n0_mat_list_init,
-                                  # fix_timeshift = TRUE,
-                                  total_time = total_time_cutoff,
-                                  max_iter=max_iter,
-                                  t_vec=t_vec_cutoff,
-                                  freq_trun = freq_trun,
-                                  conv_thres=conv_thres,
-                                  MaxIter=MaxIter)
-            res$v_vec_list[[1]] = res$v_vec_list[[1]]+res_tmp$v_vec_list[[1]]
-            res$seed_init = seed_init
-            res$t_vec=t_vec_cutoff
-            
-            # Save results of N_clus_tmp
-            res_list_tmp[[1]][[1]] = res
-            
-          }
-          ### Calculate loglik
-          sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
-                                     N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
-                                     N_clus_min = N_clus_tmp,
-                                     N_clus_max = N_clus_tmp,
-                                     result_list = res_list_tmp,
-                                     total_time = total_time_cutoff)
-          
-          compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
-          penalty_vec = sel_mod_res$penalty_vec
-          ### Update compl_log_lik_best and res_best
-          if (compl_log_lik_vec>compl_log_lik_best) {
-            compl_log_lik_best = c(compl_log_lik_vec)
-            res_best = res_list_tmp[[1]][[1]]
-            res_best$compl_log_lik_vec = compl_log_lik_vec
-            res_best$penalty_vec = penalty_vec
-          }
+### Change 4 init memberships from small clusters to rest clusters
+for (subj in 4:4) {
+  compl_log_lik_best = -Inf
+  res_best = NULL
+  # seed_restart = sample(1e5,1)
+  # set.seed(seed_restart)
+  fitmodel_tmp = function(ind_restart){
+    ### Apply method with freq_trun and total_time_cutoff
+    edge_time_mat_list_tmp = edge_time_mat_list[subj]
+    res_list_tmp = list(list())
+    for (ind_freq_trun_tmp in 1:1) {
+      ### Get initialization
+      res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
+                        N_clus = N_clus_tmp,
+                        t_vec = t_vec)
+
+      clusters_list_init = res$clusters_list
+
+      ### Add noise to initial clusters
+      seed_init = sample(1e5,1)
+      set.seed(seed_init)
+      if (ind_restart>1) {
+        # res = get_init_v5(edge_time_mat_list = edge_time_mat_list_tmp,
+        #                   N_clus = N_clus_tmp,
+        #                   N_restart = 1,
+        #                   t_vec = t_vec)
+        # clusters_list_init = res$clusters_list
+
+        mem_init = clus2mem(clusters = clusters_list_init[[1]])
+        clus_size = sapply(clusters_list_init[[1]], length)
+        ind = clusters_list_init[[1]][[which.min(clus_size)]]
+        ind = c(ind, sample(clusters_list_init[[1]][[which(clus_size==sort(clus_size)[2])]], 4-length(ind)))
+        for (i_tmp in ind) {
+          mem_init[i_tmp] = sample(setdiff(1:length(clus_size),mem_init[i_tmp]),1)
         }
-        compl_loglik_sum = compl_loglik_sum + compl_log_lik_best
-        if (subj%%2==1) {
-          res_list_L[[ind_N_clus]] = res_best
-        } else{
-          res_list_R[[ind_N_clus]] = res_best
-        }
-        
+        clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
       }
       
-      
-      compl_loglik_sum_vec[ind_N_clus] = compl_loglik_sum
-      ### Compute penalty
-      N_node_vec = nrow(edge_time_mat_list[[3]])+nrow(edge_time_mat_list[[4]])
-      N_basis_mat = matrix(2*freq_trun+1, nrow=N_clus_tmp, ncol=N_clus_tmp)
-      penalty_tmp = (N_clus_tmp-1)/2*sum(log(N_node_vec)) + 
-        sum(N_basis_mat[upper.tri(N_basis_mat)],diag(N_basis_mat))/2*sum(log(N_node_vec*(N_node_vec-1)/2))
-      penalty_vec[ind_N_clus] = penalty_tmp
-      
-      ICL_vec[ind_N_clus] = compl_loglik_sum_vec[ind_N_clus] - penalty_vec[ind_N_clus]
-      
+      n0_vec_list_init = res$n0_vec_list
+      n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
+
+      # Apply algorithm
+      ### Estimation z,v,f based on cdf
+      time_start = Sys.time()
+      res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list_tmp,
+                            N_clus = N_clus_tmp,
+                            clusters_list_init = clusters_list_init,
+                            n0_vec_list_init = n0_vec_list_init,
+                            n0_mat_list_init = n0_mat_list_init,
+                            total_time = total_time,
+                            max_iter=max_iter,
+                            t_vec=t_vec,
+                            freq_trun = Inf,
+                            conv_thres=conv_thres,
+                            MaxIter=MaxIter)
+      time_end = Sys.time()
+      time_estimation = time_end - time_start
+      N_iteration = res$N_iteration
+      res$seed_init = seed_init
+      res$t_vec=t_vec
+      res$clusters_list_init = clusters_list_init
+
+      # Save results of N_clus_tmp
+      res_list_tmp[[1]][[1]] = res
+
     }
-    N_clus_est = (N_clus_min:N_clus_max)[which.max(ICL_vec)]
-    res_L = res_list_L[[which.max(ICL_vec)]]
-    res_R = res_list_R[[which.max(ICL_vec)]]
-    
-    ### Save results
-    for (subj in 3:4) {
-      if (subj%%2==1) {
-        res = res_L
-      } else{
-        res = res_R
-      }
-      ### Retrieve estimation results of the best cluster number
-      res$clusters_list -> clusters_list_est
-      res$v_vec_list -> v_vec_list_est
-      res$center_pdf_array -> center_pdf_array_est
-      res$N_iteration -> N_iteration
-      
-      ### Save result
-      res = list(edge_time_mat = edge_time_mat_list[[subj]],
-                 clusters_list = clusters_list_est[[1]],
-                 center_pdf_array = center_pdf_array_est,
-                 v_vec = v_vec_list_est[[1]],
-                 N_clus_est = N_clus_est,
-                 ICL_vec = ICL_vec,
-                 compl_log_lik_vec = compl_loglik_sum_vec,
-                 # log_lik_vec = log_lik_vec,
-                 # penalty_2_vec = penalty_2_vec,
-                 penalty_vec = penalty_vec,
-                 # ICL_mat = ICL_mat,
-                 # compl_log_lik_mat = compl_log_lik_mat, 
-                 # log_lik_mat = log_lik_mat, 
-                 # penalty_2_mat = penalty_2_mat,
-                 # penalty_mat = penalty_mat,
-                 # N_iteration = N_iteration,
-                 t_vec = t_vec_cutoff)
-      ### Save result with freq_trun and total_time_cutoff
-      method = paste0("CDF_v16_sameNclus", 
-                      "_Nrestart",N_restart,
-                      "_freqtrun",freq_trun,
-                      "_","totaltime",total_time_cutoff)
-      folder_path = paste0('../Results/Rdata/RDA/', method, '/', file_vec[(subj+1)%/%2])
-      dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-      file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
-      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-      save(res,
-           # ICL_history,compl_log_lik_history,time_total,
-           # seed_restart, 
-           file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
-      
-    }
-    
+    ### Calculate loglik
+    sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
+                               N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
+                               N_clus_min = N_clus_tmp,
+                               N_clus_max = N_clus_tmp,
+                               result_list = res_list_tmp,
+                               total_time = total_time)
+
+    compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+    penalty_vec = sel_mod_res$penalty_vec
+
+    res=res_list_tmp[[1]][[1]]
+    res$compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+
+    return(list(res=res, compl_log_lik_vec=compl_log_lik_vec,
+                clusters_list_init=res$clusters_list_init))
   }
+  results_restart <- foreach(ind_restart = 1:N_restart) %dopar% {
+    fitmodel_tmp(ind_restart = ind_restart)
+  }
+  ### Update compl_log_lik_best and res_best
+  compl_log_lik_vec = sapply(results_restart, '[[','compl_log_lik_vec')
+  clus_init_list = lapply(results_restart, '[[','clusters_list_init')
+
+  ### Save result with freq_trun and total_time_cutoff
+  method = paste0("CDF_v4_4SmallToRest",
+                  "_Nrestart",N_restart,
+                  "_","totaltime",total_time)
+  folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
+  dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+  file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
+  now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+  save(results_restart,compl_log_lik_vec,clus_init_list,
+       # seed_restart,
+       file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
+
 }
 
+# ### Change 4 init memberships from big clusters to rest clusters
+# for (subj in 4:4) {
+#   compl_log_lik_best = -Inf
+#   res_best = NULL
+#   # seed_restart = sample(1e5,1)
+#   # set.seed(seed_restart)
+#   fitmodel_tmp = function(ind_restart){
+#     ### Apply method with freq_trun and total_time_cutoff
+#     edge_time_mat_list_tmp = edge_time_mat_list[subj]
+#     res_list_tmp = list(list())
+#     for (ind_freq_trun_tmp in 1:1) {
+#       ### Get initialization
+#       res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
+#                         N_clus = N_clus_tmp,
+#                         t_vec = t_vec)
+#       
+#       clusters_list_init = res$clusters_list
+#       
+#       ### Add noise to initial clusters
+#       seed_init = sample(1e5,1)
+#       set.seed(seed_init)
+#       if (ind_restart>1) {
+#         # res = get_init_v5(edge_time_mat_list = edge_time_mat_list_tmp,
+#         #                   N_clus = N_clus_tmp,
+#         #                   N_restart = 1,
+#         #                   t_vec = t_vec)
+#         # clusters_list_init = res$clusters_list
+#         
+#         mem_init = clus2mem(clusters = clusters_list_init[[1]])
+#         clus_size = sapply(clusters_list_init[[1]], length)
+#         ind = sample(unlist(clusters_list_init[[1]][clus_size>4]),4)
+#         mem_init[ind] = (mem_init[ind]+
+#                            sample(1:(N_clus_tmp-1),length(ind),replace=TRUE)) %% N_clus_tmp
+#         mem_init[mem_init==0] = N_clus_tmp
+#         clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
+#       }
+#       
+#       n0_vec_list_init = res$n0_vec_list
+#       n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
+#       
+#       # Apply algorithm
+#       ### Estimation z,v,f based on cdf
+#       time_start = Sys.time()
+#       res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list_tmp,
+#                             N_clus = N_clus_tmp,
+#                             clusters_list_init = clusters_list_init,
+#                             n0_vec_list_init = n0_vec_list_init,
+#                             n0_mat_list_init = n0_mat_list_init,
+#                             total_time = total_time,
+#                             max_iter=max_iter,
+#                             t_vec=t_vec,
+#                             freq_trun = Inf,
+#                             conv_thres=conv_thres,
+#                             MaxIter=MaxIter)
+#       time_end = Sys.time()
+#       time_estimation = time_end - time_start
+#       N_iteration = res$N_iteration
+#       res$seed_init = seed_init
+#       res$t_vec=t_vec
+#       res$clusters_list_init = clusters_list_init
+#       
+#       # Save results of N_clus_tmp
+#       res_list_tmp[[1]][[1]] = res
+#       
+#     }
+#     ### Calculate loglik
+#     sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
+#                                N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
+#                                N_clus_min = N_clus_tmp,
+#                                N_clus_max = N_clus_tmp,
+#                                result_list = res_list_tmp,
+#                                total_time = total_time)
+#     
+#     compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     penalty_vec = sel_mod_res$penalty_vec
+#     
+#     res=res_list_tmp[[1]][[1]]
+#     res$compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     
+#     return(list(res=res, compl_log_lik_vec=compl_log_lik_vec, 
+#                 clusters_list_init=res$clusters_list_init))
+#   }
+#   results_restart <- foreach(ind_restart = 1:N_restart) %dopar% {
+#     fitmodel_tmp(ind_restart = ind_restart)
+#   }
+#   ### Update compl_log_lik_best and res_best
+#   compl_log_lik_vec = sapply(results_restart, '[[','compl_log_lik_vec')
+#   clus_init_list = lapply(results_restart, '[[','clusters_list_init')
+#   
+#   ### Save result with freq_trun and total_time_cutoff
+#   method = paste0("CDF_v4_4BigToRest", 
+#                   "_Nrestart",N_restart,
+#                   "_","totaltime",total_time)
+#   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
+#   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+#   file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
+#   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+#   save(results_restart,compl_log_lik_vec,clus_init_list,
+#        # seed_restart, 
+#        file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
+#   
+# }
+# 
+# ### Change 4 init memberships from big clusters to big clusters, i.e. not touch small clusters
+# for (subj in 4:4) {
+#   compl_log_lik_best = -Inf
+#   res_best = NULL
+#   # seed_restart = sample(1e5,1)
+#   # set.seed(seed_restart)
+#   fitmodel_tmp = function(ind_restart){
+#     ### Apply method with freq_trun and total_time_cutoff
+#     edge_time_mat_list_tmp = edge_time_mat_list[subj]
+#     res_list_tmp = list(list())
+#     for (ind_freq_trun_tmp in 1:1) {
+#       ### Get initialization
+#       res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
+#                         N_clus = N_clus_tmp,
+#                         t_vec = t_vec)
+#       
+#       clusters_list_init = res$clusters_list
+#       
+#       ### Add noise to initial clusters
+#       seed_init = sample(1e5,1)
+#       set.seed(seed_init)
+#       if (ind_restart>1) {
+#         mem_init = clus2mem(clusters = clusters_list_init[[1]])
+#         clus_size = sapply(clusters_list_init[[1]], length)
+#         ind = sample(unlist(clusters_list_init[[1]][clus_size>4]),4)
+#         for (i_tmp in ind) {
+#           mem_init[i_tmp] = sample(setdiff(which(clus_size>4),mem_init[i_tmp]),1)
+#         }
+#         clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
+#       }
+#       
+#       n0_vec_list_init = res$n0_vec_list
+#       n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
+#       
+#       # Apply algorithm
+#       ### Estimation z,v,f based on cdf
+#       time_start = Sys.time()
+#       res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list_tmp,
+#                             N_clus = N_clus_tmp,
+#                             clusters_list_init = clusters_list_init,
+#                             n0_vec_list_init = n0_vec_list_init,
+#                             n0_mat_list_init = n0_mat_list_init,
+#                             total_time = total_time,
+#                             max_iter=max_iter,
+#                             t_vec=t_vec,
+#                             freq_trun = Inf,
+#                             conv_thres=conv_thres,
+#                             MaxIter=MaxIter)
+#       time_end = Sys.time()
+#       time_estimation = time_end - time_start
+#       N_iteration = res$N_iteration
+#       res$seed_init = seed_init
+#       res$t_vec=t_vec
+#       res$clusters_list_init = clusters_list_init
+#       
+#       # Save results of N_clus_tmp
+#       res_list_tmp[[1]][[1]] = res
+#       
+#     }
+#     ### Calculate loglik
+#     sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
+#                                N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
+#                                N_clus_min = N_clus_tmp,
+#                                N_clus_max = N_clus_tmp,
+#                                result_list = res_list_tmp,
+#                                total_time = total_time)
+#     
+#     compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     penalty_vec = sel_mod_res$penalty_vec
+#     
+#     res=res_list_tmp[[1]][[1]]
+#     res$compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     
+#     return(list(res=res, compl_log_lik_vec=compl_log_lik_vec, 
+#                 clusters_list_init=res$clusters_list_init))
+#   }
+#   results_restart <- foreach(ind_restart = 1:N_restart) %dopar% {
+#     fitmodel_tmp(ind_restart = ind_restart)
+#   }
+#   ### Update compl_log_lik_best and res_best
+#   compl_log_lik_vec = sapply(results_restart, '[[','compl_log_lik_vec')
+#   clus_init_list = lapply(results_restart, '[[','clusters_list_init')
+#   
+#   ### Save result with freq_trun and total_time_cutoff
+#   method = paste0("CDF_v4_4BigToBig", 
+#                   "_Nrestart",N_restart,
+#                   "_","totaltime",total_time)
+#   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
+#   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+#   file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
+#   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+#   save(results_restart,compl_log_lik_vec,clus_init_list,
+#        # seed_restart, 
+#        file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
+#   
+# }
+# 
+# ### Change 8 init memberships from big clusters, i.e. not touch small clusters
+# for (subj in 4:4) {
+#   compl_log_lik_best = -Inf
+#   res_best = NULL
+#   # seed_restart = sample(1e5,1)
+#   # set.seed(seed_restart)
+#   fitmodel_tmp = function(ind_restart){
+#     ### Apply method with freq_trun and total_time_cutoff
+#     edge_time_mat_list_tmp = edge_time_mat_list[subj]
+#     res_list_tmp = list(list())
+#     for (ind_freq_trun_tmp in 1:1) {
+#       ### Get initialization
+#       res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
+#                         N_clus = N_clus_tmp,
+#                         t_vec = t_vec)
+#       
+#       clusters_list_init = res$clusters_list
+#       
+#       ### Add noise to initial clusters
+#       seed_init = sample(1e5,1)
+#       set.seed(seed_init)
+#       if (ind_restart>1) {
+#         mem_init = clus2mem(clusters = clusters_list_init[[1]])
+#         clus_size = sapply(clusters_list_init[[1]], length)
+#         ind = sample(unlist(clusters_list_init[[1]][clus_size>4]),8)
+#         for (i_tmp in ind) {
+#           mem_init[i_tmp] = sample(setdiff(which(clus_size>4),mem_init[i_tmp]),1)
+#         }
+#         while(length(unique(mem_init))<N_clus_tmp){
+#           mem_init = clus2mem(clusters = clusters_list_init[[1]])
+#           clus_size = sapply(clusters_list_init[[1]], length)
+#           ind = sample(unlist(clusters_list_init[[1]][clus_size>4]),8)
+#           for (i_tmp in ind) {
+#             mem_init[i_tmp] = sample(setdiff(which(clus_size>4),mem_init[i_tmp]),1)
+#           }
+#         }
+#         clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
+#       }
+#       
+#       n0_vec_list_init = res$n0_vec_list
+#       n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
+#       
+#       # Apply algorithm
+#       ### Estimation z,v,f based on cdf
+#       time_start = Sys.time()
+#       res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list_tmp,
+#                             N_clus = N_clus_tmp,
+#                             clusters_list_init = clusters_list_init,
+#                             n0_vec_list_init = n0_vec_list_init,
+#                             n0_mat_list_init = n0_mat_list_init,
+#                             total_time = total_time,
+#                             max_iter=max_iter,
+#                             t_vec=t_vec,
+#                             freq_trun = Inf,
+#                             conv_thres=conv_thres,
+#                             MaxIter=MaxIter)
+#       time_end = Sys.time()
+#       time_estimation = time_end - time_start
+#       N_iteration = res$N_iteration
+#       res$seed_init = seed_init
+#       res$t_vec=t_vec
+#       res$clusters_list_init = clusters_list_init
+#       
+#       # Save results of N_clus_tmp
+#       res_list_tmp[[1]][[1]] = res
+#       
+#     }
+#     ### Calculate loglik
+#     sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
+#                                N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
+#                                N_clus_min = N_clus_tmp,
+#                                N_clus_max = N_clus_tmp,
+#                                result_list = res_list_tmp,
+#                                total_time = total_time)
+#     
+#     compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     penalty_vec = sel_mod_res$penalty_vec
+#     
+#     res=res_list_tmp[[1]][[1]]
+#     res$compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     
+#     return(list(res=res, compl_log_lik_vec=compl_log_lik_vec, 
+#                 clusters_list_init=res$clusters_list_init))
+#   }
+#   results_restart <- foreach(ind_restart = 1:N_restart) %dopar% {
+#     fitmodel_tmp(ind_restart = ind_restart)
+#   }
+#   ### Update compl_log_lik_best and res_best
+#   compl_log_lik_vec = sapply(results_restart, '[[','compl_log_lik_vec')
+#   clus_init_list = lapply(results_restart, '[[','clusters_list_init')
+#   
+#   ### Save result with freq_trun and total_time_cutoff
+#   method = paste0("CDF_v4_8BigToBig", 
+#                   "_Nrestart",N_restart,
+#                   "_","totaltime",total_time)
+#   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
+#   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+#   file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
+#   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+#   save(results_restart,compl_log_lik_vec,clus_init_list,
+#        # seed_restart, 
+#        file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
+#   
+# }
 
+# ### Pertub 4 init memberships from all clusters
+# for (subj in 4:4) {
+#   compl_log_lik_best = -Inf
+#   res_best = NULL
+#   # seed_restart = sample(1e5,1)
+#   # set.seed(seed_restart)
+#   fitmodel_tmp = function(ind_restart){
+#     ### Apply method with freq_trun and total_time_cutoff
+#     edge_time_mat_list_tmp = edge_time_mat_list[subj]
+#     res_list_tmp = list(list())
+#     for (ind_freq_trun_tmp in 1:1) {
+#       ### Get initialization
+#       res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
+#                         N_clus = N_clus_tmp,
+#                         t_vec = t_vec)
+#       
+#       clusters_list_init = res$clusters_list
+#       
+#       ### Add noise to initial clusters
+#       seed_init = sample(1e5,1)
+#       set.seed(seed_init)
+#       if (ind_restart>1) {
+#         mem_init = clus2mem(clusters = clusters_list_init[[1]])
+#         clus_size = sapply(clusters_list_init[[1]], length)
+#         ind = sample(unlist(clusters_list_init[[1]]),4)
+#         pertb_mem = sample(mem_init[ind])
+#         mem_init[ind] = pertb_mem
+#         clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
+#       }
+#       
+#       n0_vec_list_init = res$n0_vec_list
+#       n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
+# 
+#       # Apply algorithm
+#       ### Estimation z,v,f based on cdf
+#       time_start = Sys.time()
+#       res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list_tmp,
+#                             N_clus = N_clus_tmp,
+#                             clusters_list_init = clusters_list_init,
+#                             n0_vec_list_init = n0_vec_list_init,
+#                             n0_mat_list_init = n0_mat_list_init,
+#                             total_time = total_time,
+#                             max_iter=max_iter,
+#                             t_vec=t_vec,
+#                             freq_trun = Inf,
+#                             conv_thres=conv_thres,
+#                             MaxIter=MaxIter)
+#       time_end = Sys.time()
+#       time_estimation = time_end - time_start
+#       N_iteration = res$N_iteration
+#       res$seed_init = seed_init
+#       res$t_vec=t_vec
+#       res$clusters_list_init = clusters_list_init
+#       
+#       # Save results of N_clus_tmp
+#       res_list_tmp[[1]][[1]] = res
+#       
+#     }
+#     ### Calculate loglik
+#     sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
+#                                N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
+#                                N_clus_min = N_clus_tmp,
+#                                N_clus_max = N_clus_tmp,
+#                                result_list = res_list_tmp,
+#                                total_time = total_time)
+#     
+#     compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     penalty_vec = sel_mod_res$penalty_vec
+#     
+#     res=res_list_tmp[[1]][[1]]
+#     res$compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     
+#     return(list(res=res, compl_log_lik_vec=compl_log_lik_vec, 
+#                 clusters_list_init=res$clusters_list_init))
+#   }
+#   results_restart <- foreach(ind_restart = 1:N_restart) %dopar% {
+#     fitmodel_tmp(ind_restart = ind_restart)
+#   }
+#   ### Update compl_log_lik_best and res_best
+#   compl_log_lik_vec = sapply(results_restart, '[[','compl_log_lik_vec')
+#   clus_init_list = lapply(results_restart, '[[','clusters_list_init')
+#   
+#   ### Save result with freq_trun and total_time_cutoff
+#   method = paste0("CDF_v4_4PermAny", 
+#                   "_Nrestart",N_restart,
+#                   "_","totaltime",total_time)
+#   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
+#   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+#   file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
+#   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+#   save(results_restart,compl_log_lik_vec,clus_init_list,
+#        # seed_restart, 
+#        file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
+#   
+# }
+
+
+# ### Pertub 20 init memberships from all clusters
+# for (subj in 4:4) {
+#   compl_log_lik_best = -Inf
+#   res_best = NULL
+#   # seed_restart = sample(1e5,1)
+#   # set.seed(seed_restart)
+#   fitmodel_tmp = function(ind_restart){
+#     ### Apply method with freq_trun and total_time_cutoff
+#     edge_time_mat_list_tmp = edge_time_mat_list[subj]
+#     res_list_tmp = list(list())
+#     for (ind_freq_trun_tmp in 1:1) {
+#       ### Get initialization
+#       res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
+#                         N_clus = N_clus_tmp,
+#                         t_vec = t_vec)
+#       
+#       clusters_list_init = res$clusters_list
+#       
+#       ### Add noise to initial clusters
+#       seed_init = sample(1e5,1)
+#       set.seed(seed_init)
+#       if (ind_restart>1) {
+#         mem_init = clus2mem(clusters = clusters_list_init[[1]])
+#         clus_size = sapply(clusters_list_init[[1]], length)
+#         ind = sample(unlist(clusters_list_init[[1]]),20)
+#         pertb_mem = sample(mem_init[ind])
+#         mem_init[ind] = pertb_mem
+#         clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
+#       }
+#       
+#       n0_vec_list_init = res$n0_vec_list
+#       n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
+#       
+#       # Apply algorithm
+#       ### Estimation z,v,f based on cdf
+#       time_start = Sys.time()
+#       res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list_tmp,
+#                             N_clus = N_clus_tmp,
+#                             clusters_list_init = clusters_list_init,
+#                             n0_vec_list_init = n0_vec_list_init,
+#                             n0_mat_list_init = n0_mat_list_init,
+#                             total_time = total_time,
+#                             max_iter=max_iter,
+#                             t_vec=t_vec,
+#                             freq_trun = Inf,
+#                             conv_thres=conv_thres,
+#                             MaxIter=MaxIter)
+#       time_end = Sys.time()
+#       time_estimation = time_end - time_start
+#       N_iteration = res$N_iteration
+#       res$seed_init = seed_init
+#       res$t_vec=t_vec
+#       res$clusters_list_init = clusters_list_init
+#       
+#       # Save results of N_clus_tmp
+#       res_list_tmp[[1]][[1]] = res
+#       
+#     }
+#     ### Calculate loglik
+#     sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
+#                                N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
+#                                N_clus_min = N_clus_tmp,
+#                                N_clus_max = N_clus_tmp,
+#                                result_list = res_list_tmp,
+#                                total_time = total_time)
+#     
+#     compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     penalty_vec = sel_mod_res$penalty_vec
+#     
+#     res=res_list_tmp[[1]][[1]]
+#     res$compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     
+#     return(list(res=res, compl_log_lik_vec=compl_log_lik_vec, 
+#                 clusters_list_init=res$clusters_list_init))
+#   }
+#   results_restart <- foreach(ind_restart = 1:N_restart) %dopar% {
+#     fitmodel_tmp(ind_restart = ind_restart)
+#   }
+#   ### Update compl_log_lik_best and res_best
+#   compl_log_lik_vec = sapply(results_restart, '[[','compl_log_lik_vec')
+#   clus_init_list = lapply(results_restart, '[[','clusters_list_init')
+#   
+#   ### Save result with freq_trun and total_time_cutoff
+#   method = paste0("CDF_v4_20PermAny", 
+#                   "_Nrestart",N_restart,
+#                   "_","totaltime",total_time)
+#   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
+#   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+#   file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
+#   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+#   save(results_restart,compl_log_lik_vec,clus_init_list,
+#        # seed_restart, 
+#        file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
+#   
+# }
+# 
+# 
+# ### Pertub all init memberships from all clusters
+# for (subj in 4:4) {
+#   compl_log_lik_best = -Inf
+#   res_best = NULL
+#   # seed_restart = sample(1e5,1)
+#   # set.seed(seed_restart)
+#   fitmodel_tmp = function(ind_restart){
+#     ### Apply method with freq_trun and total_time_cutoff
+#     edge_time_mat_list_tmp = edge_time_mat_list[subj]
+#     res_list_tmp = list(list())
+#     for (ind_freq_trun_tmp in 1:1) {
+#       ### Get initialization
+#       res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
+#                         N_clus = N_clus_tmp,
+#                         t_vec = t_vec)
+#       
+#       clusters_list_init = res$clusters_list
+#       
+#       ### Add noise to initial clusters
+#       seed_init = sample(1e5,1)
+#       set.seed(seed_init)
+#       if (ind_restart>1) {
+#         mem_init = clus2mem(clusters = clusters_list_init[[1]])
+#         clus_size = sapply(clusters_list_init[[1]], length)
+#         mem_init = sample(mem_init)
+#         clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
+#       }
+#       
+#       n0_vec_list_init = res$n0_vec_list
+#       n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
+#       
+#       # Apply algorithm
+#       ### Estimation z,v,f based on cdf
+#       time_start = Sys.time()
+#       res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list_tmp,
+#                             N_clus = N_clus_tmp,
+#                             clusters_list_init = clusters_list_init,
+#                             n0_vec_list_init = n0_vec_list_init,
+#                             n0_mat_list_init = n0_mat_list_init,
+#                             total_time = total_time,
+#                             max_iter=max_iter,
+#                             t_vec=t_vec,
+#                             freq_trun = Inf,
+#                             conv_thres=conv_thres,
+#                             MaxIter=MaxIter)
+#       time_end = Sys.time()
+#       time_estimation = time_end - time_start
+#       N_iteration = res$N_iteration
+#       res$seed_init = seed_init
+#       res$t_vec=t_vec
+#       res$clusters_list_init = clusters_list_init
+#       
+#       # Save results of N_clus_tmp
+#       res_list_tmp[[1]][[1]] = res
+#       
+#     }
+#     ### Calculate loglik
+#     sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
+#                                N_node_vec = sapply(edge_time_mat_list_tmp,nrow),
+#                                N_clus_min = N_clus_tmp,
+#                                N_clus_max = N_clus_tmp,
+#                                result_list = res_list_tmp,
+#                                total_time = total_time)
+#     
+#     compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     penalty_vec = sel_mod_res$penalty_vec
+#     
+#     res=res_list_tmp[[1]][[1]]
+#     res$compl_log_lik_vec = sel_mod_res$compl_log_lik_vec
+#     
+#     return(list(res=res, compl_log_lik_vec=compl_log_lik_vec, 
+#                 clusters_list_init=res$clusters_list_init))
+#   }
+#   results_restart <- foreach(ind_restart = 1:N_restart) %dopar% {
+#     fitmodel_tmp(ind_restart = ind_restart)
+#   }
+#   ### Update compl_log_lik_best and res_best
+#   compl_log_lik_vec = sapply(results_restart, '[[','compl_log_lik_vec')
+#   clus_init_list = lapply(results_restart, '[[','clusters_list_init')
+#   
+#   ### Save result with freq_trun and total_time_cutoff
+#   method = paste0("CDF_v4_AllPermAny", 
+#                   "_Nrestart",N_restart,
+#                   "_","totaltime",total_time)
+#   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
+#   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+#   file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
+#   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+#   save(results_restart,compl_log_lik_vec,clus_init_list,
+#        # seed_restart, 
+#        file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
+#   
+# }
 
 
 # # Apply algorithm (ppsbm) ---------------------------------------------------------
