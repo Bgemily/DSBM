@@ -5,7 +5,7 @@
 ### When getting rough estimates by aligning cdf's, iterate several times rather than only once.
 ### [WARNING: The gradient might be WRONG when there are multiple subjects!]
 
-est_n0_vec_v7.1.1 = function(edge_time_mat_list, 
+est_n0_vec_pdf = function(edge_time_mat_list, 
                          clusters_list, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          freq_trun=5,
@@ -32,14 +32,10 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
   # Update time shifts and connecting patterns alternatively ----------------
   n0_vec_list_update = n0_vec_list_current = n0_vec_list
   n0_mat_list_update = n0_mat_list_current = n0_mat_list
-  center_cdf_array_current = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-                                                       clusters_list = clusters_list, 
-                                                       n0_mat_list = n0_mat_list, t_vec = t_vec)
-  center_cdf_array_update = center_cdf_array_current
   
   ### Evaluate loss 
   loss_history = c()
-  loss = eval_loss_v4(edge_time_mat_list = edge_time_mat_list,
+  loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list,
                       n0_vec_list = n0_vec_list_current,
                       clusters_list = clusters_list,
                       freq_trun = freq_trun,
@@ -117,7 +113,7 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
     
     
     ### Evaluate loss 
-    loss = eval_loss_v4(edge_time_mat_list = edge_time_mat_list,
+    loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list,
                         n0_vec_list = n0_vec_list_update,
                         clusters_list = clusters_list,
                         freq_trun = freq_trun,
@@ -161,7 +157,7 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
 
       
       ### Evaluate loss 
-      loss = eval_loss_v4(edge_time_mat_list = edge_time_mat_list,
+      loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list,
                           n0_vec_list = n0_vec_list_update,
                           clusters_list = clusters_list,
                           freq_trun = freq_trun,
@@ -198,7 +194,7 @@ est_n0_vec_v7.1.1 = function(edge_time_mat_list,
   }
   
   if (n_iter>max_iter) {
-    message("[est_n0_vec_v7.1.1]: Reached maximum iteration number ", max_iter)
+    message("[est_n0_vec_pdf]: Reached maximum iteration number ", max_iter)
   }
   
   ### Debug
