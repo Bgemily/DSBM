@@ -6,8 +6,8 @@
 ### Add estimation of cluster number using ICL
 ### Remove output value: t_vec (this is contained in network_param)
 
-
-main_v5 = function(### Parameters for generative model
+ 
+main_v5_pdf = function(### Parameters for generative model
   SEED, N_subj=1, N_node_vec = rep(90,N_subj),
   N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
   total_time=200, 
@@ -91,7 +91,7 @@ main_v5 = function(### Parameters for generative model
       
       time_start = Sys.time()
       ### Estimation z,v,f based on pdf
-      res = do_cluster_v14.2.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+      res = do_cluster_pdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
                                clusters_list_init = clusters_list_est,
                                n0_vec_list_init = n0_vec_list_est, n0_mat_list_init = n0_mat_list_est,
                                total_time = total_time, max_iter=max_iter, t_vec=t_vec,

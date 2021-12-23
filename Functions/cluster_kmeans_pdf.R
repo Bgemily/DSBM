@@ -4,7 +4,7 @@
 ### Based on v9.2
 ### When getting rough estimates by aligning cdf's, iterate several times rather than only once.
 
-cluster_kmeans_v9.2.1 = function(edge_time_mat_list, clusters_list, 
+cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list, 
                              n0_vec_list=NULL, n0_mat_list=NULL, 
                              center_fft_array=NULL, 
                              freq_trun=5, 
@@ -139,7 +139,7 @@ cluster_kmeans_v9.2.1 = function(edge_time_mat_list, clusters_list,
                                             n0_mat_list = n0_mat_list, 
                                             t_vec = t_vec)
   } else {
-    res = est_n0_vec_v7.1.1(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
+    res = est_n0_vec_pdf(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
                             n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list, 
                             freq_trun = freq_trun, 
                             t_vec = t_vec, order_list=order_list, 

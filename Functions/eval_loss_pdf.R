@@ -3,7 +3,7 @@
 ### Based on v2
 ### Switch from cdf to pdf, switch from time domain to frequency domain
 
-eval_loss_v4 = function(edge_time_mat_list, clusters_list, 
+eval_loss_pdf = function(edge_time_mat_list, clusters_list, 
                         n0_vec_list=NULL, n0_mat_list=NULL,
                         center_fft_array=NULL,
                         freq_trun = 5, t_vec=seq(0,200,length.out=1000)){
@@ -90,7 +90,7 @@ eval_loss_v4 = function(edge_time_mat_list, clusters_list,
 # center_fft_array[1,1,] = center_fft_array[2,2,] = center_fft_array[1,2,] = center_fft_array[2,1,] = fft_true_array
 # 
 # 
-# eval_loss_v4(edge_time_mat_list = edge_time_mat_list,
+# eval_loss_pdf(edge_time_mat_list = edge_time_mat_list,
 #              n0_mat_list = lapply(n0_mat_list, function(x)x+rnorm(length(x),sd = 10)),
 #              clusters_list = clusters_list,
 #              center_fft_array = center_fft_array,
