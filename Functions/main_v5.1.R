@@ -81,7 +81,7 @@ main_v5.1 = function(### Parameters for generative model
       # Apply algorithm ---------
       ### Estimation z,v,f based on cdf
       time_start = Sys.time()
-      res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+      res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
                             total_time = total_time, max_iter=max_iter, t_vec=t_vec,
                             clusters_list_init = clusters_list_init,
                             n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,

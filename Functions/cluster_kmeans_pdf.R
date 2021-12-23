@@ -185,7 +185,7 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
 # abline(a=0,b=1,col=2)
 # 
 # 
-# tmp2 = cluster_kmeans_v6.1(edge_time_mat_list = edge_time_mat_list, 
+# tmp2 = cluster_kmeans_cdf(edge_time_mat_list = edge_time_mat_list, 
 #                         clusters_list = list(list(1:5,11:15,c(6:10,16:30))))
 # tmp2$clusters_list
 # plot(tmp2$v_vec_list[[1]], time_shift_list[[1]])

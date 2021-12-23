@@ -253,7 +253,7 @@ est_n0_vec_pdf = function(edge_time_mat_list,
 # 
 # 
 # 
-# tmp2 = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
+# tmp2 = est_n0_vec_cdf(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
 #                        t_vec = seq(0,200,1),
 #                        )
 #                       # n0_vec_list = list(truth/0.2+runif(length(truth),0,20)), 

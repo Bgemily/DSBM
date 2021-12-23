@@ -7,7 +7,7 @@
 ### Remove output value: t_vec (this is contained in network_param)
 
 
-main_v5 = function(### Parameters for generative model
+main_v5_cdf = function(### Parameters for generative model
   SEED, N_subj=1, N_node_vec = rep(90,N_subj),
   N_clus=3, clus_size_mat = matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
   total_time=200, 
@@ -25,6 +25,7 @@ main_v5 = function(### Parameters for generative model
   save_est_history=FALSE,
   N_restart=1,
   fix_timeshift=FALSE,
+  save_center_pdf_array=FALSE,
   ...)
 {
   
@@ -94,7 +95,7 @@ main_v5 = function(### Parameters for generative model
       # Apply algorithm ---------
       ### Estimation z,v,f based on cdf
       time_start = Sys.time()
-      res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+      res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
                             total_time = total_time, max_iter=max_iter, t_vec=t_vec,
                             clusters_list_init = clusters_list_init,
                             n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
@@ -187,27 +188,12 @@ main_v5 = function(### Parameters for generative model
         v_mean_sq_err_history[ind_iter] = v_mean_sq_err
       }
     }
-    # Compute errors of clusters, i.e. Z ------------------------------------
-    
-    ARI_vec = numeric(length = N_subj)
-    for (m in 1:N_subj) {
-      ARI_tmp = get_one_ARI(memb_est_vec = clus2mem(clusters_list_est[[m]]), 
-                            memb_true_vec = membership_true_list[[m]])
-      ARI_vec[m] = ARI_tmp
-    }
-    weights = N_node_vec / sum(N_node_vec)
-    ARI_mean = sum(ARI_vec*weights)
-    
-    
-    
     # Compute errors of conn patts, i.e. F ------------------------------------
     
     ### Match clusters [WARNING: This dooes not work for multiple subjects.]
     res = find_permn(center_cdf_array_from = center_pdf_array_est,
                      center_cdf_array_to = pdf_true_array)
     permn = res$permn
-    
-    
     center_pdf_array_est_permn = center_pdf_array_est[permn, permn, ]
     
     
@@ -220,6 +206,21 @@ main_v5 = function(### Parameters for generative model
       }
     }
     F_mean_sq_err = mean(dist_mat[upper.tri(dist_mat, diag=TRUE)]^2)
+    
+    
+    # Compute errors of clusters, i.e. Z ------------------------------------
+    
+    ARI_vec = numeric(length = N_subj)
+    clusters_list_est_permn = clusters_list_est
+    for (m in 1:N_subj) {
+      ARI_tmp = get_one_ARI(memb_est_vec = clus2mem(clusters_list_est[[m]]), 
+                            memb_true_vec = membership_true_list[[m]])
+      ARI_vec[m] = ARI_tmp
+      clusters_list_est_permn[[m]] = clusters_list_est[[m]][permn]
+    }
+    weights = N_node_vec / sum(N_node_vec)
+    ARI_mean = sum(ARI_vec*weights)
+    
     
     
     # Compute error of time shifts, i.e. v --------------------------------------------
@@ -235,70 +236,8 @@ main_v5 = function(### Parameters for generative model
     
     v_mean_sq_err = mean((unlist(v_true_list)-unlist(v_vec_list_est))^2) 
     
-    ### Debug
-    # n0_mat_list_est = lapply(v_vec_list_est, function(v_vec)n0_vec2mat(n0_vec = v_vec/t_vec[2]))
-    # center_pdf_array_est = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-    #                                                clusters_list = clusters_list_est, 
-    #                                                t_vec = seq(0,200,length.out=1000), 
-    #                                                n0_mat_list = n0_mat_list_est)
-    
-    
-    # Compute error of event rates of all counting processes, i.e. Lambda ----------
-    
-    ### Warning: Be cautious about the following vectorization - the column order are compatible only for symmetric pdf_true_array.
-    ### Compute F
-    F_true = matrix(data = pdf_true_array, nrow = N_clus^2, ncol = dim(pdf_true_array)[3])
-    F_est = matrix(data = center_pdf_array_est, nrow = N_clus^2, ncol = dim(pdf_true_array)[3])
-    
-    Lambda_mean_sq_err = 0
-    for (m in 1:N_subj) {
-      N_node = N_node_vec[m]
-      
-      ### Compute Z, and hence C
-      Z_true = Z_est = matrix(data=0, nrow=N_node, ncol=N_clus)
-      for (q in 1:N_clus) {
-        Z_true[clus_true_list[[m]][[q]],q] = 1
-        Z_est[clusters_list_est[[m]][[q]],q] = 1
-      }
-      C_true = kronecker(Z_true, Z_true)
-      C_est = kronecker(Z_est, Z_est)
-      ### id_rm: row index of C_true corresponding to (i,i)'s
-      id_rm = which( kronecker(X=seq(N_node),Y=rep(1,N_node)) == 
-                       kronecker(Y=seq(N_node),X=rep(1,N_node)) )  
-      C_true = C_true[-id_rm, ] 
-      C_est = C_est[-id_rm, ] 
-      
-      ### Compute v in S^v
-      v_mat_true = n0_vec2mat(n0_vec = v_true_list[[m]])
-      v_mat_vec_true = c(v_mat_true)
-      v_mat_vec_true = v_mat_vec_true[-id_rm]
-      
-      v_mat_est = n0_vec2mat(n0_vec = v_vec_list_est[[m]])
-      v_mat_vec_est = c(v_mat_est)
-      v_mat_vec_est = v_mat_vec_est[-id_rm]
-      
-      ### Compute Lambda = S^v \circ (C \times F)
-      t_unit = total_time/ncol(F_true)
-      Lambda_true = C_true %*% F_true
-      Lambda_est = C_est %*% F_est
-      for (ij in 1:nrow(Lambda_true)) {
-        n0_tmp_true = round(v_mat_vec_true[ij] / t_unit)
-        n0_tmp_est = round(v_mat_vec_est[ij] / t_unit)
-        Lambda_true[ij, ] = shift_v2(f_origin = Lambda_true[ij, ], n0 = n0_tmp_true)
-        Lambda_est[ij, ] = shift_v2(f_origin = Lambda_est[ij, ], n0 = n0_tmp_est)
-      }
-      if (nrow(Lambda_true)!=(N_node^2-N_node)) {
-        stop("The size of Lambda_true is incorrect.")
-      }
-      
-      ### Compute error of Lambda
-      error_tmp = sum((Lambda_true-Lambda_est)^2)
-      Lambda_mean_sq_err = Lambda_mean_sq_err + error_tmp
-    }
-    Lambda_mean_sq_err = Lambda_mean_sq_err / sum(N_node_vec^2-N_node_vec)
   }
   else{
-    Lambda_mean_sq_err = NA
     ARI_vec=NA 
     ARI_mean=NA
     F_mean_sq_err=NA 
@@ -345,8 +284,11 @@ main_v5 = function(### Parameters for generative model
                 # parameter estimates of best cluster number
                 clusters_list_est=clusters_list_est,
                 v_vec_list_est=v_vec_list_est,
+                clusters_list_est_permn=clusters_list_est_permn,
+                center_pdf_array_est_permn=switch(save_center_pdf_array, 
+                                                  "TRUE"=center_pdf_array_est_permn,
+                                                  "FALSE"=NULL),
                 # estimation error
-                Lambda_mean_sq_err = Lambda_mean_sq_err,
                 ARI_vec=ARI_vec, ARI_mean=ARI_mean, 
                 F_mean_sq_err=F_mean_sq_err, 
                 v_mean_sq_err=v_mean_sq_err,
@@ -378,8 +320,11 @@ main_v5 = function(### Parameters for generative model
                 # parameter estimates of best cluster number
                 clusters_list_est=clusters_list_est,
                 v_vec_list_est=v_vec_list_est,
+                clusters_list_est_permn=clusters_list_est_permn,
+                center_pdf_array_est_permn=switch(save_center_pdf_array, 
+                                                  "TRUE"=center_pdf_array_est_permn,
+                                                  "FALSE"=NULL),
                 # estimation error
-                Lambda_mean_sq_err = Lambda_mean_sq_err,
                 ARI_vec=ARI_vec, ARI_mean=ARI_mean, 
                 F_mean_sq_err=F_mean_sq_err, 
                 v_mean_sq_err=v_mean_sq_err,

@@ -5,7 +5,7 @@
 ### Force n0 to be less than earliest edge time.
 ### Normalize node_cdf_array when estimating time shifts
 
-est_n0_vec_v4.1 = function(edge_time_mat_list, 
+est_n0_vec_cdf = function(edge_time_mat_list, 
                          clusters_list, center_cdf_array=NULL, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          freq_trun = Inf,
@@ -151,7 +151,7 @@ est_n0_vec_v4.1 = function(edge_time_mat_list,
   }
   
   if (n_iter>max_iter) {
-    message("[est_n0_vec_v4.1]: Reached maximum iteration number ", max_iter)
+    message("[est_n0_vec_cdf]: Reached maximum iteration number ", max_iter)
   }
   
   ### Compute time shift matrix and connecting patterns

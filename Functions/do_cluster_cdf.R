@@ -1,9 +1,9 @@
 
 
 ### main algorithm
-### Use cluster_kmeans_v6.1: Consider both conn_prob and shape(cdf) when clustering.
+### Use cluster_kmeans_cdf: Consider both conn_prob and shape(cdf) when clustering.
 ### Update time shifts at each iteration
-do_cluster_v8.1 = function(edge_time_mat_list, N_clus, 
+do_cluster_cdf = function(edge_time_mat_list, N_clus, 
                          clusters_list_init, n0_vec_list_init, n0_mat_list_init,
                          freq_trun=Inf, 
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
@@ -78,7 +78,7 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
     
     while (!stopping & n_iter<=MaxIter){
       ### Update clusters, time shifts and connecting patterns
-      res = cluster_kmeans_v6.1(edge_time_mat_list=edge_time_mat_list[m], 
+      res = cluster_kmeans_cdf(edge_time_mat_list=edge_time_mat_list[m], 
                               clusters_list=clusters_list_current[m], 
                               n0_vec_list=n0_vec_list_current[m], n0_mat_list=n0_mat_list_current[m], 
                               center_cdf_array = center_cdf_array_current,
@@ -144,7 +144,7 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
     }
     
     if(n_iter>MaxIter){
-      print("[do_cluster_v8.1:] Reached maximum iteration number.")
+      print("[do_cluster_cdf:] Reached maximum iteration number.")
     }
     N_iteration = n_iter
     
@@ -196,7 +196,7 @@ do_cluster_v8.1 = function(edge_time_mat_list, N_clus,
     while (!stopping & n_iter<=MaxIter){
       
       ### Update clusters, time shifts and connecting patterns
-      res = cluster_kmeans_v6.1(edge_time_mat_list=edge_time_mat_list, 
+      res = cluster_kmeans_cdf(edge_time_mat_list=edge_time_mat_list, 
                               clusters_list=clusters_list_current, 
                               n0_vec_list=n0_vec_list_current, n0_mat_list=n0_mat_list_current, 
                               center_cdf_array = center_cdf_array_current,

@@ -3,9 +3,9 @@
 # k-means clustering
 ### Based on v3
 ### The clustering task considers both conn_prob and shape. No need to specify the weight.
-### Use est_n0_vec_v4.1: force n0 to be less than earliest edge time
+### Use est_n0_vec_cdf: force n0 to be less than earliest edge time
 ### Normalize node_cdf_array when updating time shifts.
-cluster_kmeans_v6.1 = function(edge_time_mat_list, 
+cluster_kmeans_cdf = function(edge_time_mat_list, 
                              clusters_list, n0_vec_list=NULL, n0_mat_list=NULL, 
                              center_cdf_array=NULL, 
                              freq_trun = Inf,
@@ -166,7 +166,7 @@ cluster_kmeans_v6.1 = function(edge_time_mat_list,
                                                freq_trun = Inf, 
                                                t_vec = t_vec)
   } else {
-    res = est_n0_vec_v4.1(edge_time_mat_list = edge_time_mat_list, 
+    res = est_n0_vec_cdf(edge_time_mat_list = edge_time_mat_list, 
                           clusters_list = clusters_list, 
                           n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list,
                           center_cdf_array = center_cdf_array,
