@@ -99,9 +99,9 @@ for (param_name in param_name_vec) {
 # cdf vs pdf vs ppsbm (V!=0) ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v11_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v3_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
-path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/apply_ppsbm_v3/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v15/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v4_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/apply_ppsbm_v4/pr=0.9,n=30,beta=1.3,V=80/"
 
 
 param_name_vec = list.files(path_vec[1])

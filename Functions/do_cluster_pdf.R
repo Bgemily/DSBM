@@ -37,12 +37,12 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
                                           freq_trun = freq_trun, 
                                           n0_mat_list = n0_mat_list, t_vec = t_vec)
   
-  loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list, 
-                      n0_mat_list = n0_mat_list, 
-                      clusters_list = clusters_list, 
-                      center_fft_array = center_fft_array, 
-                      freq_trun = freq_trun, t_vec = t_vec)$loss
-  loss_history = c(loss_history, loss)
+  # loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list, 
+  #                     n0_mat_list = n0_mat_list, 
+  #                     clusters_list = clusters_list, 
+  #                     center_fft_array = center_fft_array, 
+  #                     freq_trun = freq_trun, t_vec = t_vec)$loss
+  # loss_history = c(loss_history, loss)
   
   clusters_history = c(clusters_history, list(clusters_list))
   n0_mat_list_history = c(n0_mat_list_history, list(n0_mat_list))
@@ -122,14 +122,14 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
       center_fft_array_update -> center_fft_array_current 
       
       
-      ### Evaluate loss[WARNING: revise this when there are multiple subjects!]
-      loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list[m],
-                          n0_mat_list = n0_mat_list_current[m],
-                          clusters_list = clusters_list_current[m],
-                          center_fft_array = center_fft_array_current,
-                          freq_trun = freq_trun,
-                          t_vec = t_vec)$loss
-      loss_history = c(loss_history, loss)
+      # ### Evaluate loss[WARNING: revise this when there are multiple subjects!]
+      # loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list[m],
+      #                     n0_mat_list = n0_mat_list_current[m],
+      #                     clusters_list = clusters_list_current[m],
+      #                     center_fft_array = center_fft_array_current,
+      #                     freq_trun = freq_trun,
+      #                     t_vec = t_vec)$loss
+      # loss_history = c(loss_history, loss)
       
       clusters_history = c(clusters_history, list(clusters_list_current[m]))
       n0_mat_list_history = c(n0_mat_list_history, list(n0_mat_list_current[m]))
@@ -174,13 +174,13 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
                                                   n0_mat_list = n0_mat_list_current, 
                                                   freq_trun = freq_trun,  t_vec = t_vec)
   
-  ### Evaluate loss function 
-  loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list, 
-                      n0_mat_list = n0_mat_list_current, 
-                      clusters_list = clusters_list_current, 
-                      center_fft_array = center_fft_array_current, 
-                      freq_trun = freq_trun, t_vec = t_vec)$loss
-  loss_history = c(loss_history, loss)
+  # ### Evaluate loss function 
+  # loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list, 
+  #                     n0_mat_list = n0_mat_list_current, 
+  #                     clusters_list = clusters_list_current, 
+  #                     center_fft_array = center_fft_array_current, 
+  #                     freq_trun = freq_trun, t_vec = t_vec)$loss
+  # loss_history = c(loss_history, loss)
   
   clusters_history = c(clusters_history, list(clusters_list_current))
   n0_mat_list_history = c(n0_mat_list_history, list(n0_mat_list_current))
@@ -219,13 +219,13 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
       clusters_history = c(clusters_history, list(clusters_list_update))
       
       
-      ### Evaluate loss function 
-      loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list, 
-                          n0_mat_list = n0_mat_list_current, 
-                          clusters_list = clusters_list_update, 
-                          center_fft_array = center_fft_array_update, 
-                          freq_trun = freq_trun, t_vec = t_vec)$loss
-      loss_history = c(loss_history, loss)
+      # ### Evaluate loss function 
+      # loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list, 
+      #                     n0_mat_list = n0_mat_list_current, 
+      #                     clusters_list = clusters_list_update, 
+      #                     center_fft_array = center_fft_array_update, 
+      #                     freq_trun = freq_trun, t_vec = t_vec)$loss
+      # loss_history = c(loss_history, loss)
       
       ### Evaluate stopping criterion
       delta_n0_vec = sum((unlist(n0_vec_list_update)-unlist(n0_vec_list_current))^2) / 
