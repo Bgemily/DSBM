@@ -163,7 +163,7 @@ for (subj in 3:4){
         # Apply algorithm
         ### Estimation z,v,f based on cdf
         time_start = Sys.time()
-        res = do_cluster_v8.1(edge_time_mat_list = edge_time_mat_list_tmp,
+        res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list_tmp,
                               N_clus = N_clus_tmp,
                               clusters_list_init = clusters_list_init,
                               n0_vec_list_init = n0_vec_list_init,
@@ -253,7 +253,7 @@ for (subj in 3:4){
   ### Save result with freq_trun and total_time_cutoff
   res = res_best
   res_Nclus = res$res_list
-  method = paste0("CDF_v9_rmv2+3_keeptop",
+  method = paste0("CDF_v10_rmv2+3_keeptop",
                   "_Nrestart",N_restart,
                   "_","totaltime",total_time)
   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])

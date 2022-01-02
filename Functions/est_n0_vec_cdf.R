@@ -78,11 +78,12 @@ est_n0_vec_cdf = function(edge_time_mat_list,
           f_origin_list = lapply(1:N_clus, function(l) center_cdf_array_current[q,l, ])
           
           ##### V1: Eliminate the difference between the constant values at the right end of curves.
-          f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6))
-          f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/max(max(f_target_list[[l]]), 1e-6))
+          # f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6))
+          # f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/max(max(f_target_list[[l]]), 1e-6))
           
           ##### V2
-          # blank
+          f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6)*max(max(f_target_list[[l]]), 1e-6))
+          f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/1)
           ####################
           
           weights = weight_mat[i,]

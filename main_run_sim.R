@@ -25,9 +25,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=10, 
+  make_option(c("-n", "--N_trial"), type="integer", default=200, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=1)
+  make_option("--split", type="integer", default=10)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -41,7 +41,7 @@ N_trial = N_trial_total/split
 
 # Parallel computing setup ------------------------------------------------
 
-N_cores = 10
+N_cores = 20
 registerDoParallel(cores=N_cores)
 
 
@@ -66,7 +66,7 @@ setup = 'SNR_Vnot0_v4'
 default_setting = 'pr=0.9,n=30,beta=1.3,V=80'
 
 for (. in 1:split) {
-  method = 'main_v5_cdf_v15'
+  method = 'main_v5_cdf_v16'
   for (freq_trun in c(Inf)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
