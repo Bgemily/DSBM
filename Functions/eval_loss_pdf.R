@@ -6,6 +6,7 @@
 eval_loss_pdf = function(edge_time_mat_list, clusters_list, 
                         n0_vec_list=NULL, n0_mat_list=NULL,
                         center_fft_array=NULL,
+                        rmv_conn_prob=FALSE,
                         freq_trun = 5, t_vec=seq(0,200,length.out=1000)){
 
   N_subj = length(edge_time_mat_list)
@@ -21,6 +22,7 @@ eval_loss_pdf = function(edge_time_mat_list, clusters_list,
                                             clusters_list = clusters_list, 
                                             n0_mat_list = n0_mat_list, 
                                             freq_trun = freq_trun, 
+                                            rmv_conn_prob = rmv_conn_prob,
                                             t_vec = t_vec)
   }
   
@@ -37,7 +39,9 @@ eval_loss_pdf = function(edge_time_mat_list, clusters_list,
     ### Calculate the Fourier series for shifted point processes, i.e. S^\max(v_i,v_j) N_{i,j}'s
     point_proc_fft_array = get_node_fft_array(edge_time_mat = edge_time_mat, 
                                             clusters = as.list(1:N_node), 
-                                            n0_mat = n0_mat, t_vec = t_vec, 
+                                            n0_mat = n0_mat, 
+                                            t_vec = t_vec, 
+                                            rmv_conn_prob = rmv_conn_prob,
                                             freq_trun = freq_trun)
     intensity_fft_array = array(dim = c(N_node,N_node,2*freq_trun+1))
     for (q in 1:N_clus) {
@@ -45,9 +49,10 @@ eval_loss_pdf = function(edge_time_mat_list, clusters_list,
         
         for (i in clusters[[q]]) {
           for (j in clusters[[k]]) {
-            intensity_fft_array[i,j,] = center_fft_array[q,k,]
-            if (i==j) {
+            if (i==j | edge_time_mat[i,j]==Inf) {
               intensity_fft_array[i,j,] = point_proc_fft_array[i,j,] = 0 ### To make sure (N-S^{v}F)_{ii}==0
+            } else {
+              intensity_fft_array[i,j,] = center_fft_array[q,k,]
             }
           }
         }

@@ -23,6 +23,7 @@ get_gradient = function(edge_time_mat_list, clusters_list,
                                           clusters_list = clusters_list, 
                                           freq_trun = freq_trun, 
                                           n0_mat_list = n0_mat_list, 
+                                          rmv_conn_prob = TRUE,
                                           t_vec = t_vec)
   
   
@@ -42,7 +43,9 @@ get_gradient = function(edge_time_mat_list, clusters_list,
         ### ### ###
         
         ### Compute A[k,] ###
-        J_mki = which(membership_list[[m]]==k & n0_vec_list[[m]]<=n0_vec_list[[m]][i])
+        J_mki = which(membership_list[[m]]==k & 
+                        n0_vec_list[[m]]<=n0_vec_list[[m]][i] & 
+                        edge_time_mat_list[[m]][i,]<Inf)
         J_mki = setdiff(J_mki, i)
         
         tmp = edge_time_mat_list[[m]][i,J_mki]

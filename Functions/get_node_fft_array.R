@@ -4,7 +4,8 @@
 
 get_node_fft_array = function(edge_time_mat, clusters, 
                               n0_mat=edge_time_mat*0, freq_trun=15,
-                              t_vec=seq(0, 200, length.out=1000))
+                              t_vec=seq(0, 200, length.out=1000),
+                              rmv_conn_prob=FALSE)
 {  
   time_unit = t_vec[2]-t_vec[1]
   N_node = nrow(edge_time_mat)
@@ -24,6 +25,10 @@ get_node_fft_array = function(edge_time_mat, clusters,
       #### Get node_fft_array[i,k, ]
       tmp = c(edge_time_submat)
       tmp = tmp[!is.na(tmp)] # Remove NA's due to t_{i,i}
+      if(rmv_conn_prob){
+        tmp = tmp[tmp<Inf] ### Remove non-exist edges
+      }
+      
       if (length(tmp)==0) {
         node_fft_array[i,k, ] = rep(0,2*freq_trun+1)
       }

@@ -11,6 +11,7 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
                              t_vec=seq(0,200,length.out=1000), order_list=NULL, 
                              opt_radius=max(t_vec)/2,
                              fix_timeshift=FALSE,
+                             prob_err_mtplr=0.005,
                              ...)
 {
   
@@ -42,8 +43,16 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
     center_fft_array = get_center_fft_array(edge_time_mat_list = edge_time_mat_list, 
                                             clusters_list = clusters_list, 
                                             freq_trun = freq_trun, 
-                                            n0_mat_list = n0_mat_list, t_vec = t_vec)
+                                            n0_mat_list = n0_mat_list, 
+                                            t_vec = t_vec)
   }
+  center_fft_array_normed = get_center_fft_array(edge_time_mat_list = edge_time_mat_list, 
+                                                 clusters_list = clusters_list, 
+                                                 freq_trun = freq_trun, 
+                                                 n0_mat_list = n0_mat_list, 
+                                                 rmv_conn_prob = TRUE,
+                                                 t_vec = t_vec)
+  
   
   
   ### Update clusters for all subjects
@@ -56,8 +65,15 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
     ### Compute node_fft_array: N_node * N_clus * (2*freq_trun+1)
     node_fft_array = get_node_fft_array(edge_time_mat = edge_time_mat, 
                                         clusters = clusters, 
-                                        n0_mat = n0_mat, t_vec = t_vec, 
+                                        n0_mat = n0_mat, 
+                                        t_vec = t_vec, 
                                         freq_trun = freq_trun)
+    node_fft_array_normed = get_node_fft_array(edge_time_mat = edge_time_mat, 
+                                               clusters = clusters, 
+                                               n0_mat = n0_mat, 
+                                               t_vec = t_vec, 
+                                               rmv_conn_prob = TRUE, 
+                                               freq_trun = freq_trun)
     
     ### Update clusters
     ############### V1: classification. Compare each node with each cluster
@@ -79,12 +95,18 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
       for (k in 1:N_clus) {
         
         ### Compute distance between all nodes and cluster q w.r.t. clus k
-        dist_array[,q,k] = length(t_vec) * rowSums( ( abs( node_fft_array[,k,] - 
-                                                           matrix(data=center_fft_array[q,k,],
+        dist_array_1[,q,k] = length(t_vec) * rowSums( ( abs( node_fft_array_normed[,k,] - 
+                                                           matrix(data=center_fft_array_normed[q,k,],
                                                                   nrow=N_node, 
-                                                                  ncol=length(center_fft_array[q,k,]), 
+                                                                  ncol=length(center_fft_array_normed[q,k,]), 
                                                                   byrow = TRUE) ) )^2 )
-      
+        conn_prob_N_vec = rowSums(edge_time_mat[,clusters[[k]]]<Inf) / 
+          ( rep(length(clusters[[k]]), nrow(edge_time_mat)) - 1*(1:nrow(edge_time_mat) %in% clusters[[k]]) )
+        conn_prob_F = sum(edge_time_mat[clusters[[q]], clusters[[k]]]<Inf) / 
+          ( length(edge_time_mat[clusters[[q]], clusters[[k]]]) - I(q==k)*length(clusters[[q]]) )
+        dist_array_2[,q,k] = (conn_prob_N_vec - conn_prob_F)^2
+        
+        dist_array[,q,k] = dist_array_1[,q,k]*(conn_prob_N_vec) + dist_array_2[,q,k]*prob_err_mtplr
       }
     }
     

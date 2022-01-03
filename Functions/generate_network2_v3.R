@@ -183,6 +183,7 @@ generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
     
     edge_time_mat_tmp = edge_time_mat_tmp + time_shift_mat_tmp # add time shifts 
     edge_time_mat_tmp[ edge_time_mat_tmp>total_time ] = Inf
+    diag(edge_time_mat_tmp) = Inf
     
     edge_time_mat_list[[m]] = edge_time_mat_tmp
   }
