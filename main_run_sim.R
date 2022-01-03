@@ -66,7 +66,7 @@ setup = 'SNR_Vnot0_v4'
 default_setting = 'pr=0.9,n=30,beta=1.3,V=80'
 
 for (. in 1:split) {
-  method = 'main_v5_cdf_v16'
+  method = 'main_v5_cdf_v17'
   for (freq_trun in c(Inf)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {

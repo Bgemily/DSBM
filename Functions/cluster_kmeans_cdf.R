@@ -96,9 +96,10 @@ cluster_kmeans_cdf = function(edge_time_mat_list,
         dist_array_1[,q,k] = tmp
         
         ### Weighted sum of conn_prob and shape
-        dist_array[,q,k] = dist_array_1[,q,k]*(conn_prob_N_vec)^2 + 
-                            dist_array_2[,q,k]*(sum((center_cdf_array_normed[q,k,]*
-                                                       I(center_cdf_array_normed[q,k,]<1))^2))
+        # dist_array[,q,k] = dist_array_1[,q,k]*(conn_prob_N_vec)^2 + 
+        #                     dist_array_2[,q,k]*(sum((center_cdf_array_normed[q,k,]*
+        #                                                I(center_cdf_array_normed[q,k,]<1))^2))
+        dist_array[,q,k] = dist_array_1[,q,k]*(conn_prob_N_vec) + dist_array_2[,q,k]
       }
     }
     

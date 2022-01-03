@@ -66,9 +66,11 @@ est_n0_vec_cdf = function(edge_time_mat_list,
       
       ### Get weight matrix N_node*N_clus, (i,l)-th entry is proportional to |{j: v_j<=v_i && z_j==l}|
       order_mat_current[is.na(order_mat_current)] = 0
+      exist_edge_mat = edge_time_mat_list[[m]]<Inf
+      diag(exist_edge_mat) = 0
       weight_mat = matrix(nrow=N_node, ncol=N_clus)
       for (q in 1:N_clus) {
-        weight_mat[,q] = rowSums(as.matrix(order_mat_current[,clusters_tmp[[q]]]))
+        weight_mat[,q] = rowSums(as.matrix((order_mat_current*exist_edge_mat)[,clusters_tmp[[q]]]))
       }
       
       ### Update time shifts
@@ -78,12 +80,12 @@ est_n0_vec_cdf = function(edge_time_mat_list,
           f_origin_list = lapply(1:N_clus, function(l) center_cdf_array_current[q,l, ])
           
           ##### V1: Eliminate the difference between the constant values at the right end of curves.
-          # f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6))
-          # f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/max(max(f_target_list[[l]]), 1e-6))
+          f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6))
+          f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/max(max(f_target_list[[l]]), 1e-6))
           
           ##### V2
-          f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6)*max(max(f_target_list[[l]]), 1e-6))
-          f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/1)
+          # f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6)*max(max(f_target_list[[l]]), 1e-6))
+          # f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/1)
           ####################
           
           weights = weight_mat[i,]

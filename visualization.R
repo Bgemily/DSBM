@@ -100,8 +100,9 @@ for (param_name in param_name_vec) {
 path_vec = rep(0,6)
 
 path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v15/pr=0.9,n=30,beta=1.3,V=80/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v4_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
-path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/apply_ppsbm_v4/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v17/pr=0.9,n=30,beta=1.3,V=80/"
+# path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v4_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
+# path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/apply_ppsbm_v4/pr=0.9,n=30,beta=1.3,V=80/"
 
 
 param_name_vec = list.files(path_vec[1])
@@ -150,14 +151,14 @@ for (param_name in param_name_vec) {
                  linetype=method,
                  color=method)) +
       stat_summary(aes(group=method), position = position_dodge(.0),
-                   # geom="pointrange", 
-                   alpha=0.7,
-                   # fun.min = function(x)quantile(x,0.25),
-                   # fun.max = function(x)quantile(x,0.75),
+                   geom="pointrange",
+                   fun.min = function(x)quantile(x,0.25),
+                   fun.max = function(x)quantile(x,0.75),
                    # fun.min = function(x)mean(x)-sd(x),
                    # fun.max = function(x)mean(x)+sd(x),
-                   geom="point",
-                   fun = "mean") +
+                   # geom="point",
+                   fun = "mean",
+                   alpha=0.7) +
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",
                    alpha=0.8,
