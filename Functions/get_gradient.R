@@ -50,21 +50,16 @@ get_gradient = function(edge_time_mat_list, clusters_list,
           c_bar_mki_vec = rep(0,2*freq_trun+1)
         }
         else{
-          point_proc_fft_mat = matrix(0,nrow=length(tmp), ncol=2*freq_trun+1) 
-          for (j in 1:nrow(point_proc_fft_mat)) {
-            ### Turn edge time into a point process
-            point_proc_vec = rep(0,length(t_vec))
-            if (tmp[j]<Inf) {
-              point_proc_vec[tmp[j]] = 1
-            }
-            ### Get normalized fourier series
-            point_proc_vec_fft = fft(point_proc_vec) / length(t_vec)
-            ### Truncate fourier series
-            point_proc_fft_mat[j,] = c(tail(point_proc_vec_fft, freq_trun),
-                                       head(point_proc_vec_fft, freq_trun+1))
-          }
-          
-          c_bar_mki_vec = colMeans(point_proc_fft_mat)
+          ### Get empirical intensity of event times
+          event_time_vec = tmp
+          emp_intens_vec = hist(event_time_vec, breaks=t_vec, plot=FALSE)$counts / length(event_time_vec)
+          emp_intens_vec = c(0,emp_intens_vec)
+          ### Get normalized fourier series
+          emp_intens_fft = fft(emp_intens_vec) / length(t_vec)
+          ### Get truncated fourier series
+          emp_intens_fft_trun = c(tail(emp_intens_fft, freq_trun),
+                                  head(emp_intens_fft, freq_trun+1))
+          c_bar_mki_vec = emp_intens_fft_trun
         }
         
         
