@@ -43,11 +43,15 @@ select_model = function(edge_time_mat_list, N_node_vec,
       
       t_vec = seq(0,total_time,length.out = dim(center_pdf_array_tmp)[3])
       ### Compute log likelihood
-      # First term of log likelihood: -\sum_{i<j}( \sum_{q,k} F_{q,k}(T)*tau_{i,q}*tau_{j,k} )
+      # First term of log likelihood: \sum_{i<j,t_{i,j}<Inf} log( 1-\sum_{q,k} F_{q,k}(T)*tau_{i,q}*tau_{j,k} )
       F_qk_T = apply(center_pdf_array_tmp*(t_vec[2]-t_vec[1]), c(1,2), function(vec)sum(vec[-length(vec)]))
       F_qk_T[is.na(F_qk_T)] = 0
       tau_F_tauT = tau_mat %*% F_qk_T %*% t(tau_mat)
-      log_lik_tmp = -sum(tau_F_tauT[upper.tri(tau_F_tauT)])
+      tmp = edge_time_mat_list[[1]]
+      diag(tmp) = NA
+      ind_non_edge = which(tmp==Inf)
+      log_lik_tmp = (1/2)*sum(log(1-tau_F_tauT)[ind_non_edge])
+      
       
       # Second term of log likelihood: \sum_{q,k}{ \sum_{i<j} \log f_{q,k}(t_{i,j}-\max(v_i,v_j))*tau_{i,q}*tau_{j,k} }
       for (q in 1:N_clus_tmp) {
