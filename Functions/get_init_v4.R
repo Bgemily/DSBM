@@ -41,7 +41,8 @@ get_init_v4 = function(edge_time_mat_list, N_clus,
                                            n0_mat = matrix(n0_vec,nrow=N_node,ncol=N_node), 
                                            freq_trun = freq_trun,
                                            t_vec = t_vec)
-    aligned_cdf_mat = t(sapply(1:N_node, function(i) node_cdf_array[i,1,] ))
+    # aligned_cdf_mat = t(sapply(1:N_node, function(i) node_cdf_array[i,1,] ))
+    aligned_cdf_mat = t(sapply(1:N_node, function(i) node_cdf_array[i,1,]/max(node_cdf_array[i,1,]+.Machine$double.eps) ))
     membership = cluster::pam(x=aligned_cdf_mat, k=N_clus, diss=FALSE, cluster.only=TRUE)
     membership_list[[m]] = membership
 

@@ -99,10 +99,11 @@ for (param_name in param_name_vec) {
 # cdf vs pdf vs ppsbm (V!=0) ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v15/pr=0.9,n=30,beta=1.3,V=80/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v17/pr=0.9,n=30,beta=1.3,V=80/"
-# path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v4_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
-# path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/apply_ppsbm_v4/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v18/pr=0.9,n=30,beta=1.3,V=80/"
+# path_vec[4] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v17/pr=0.9,n=30,beta=1.3,V=80/"
+# path_vec[5] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v5_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v6_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/apply_ppsbm_v4/pr=0.9,n=30,beta=1.3,V=80/"
 
 
 param_name_vec = list.files(path_vec[1])
@@ -118,12 +119,16 @@ for (param_name in param_name_vec) {
                                          "time_estimation")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
                          bind_cols(results_list[[3]],"method"="PPSBM"),
-                         # bind_cols(results_list[[4]],"method"="PDF+N_basis_11"),
-                         # bind_cols(results_list[[5]],"method"="PDF+N_basis_19"),
+                         # bind_cols(results_list[[4]],"method"="CDF-small-prob-err"),
+                         # bind_cols(results_list[[5]],"method"="PDF-small-prob-err"),
                          bind_cols(results_list[[2]],"method"="PDF")
   )
   
   ### Manipulate column "param_value"
+  if (param_name == 'n') {
+    results_df = results_df %>%
+      filter(param_value <= 90)
+  }
   results_df = results_df %>%
     mutate(param_value = factor(param_value, levels = sort(unique(param_value),
                                                            decreasing = param_name=="V")) )
@@ -138,7 +143,7 @@ for (param_name in param_name_vec) {
                     '_', 'vs', '_', 
                     switch(param_name,"beta"='beta','n'='p','V'='V'),
                     ".pdf"), 
-        width = 5, height = 5)
+        width = 4, height = 3)
     g = results_df %>% 
       ggplot(aes(x=param_value, 
                  y=switch(measurement,
@@ -151,12 +156,12 @@ for (param_name in param_name_vec) {
                  linetype=method,
                  color=method)) +
       stat_summary(aes(group=method), position = position_dodge(.0),
-                   geom="pointrange",
-                   fun.min = function(x)quantile(x,0.25),
-                   fun.max = function(x)quantile(x,0.75),
+                   # geom="pointrange",
+                   # fun.min = function(x)quantile(x,0.25),
+                   # fun.max = function(x)quantile(x,0.75),
                    # fun.min = function(x)mean(x)-sd(x),
                    # fun.max = function(x)mean(x)+sd(x),
-                   # geom="point",
+                   geom="point",
                    fun = "mean",
                    alpha=0.7) +
       stat_summary(aes(group=method),position = position_dodge(.0),
@@ -164,11 +169,12 @@ for (param_name in param_name_vec) {
                    alpha=0.8,
                    fun = "mean") +
       theme(legend.position = "bottom") +
-      guides(color=guide_legend(nrow=2,byrow=TRUE)) +
+      # guides(color=guide_legend(nrow=2,byrow=TRUE),
+      #        linetype=guide_legend(nrow=2,byrow=TRUE)) +
       coord_cartesian(ylim = switch(measurement,
                                     "time_est" = c(0,350),
                                     "V_mse" = c(0,150),
-                                    "f_mse" = c(),
+                                    "f_mse" = c(0,0.04),
                                     "1-ARI" = c(0,1) )) +
       ylab(measurement) +
       xlab(switch(param_name, 'n'='N_node',param_name))
@@ -185,9 +191,9 @@ for (param_name in param_name_vec) {
 # cdf vs pdf vs ppsbm (V==0) ------------------------------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/SNR_Vis0_v4/main_v5_cdf_v1/pr=0.9,n=30,beta=1.05,V=0/"
-# path_vec[2] = "../Results/Rdata/SNR_Vis0_v4/main_v5_pdf_v3_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
-path_vec[3] = "../Results/Rdata/SNR_Vis0_v4/apply_ppsbm_v3/pr=0.9,n=30,beta=1.05,V=0/"
+path_vec[1] = "../Results/Rdata/SNR_Vis0_v4/main_v5_cdf_v2/pr=0.9,n=30,beta=1.3,V=0/"
+path_vec[2] = "../Results/Rdata/SNR_Vis0_v4/main_v5_pdf_v2_freqtrun7/pr=0.9,n=30,beta=1.3,V=0/"
+path_vec[3] = "../Results/Rdata/SNR_Vis0_v4/apply_ppsbm_v4/pr=0.9,n=30,beta=1.3,V=0/"
 
 
 param_name_vec = list.files(path_vec[1])
@@ -203,7 +209,7 @@ for (param_name in param_name_vec) {
                                          "time_estimation")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="CDF"), 
                          bind_cols(results_list[[3]],"method"="PPSBM"),
-                         # bind_cols(results_list[[2]],"method"="PDF")
+                         bind_cols(results_list[[2]],"method"="PDF")
   )
   
   ### Manipulate column "param_value"
@@ -218,7 +224,7 @@ for (param_name in param_name_vec) {
                     '_', 'vs', '_', 
                     switch(param_name,"beta"='beta','n'='p','V'='V'),
                     ".pdf"), 
-        width = 5, height = 5)
+        width = 4, height = 3)
     g = results_df %>% 
       ggplot(aes(x=param_value, 
                  y=switch(measurement,
@@ -231,13 +237,13 @@ for (param_name in param_name_vec) {
                  linetype=method,
                  color=method)) +
       stat_summary(aes(group=method), position = position_dodge(.0),
-                   # geom="pointrange", 
+                   geom="pointrange",
                    alpha=0.7,
-                   # fun.min = function(x)quantile(x,0.25),
-                   # fun.max = function(x)quantile(x,0.75),
+                   fun.min = function(x)quantile(x,0.25),
+                   fun.max = function(x)quantile(x,0.75),
                    # fun.min = function(x)mean(x)-sd(x),
                    # fun.max = function(x)mean(x)+sd(x),
-                   geom="point",
+                   # geom="point",
                    fun = "mean") +
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",
@@ -248,7 +254,7 @@ for (param_name in param_name_vec) {
       scale_y_continuous(limits = switch(measurement,
                                          # "time_est" = c(0,350),
                                          "V_mse" = c(0,150),
-                                         "f_mse" = c(),
+                                         "f_mse" = c(0,0.016),
                                          "1-ARI" = c(0,1) )) +
       ylab(measurement) +
       xlab(switch(param_name, 'n'='N_node',param_name))
@@ -347,9 +353,13 @@ for (param_name in param_name_vec) {
 
 # ICL/log_lik/penalty vs N_clus -----------------------------
 
+freq_trun_vec = "NA"
+# freq_trun_vec = 4:9
+
 path_vec = rep(0,2)
 
-path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v14_ICL/pr=0.9,n=60,beta=1.9,V=80/"
+path_vec[1] = "../Results/Rdata/ICL_v1/main_v5_cdf_v1/pr=0.9,n=60,beta=1.9,V=80/"
+# path_vec[1] = "../Results/Rdata/ICL_v1/main_v5_pdf_v1/pr=0.9,n=60,beta=1.9,V=80/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -362,54 +372,55 @@ for (param_name in param_name_vec) {
                            measurement = c("ICL_mat"))
   }
   results_list = lapply(path_vec, func_tmp, param_name=param_name)
-  results_df = results_list[[1]]
+  results_df = bind_rows(bind_cols(results_list[[1]])
+                         )
+  results_df = colMeans(results_df[,-1])
+  N_clus = 5
+  results_df = as.tibble(matrix(results_df, ncol=N_clus))
+  colnames(results_df) = paste0("N_clus",1:5)
+  results_df = bind_cols(results_df, freq_trun=freq_trun_vec) %>% mutate(freq_trun = as_factor(freq_trun))
+  results_df = results_df %>% 
+    # filter(param_value==1.9) %>%
+    # mutate(param_value = as_factor(param_value), freq_trun = as_factor(freq_trun)) %>%
+    pivot_longer(cols = starts_with("N_clus"), names_to = "N_clus_ICL", values_to = "ICL")
+    
   
-  plot(colMeans(results_df[,2:6]), type='b')
-  
-  # ### Plot ICL vs N_clus vs freq_trun
-  # z = matrix(colMeans(results_df)[-1], nrow=10,ncol=5) 
-  # library(plotly)
-  # fig = plot_ly(x = 1:5, y = 1:10, z = z,
-  #               type='surface') %>% 
-  #   layout(scene = list( xaxis=list(title='Number of clusters'),
-  #                        yaxis=list(title='Frequency truncation'),
-  #                        zaxis=list(title='ICL')))
-  # fig
-  # htmlwidgets::saveWidget(fig, "../Results/Plots/Temp/ICL_vs_Nclus_vs_freqtrun.html", 
-  #                         selfcontained = F, libdir = "lib")
-  
-  # for (measurement in c("ICL","compl_log_lik",'log_lik',"penalty","penalty_2")) {
-  #   pdf(file=paste0("../Results/Plots/Temp/", 
-  #                   if_else(measurement=="1-ARI", true = "ARI", false = measurement), 
-  #                   '_', 'N_clus', ".pdf"), 
-  #       width = 4, height = 2.5)
-  #   g = results_df %>% 
-  #     ggplot(aes(x=switch(measurement,
-  #                         "ICL" = N_clus_ICL,
-  #                         "compl_log_lik" = N_clus_compl_log_lik, 
-  #                         "log_lik" = N_clus_log_lik, 
-  #                         "penalty_2" = N_clus_penalty_2,
-  #                         "penalty" = N_clus_penalty),
-  #                y=switch(measurement,
-  #                         "ICL" = ICL,
-  #                         "compl_log_lik" = compl_log_lik,
-  #                         "log_lik" = log_lik,
-  #                         "penalty_2" = penalty_2,
-  #                         "penalty" = penalty), 
-  #                color=freq_trun)) +
-  #     stat_summary(aes(group=freq_trun),position = position_dodge(.0),
-  #                  geom="line",alpha=0.7,
-  #                  fun = "mean") +
-  #     # theme(legend.position = "none") +
-  #     guides(color=guide_legend(title="Frequency truncation")) +
-  #     scale_y_continuous() +
-  #     ylab(measurement) +
-  #     scale_x_discrete(labels=1:5) +
-  #     xlab("Number of clusters")
-  #   
-  #   print(g)
-  #   dev.off()
-  # }
+  ### Plot ICL vs N_clus vs freq_trun
+  for (measurement in c("ICL")) {
+    pdf(file=paste0("../Results/Plots/Temp/",
+                    if_else(measurement=="1-ARI", true = "ARI", false = measurement),
+                    '_', 'N_clus', ".pdf"),
+        width = 4, height = 3)
+    g = results_df %>%
+      ggplot(aes(x=switch(measurement,
+                          "ICL" = N_clus_ICL,
+                          "compl_log_lik" = N_clus_compl_log_lik,
+                          "log_lik" = N_clus_log_lik,
+                          "penalty_2" = N_clus_penalty_2,
+                          "penalty" = N_clus_penalty),
+                 y=switch(measurement,
+                          "ICL" = ICL,
+                          "compl_log_lik" = compl_log_lik,
+                          "log_lik" = log_lik,
+                          "penalty_2" = penalty_2,
+                          "penalty" = penalty),
+                 color=freq_trun)) +
+      stat_summary(aes(group=freq_trun),position = position_dodge(.0),
+                   geom="line",alpha=0.7,
+                   fun = "mean") +
+      stat_summary(aes(group=freq_trun),position = position_dodge(.0),
+                   geom="point",alpha=0.7,
+                   fun = "mean") +
+      theme(legend.position = "bottom") +
+      guides(color=guide_legend(title="Frequency truncation")) +
+      scale_y_continuous() +
+      ylab(measurement) +
+      scale_x_discrete(labels=1:5) +
+      xlab("Number of clusters")
+
+    print(g)
+    dev.off()
+  }
   
   
 }

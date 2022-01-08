@@ -253,7 +253,7 @@ for (subj in 3:4){
   ### Save result with freq_trun and total_time_cutoff
   res = res_best
   res_Nclus = res$res_list
-  method = paste0("CDF_v11_rmv2+3_keeptop",
+  method = paste0("CDF_v14_rmv2+3_keeptop",
                   "_Nrestart",N_restart,
                   "_","totaltime",total_time)
   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])

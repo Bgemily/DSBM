@@ -18,7 +18,7 @@ main_v5_pdf = function(### Parameters for generative model
   ### Parameters for algorithms
   freq_trun=15, bw=5, 
   conv_thres=1e-2, MaxIter=5,
-  jitter_time_rad = 10, max_iter=10,
+  jitter_time_rad = 10, max_iter=50,
   opt_radius=total_time/2,
   N_clus_min=N_clus-2, N_clus_max=N_clus+2,
   freq_trun_vec=NULL,
@@ -253,6 +253,7 @@ main_v5_pdf = function(### Parameters for generative model
   
   return(list(network_param=network_param, 
               N_node_vec_entropy=N_node_vec_entropy,
+              freq_trun_vec=freq_trun_vec,
               # model selection result
               N_clus_est=N_clus_est, 
               correct_N_clus=I(N_clus_est==N_clus)*1, 
