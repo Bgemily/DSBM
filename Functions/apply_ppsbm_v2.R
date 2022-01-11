@@ -10,7 +10,10 @@ apply_ppsbm_v2 = function(### Parameters for generative model
                           time_shift_rad = min(time_shift_mean_vec),
                           ### Parameters for algorithms
                           Qmin=N_clus, Qmax=N_clus, bw=5,
-                          t_vec = seq(0,total_time,length.out=1000) )
+                          t_vec = seq(0,total_time,length.out=1000),
+                          ### Result saving setting
+                          save_center_pdf_array=FALSE
+                          )
 {
   
   # Generate networks -------------------------------------------------------
@@ -164,7 +167,11 @@ apply_ppsbm_v2 = function(### Parameters for generative model
               clusters_list_est=clusters_list_est,
               ARI_vec=ARI_vec, ARI_mean=ARI_mean,
               F_mean_sq_err_kernel=F_mean_sq_err_kernel,
-              F_mean_sq_err=F_mean_sq_err))
+              F_mean_sq_err=F_mean_sq_err,
+              center_pdf_array_est=switch(save_center_pdf_array, 
+                                          yes=center_pdf_array_est,
+                                          no=NULL)
+              ))
 }
 
 

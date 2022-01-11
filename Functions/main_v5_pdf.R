@@ -110,7 +110,6 @@ main_v5_pdf = function(### Parameters for generative model
       res$loss_history -> loss_history
       res$align_time -> align_time
       res$cluster_time -> cluster_time
-      res$center_pdf_array -> center_pdf_array_est
       
       N_iteration = res$N_iteration
       
@@ -122,7 +121,7 @@ main_v5_pdf = function(### Parameters for generative model
                                                      clusters_list = clusters_list_est,
                                                      n0_mat_list = n0_mat_list_est,
                                                      t_vec = t_vec)
-      res$center_pdf_array = center_pdf_array_est
+      res$center_pdf_array_kernel = center_pdf_array_est
       
       
       # Save results of N_clus_tmp ----------------------------------------------
@@ -233,6 +232,7 @@ main_v5_pdf = function(### Parameters for generative model
     ARI_mean=NA
     F_mean_sq_err=NA 
     v_mean_sq_err=NA
+    clusters_list_est_permn=NA
   }
   
   # Extract network related parameters -----------------------------------------

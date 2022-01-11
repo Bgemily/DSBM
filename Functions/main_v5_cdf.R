@@ -23,6 +23,7 @@ main_v5_cdf = function(### Parameters for generative model
   N_clus_min=N_clus-2, N_clus_max=N_clus+2,
   freq_trun_vec=NULL,
   save_est_history=FALSE,
+  rand_init=FALSE,
   N_restart=1,
   fix_timeshift=FALSE,
   save_center_pdf_array=FALSE,
@@ -74,16 +75,17 @@ main_v5_cdf = function(### Parameters for generative model
                           v_true_list = v_true_list, 
                           jitter_time_rad = 0,
                           t_vec = t_vec)
+      } else if(rand_init) {
+        res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
+                          N_clus = N_clus_tmp,
+                          N_restart = N_restart,
+                          t_vec = t_vec)
       } else{
         res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
                           N_clus = N_clus_tmp,
                           freq_trun = Inf,
                           t_vec = t_vec)
       }
-      # res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
-      #                   N_clus = N_clus_tmp,
-      #                   N_restart = N_restart,
-      #                   t_vec = t_vec)
       end = Sys.time()
       time_init = as.numeric(end-start, units='secs')
 

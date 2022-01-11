@@ -162,8 +162,8 @@ plot_pdf_array_v3 = function(pdf_array_list,
       g_list = c(g_list, list(g))
     }
   }
-  layout_mat = matrix(NA,3,3)
-  layout_mat[lower.tri(layout_mat, diag = TRUE)] = c(1:6)
+  layout_mat = matrix(NA,k1,k2)
+  layout_mat[lower.tri(layout_mat, diag = TRUE)] = c(1:(k1*(k1+1)/2))
   g = arrangeGrob(grobs=g_list, layout_matrix=layout_mat)
   
   return(list(g=g, big.df=big.df, g_list=g_list))

@@ -100,7 +100,7 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
                                                                   nrow=N_node, 
                                                                   ncol=length(center_fft_array_normed[q,k,]), 
                                                                   byrow = TRUE) ) )^2 )
-        conn_prob_N_vec = rowSums(edge_time_mat[,clusters[[k]]]<Inf) / 
+        conn_prob_N_vec = rowSums(edge_time_mat[,clusters[[k]],drop=FALSE]<Inf) / 
           ( rep(length(clusters[[k]]), nrow(edge_time_mat)) - 1*(1:nrow(edge_time_mat) %in% clusters[[k]]) )
         conn_prob_F = sum(edge_time_mat[clusters[[q]], clusters[[k]]]<Inf) / 
           ( length(edge_time_mat[clusters[[q]], clusters[[k]]]) - I(q==k)*length(clusters[[q]]) )
@@ -113,7 +113,7 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
     
     ### Compute distances between each node and each clus
     for (q in 1:N_clus) {
-      dist_mat[,q] = rowSums(dist_array[,q,]*weights)
+      dist_mat[,q] = rowSums(dist_array[,q,]*weights,na.rm = TRUE)
     }
     
       
