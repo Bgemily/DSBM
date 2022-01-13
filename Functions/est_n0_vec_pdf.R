@@ -73,7 +73,8 @@ est_n0_vec_pdf = function(edge_time_mat_list,
     
     ### Update n0_vec_list_update
     for (m in 1:N_subj) {
-      n0_vec_list_update[[m]] = n0_vec_list_current[[m]] - step_size*gradient_vec_list[[m]]  
+      step_size_correct = step_size*(50/N_node_vec[1])
+      n0_vec_list_update[[m]] = n0_vec_list_current[[m]] - step_size_correct*gradient_vec_list[[m]]  
       n0_vec_list_update[[m]] = round(n0_vec_list_update[[m]])
       
       ### Get n0_min and n0_max

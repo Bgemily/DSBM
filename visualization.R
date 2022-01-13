@@ -21,7 +21,7 @@ path_vec = rep(0,6)
 
 path_vec[1] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v19/pr=0.9,n=30,beta=1.3,V=80/"
 # path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v7_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/"
-path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v9_freqtrun4/pr=0.9,n=30,beta=1.3,V=80/"
+path_vec[2] = "../Results/Rdata/SNR_Vnot0_v4/main_v5_pdf_v10_freqtrun4/pr=0.9,n=30,beta=1.3,V=80/"
 path_vec[3] = "../Results/Rdata/SNR_Vnot0_v4/apply_ppsbm_v4/pr=0.9,n=30,beta=1.3,V=80/"
 
 
@@ -46,7 +46,7 @@ for (param_name in param_name_vec) {
   
   ### Plot ARI/F_mse vs n/beta/V
   for (measurement in c("1-ARI","f_mse","V_mse",
-                        # "N_iteration",
+                        "N_iteration",
                         "time_per_iter",
                         "time_est")) {
     ### Manipulate column "param_value"
@@ -71,12 +71,13 @@ for (param_name in param_name_vec) {
                     ".pdf"), 
         width = 4, height = 2)
     g = results_df_tmp %>% 
+      mutate(method=as_factor(method)) %>%
       ggplot(aes(x=param_value, 
                  y=switch(measurement,
                           "1-ARI" = 1-ARI_mean,
                           "f_mse" = F_mean_sq_err,
                           "time_est"= time_estimation,
-                          # "N_iteration" = N_iteration,
+                          "N_iteration" = N_iteration,
                           "time_per_iter" = time_estimation/N_iteration,
                           "V_mse" = v_mean_sq_err), 
                  # linetype=method,
@@ -95,7 +96,11 @@ for (param_name in param_name_vec) {
                    alpha=0.8,
                    fun = "mean") +
       theme(legend.position = "right") +
-      guides(color=guide_legend(title="Method"))+
+      guides(color=guide_legend(title="Method")) +
+      scale_color_manual(breaks=c("CDF","PDF",'PPSBM'),
+                         values=hue_pal()(3), 
+                         labels=c("CDF","PDF",'PPSBM'),
+                         drop=FALSE) +
       # guides(color=guide_legend(nrow=2,byrow=TRUE),
       #        linetype=guide_legend(nrow=2,byrow=TRUE)) +
       coord_cartesian(ylim = switch(measurement,
@@ -103,8 +108,9 @@ for (param_name in param_name_vec) {
                                     "V_mse" = c(0,150),
                                     "f_mse" = c(0,0.04),
                                     "1-ARI" = c(0,1) )) +
-      ylab(switch(measurement, 'time_est'='Estimation time (s)',
-                  "time_per_iter"='Est time per iter (s)',
+      ylab(switch(measurement, 'time_est'='Total cmpt time (s)',
+                  "time_per_iter"='Cmpt time per iter (s)',
+                  "N_iteration"='Number of iterations',
                   measurement) ) +
       xlab(switch(param_name, 'n'="p",
                   'beta'="beta",
@@ -209,7 +215,7 @@ for (method in c("CDF","PDF")) {
     path_vec[1] = "../Results/Rdata/ICL_v1/main_v5_cdf_v2/pr=0.9,n=30,beta=1.9,V=80/"
   } else{
     freq_trun_vec = 1:6
-    path_vec[1] = "../Results/Rdata/ICL_v1/main_v5_pdf_v3/pr=0.9,n=30,beta=1.9,V=80//"
+    path_vec[1] = "../Results/Rdata/ICL_v1/main_v5_pdf_v4/pr=0.9,n=30,beta=1.9,V=80//"
   }
   
   param_name_vec = list.files(path_vec[1])
@@ -255,12 +261,17 @@ for (method in c("CDF","PDF")) {
                             "log_lik" = log_lik,
                             "penalty_2" = penalty_2,
                             "penalty" = penalty),
+                   size=freq_trun,
+                   alpha=freq_trun,
                    color=freq_trun)) +
         stat_summary(aes(group=freq_trun),position = position_dodge(.0),
-                     geom="line",alpha=0.7,
+                     geom="line",
+                     # alpha=0.7,
                      fun = "mean") +
         stat_summary(aes(group=freq_trun),position = position_dodge(.0),
-                     geom="point",alpha=0.7,
+                     geom="point",
+                     # alpha=0.7,
+                     size=1,
                      fun = "mean") +
         scale_color_manual(values = c(hue_pal()(3)[1],
                                       brewer_pal(palette = "Dark2")(8)[2:3],
@@ -268,8 +279,20 @@ for (method in c("CDF","PDF")) {
                                       brewer_pal(palette = "Dark2")(8)[c(4,6)]
                                       ),
                            breaks = c('NA',2:6)) +
+        scale_size_manual(values = c(0.7, 
+                                      rep(0.5,2),
+                                      0.7,
+                                      rep(0.5,2)),
+                            breaks = c('NA',2:6)) +
+        scale_alpha_manual(values = c(0.9, 
+                                     rep(0.4,2),
+                                     0.9,
+                                     rep(0.4,2)),
+                          breaks = c('NA',2:6)) +
         theme(legend.position = "right") +
-        guides(color=guide_legend(title=element_blank())) +
+        guides(color=guide_legend(title=element_blank()),
+               alpha=guide_legend(title=element_blank()),
+               size=guide_legend(title=element_blank())) +
         coord_cartesian(ylim = switch(method,"PDF"=c(-2000,-1700))) +
         ylab(measurement) +
         scale_x_discrete(labels=1:5) +
@@ -354,7 +377,8 @@ for (param_name in param_name_vec) {
                             values = c("solid",rep('dashed',4))) +
       guides(color=guide_legend(title="Initialization"), linetype=guide_legend(title="Initialization")) +
       coord_cartesian(ylim=switch(measurement,
-                                  "v_mean_sq_err" = c(30,100))) +
+                                  "v_mean_sq_err" = c(40,100)
+                                  )) +
       ylab(switch(measurement,
                   "F_mean_sq_err"="F_mse",
                   measurement)) +
