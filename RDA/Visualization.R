@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 
+# Default working directory: Sources/
 
 
 # Import functions --------------------------------------------------------
@@ -8,6 +9,114 @@ rm(list=ls())
 file_path = "./functions"
 file.sources = list.files(path = file_path, pattern = "*.R$", full.names = TRUE)
 sapply(file.sources, source)
+
+library(tidyverse)
+library(igraph)
+library(RColorBrewer)
+
+# Get network information for the L/R side ------------------------------------
+
+data_folder = "../Processed_FunctionalData/"
+path_vec = list.files(data_folder, full.names = TRUE)
+file_vec = list.files(data_folder, full.names = FALSE)
+edge_time_mat_list = vector(mode = "list", length = length(path_vec)*2)
+avai_inds_list = list()
+locs_mat_list = list()
+for(m in 1:length(path_vec)){ 
+  path = path_vec[m]
+  
+  ### Read information from data
+  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
+  edge_time_mat = edge_time_mat[,-1]
+  avai.inds = as.matrix(read.csv(paste(path,'/AvaiNeurons.csv',sep='')))
+  avai.inds = avai.inds[,-1];
+  locs.all = as.matrix(read.csv(paste(path,'/locs_all.csv',sep='')))
+  locs.all = locs.all[,-1]
+  locs_mat = locs.all[avai.inds,]
+  inds_L = which(locs_mat[,2]<0)
+  inds_R = which(locs_mat[,2]>0)
+  locs_mat_L = locs_mat[inds_L,]
+  locs_mat_R = locs_mat[inds_R,]
+  edge_time_mat_L = edge_time_mat[inds_L, inds_L]
+  edge_time_mat_R = edge_time_mat[inds_R, inds_R]
+  avai_inds_L = which(rowSums(edge_time_mat_L<Inf)>0 )
+  avai_inds_R = which(rowSums(edge_time_mat_R<Inf)>0 )
+  if (m==2) {
+    # avai_inds_L = avai_inds_L[-1]
+    avai_inds_L = avai_inds_L[-c(1,2)]
+    # avai_inds_R = avai_inds_R[-45]
+    # avai_inds_R = avai_inds_R[-c(45,34)]
+    avai_inds_R = avai_inds_R[-c(45,34,15)]
+  }
+  edge_time_mat_L = edge_time_mat_L[avai_inds_L, avai_inds_L]
+  edge_time_mat_R = edge_time_mat_R[avai_inds_R, avai_inds_R]
+  
+  edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
+  avai_inds_list[c(2*m-1,2*m)] = list(inds_L[avai_inds_L], inds_R[avai_inds_R])
+  
+  locs_mat_list[c(2*m-1,2*m)] = list(locs_mat_L[avai_inds_L, ],
+                                     locs_mat_R[avai_inds_R, ])
+}
+
+
+
+### Network snapshots (Figure 1(a) in DynamicNetworks.pdf) ----
+edge_time_mat_tmp = edge_time_mat_list[[4]]
+locs_mat_tmp = locs_mat_list[[4]]
+tmp = rep(1, nrow(edge_time_mat_tmp))
+node_pair=c(1,2)
+
+tmp[node_pair] = brewer.pal(3,name="Dark2")[1:2]
+cols = t(col2rgb(tmp))
+vertex.size = rep(3, nrow(edge_time_mat_tmp))
+vertex.size[node_pair] = 6
+plot_network_animation(locs = locs_mat_tmp, 
+                       edge.time = edge_time_mat_tmp,
+                       vertex.size = vertex.size,
+                       window_list = list(c(0,30),c(0,150),c(0,250)), asp=1, delay=20,
+                       alpha = 150,
+                       cols = cols)
+
+
+### Connecting behavior of nodes (Figure 1(b) in DynamicNetworks.pdf) ----
+node_pair=c(5,6)
+edge_time_tibble = as_tibble(t(edge_time_mat_tmp[node_pair, ]))
+edge_time_tibble = pivot_longer(edge_time_tibble, 
+                                cols=everything(), 
+                                names_to = 'node_id', 
+                                values_to = 'edge_time') %>%
+  mutate(node_id=factor(node_id, levels=c('V1','V2')))
+
+g_raw = edge_time_tibble %>% 
+  filter(edge_time<Inf) %>%
+  mutate(y=1, edge_time=jitter(edge_time)) %>%
+  ggplot() +
+  geom_segment( aes(x=edge_time, xend=edge_time, y=0, yend=y, 
+                    group=node_id, color=node_id, 
+                    linetype=factor(node_id, levels=c('V1','V2'))),
+                size=0.5) +
+  scale_color_manual(breaks=c('V1','V2'),
+                     values = c(brewer.pal(3,name="Dark2")[1:2])) +
+  scale_linetype_manual(breaks=c('V1','V2'),
+                     values = c(1,2)) +
+  xlab('Connecting time (min)') +
+  theme(axis.title.y = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        legend.position = 'none')
+
+plot(g_raw)
+
+
+
+ggsave(paste0("../Results/Plots/Temp/RDA/", 'Data_pp','.pdf'),
+       plot = g_raw,
+       width = 8,height = 1)
+
+
+
+
+# Archive -----------------------------------------------------------------
 
 
 # Visualization (NeuIPS submission) -----------------------------------------------------------

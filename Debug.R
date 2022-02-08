@@ -8,10 +8,17 @@ sapply(file.sources, source)
 
 
 # -------------------------------------------------------------------------
-load("../Results/Rdata/SNR_Vnot0_v4/main_v5_cdf_v11_freqtrun7/pr=0.9,n=30,beta=1.3,V=80/beta/1.3/N_trial10_20211206_231811.Rdata")
 
-network_params = do.call(generate_network2_v3, args=results[[1]]$network_param)
-network_params$time_shift_list
+res = 3
+for(res in 1:10){
+  v_est = results[[res]]$v_vec_list_est[[1]]
+  generated_network = do.call(generate_network2_v3, results[[res]]$network_param)
+  v_true = generated_network$time_shift_list[[1]]
+  
+  plot(v_true,v_est,main=round(results[[res]]$v_mean_sq_err,2)); abline(a=0,b=1,col=2)
+  results[[res]]$v_mean_sq_err
+  Sys.sleep(1)
+}
 
-plot(network_params$time_shift_list[[1]], y=results[[1]]$v_vec_list_est[[1]])
-abline(a=0,b=1,col=2)
+
+
