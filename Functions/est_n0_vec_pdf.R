@@ -1,10 +1,5 @@
 
-### Update time shifts and connecting patterns alternatively
-
-### Based on v7.1
-### When getting rough estimates by aligning cdf's, iterate several times rather than only once.
-### [WARNING: The gradient might be WRONG when there are multiple subjects!]
-
+### Centering step: Update time shifts and connecting patterns
 est_n0_vec_pdf = function(edge_time_mat_list, 
                          clusters_list, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
@@ -34,7 +29,7 @@ est_n0_vec_pdf = function(edge_time_mat_list,
                                           t_vec = t_vec)
   
   
-  # Update time shifts and connecting patterns alternatively ----------------
+  # Update time shifts ----------------
   n0_vec_list_update = n0_vec_list_current = n0_vec_list
   n0_mat_list_update = n0_mat_list_current = n0_mat_list
   center_fft_array_update = center_fft_array_current = center_fft_array
@@ -125,13 +120,14 @@ est_n0_vec_pdf = function(edge_time_mat_list,
   }
   
   
-  ### Compute time shift matrix and connecting patterns
+  ### Compute time shift matrix 
   n0_vec_list = n0_vec_list_current
   n0_mat_list = n0_vec2mat(n0_vec = n0_vec_list)
   
   v_vec_list = lapply(n0_vec_list, function(n0_vec)n0_vec*t_unit)
   v_mat_list = lapply(n0_mat_list, function(n0_mat)n0_mat*t_unit)
   
+  # Update connecting intensities ----------------
   center_fft_array = get_center_fft_array(edge_time_mat_list = edge_time_mat_list, 
                                           clusters_list = clusters_list, 
                                           freq_trun = freq_trun, 
@@ -143,42 +139,4 @@ est_n0_vec_pdf = function(edge_time_mat_list,
               v_vec_list=v_vec_list, v_mat_list=v_mat_list))
 }
 
-
-
-
-# Test --------------------------------------------------------------------
-
-# res = generate_network2_v3(N_subj = 1,N_node_vec = c(180), total_time = 200,conn_patt_var = 1,
-#                            conn_patt_sep = 1.3, conn_prob_mean = 1, conn_prob_rad = 0,
-#                            time_shift_mean_vec = rep(5,3),time_shift_rad = 5,)
-# edge_time_mat_list = res$edge_time_mat_list
-# clusters_list = res$clus_true_list
-# time_shift_list = res$time_shift_list
-# pdf_true_array = res$pdf_true_array
-# plot_pdf_array_v2(pdf_true_array)
-# 
-# 
-# truth = (time_shift_list[[1]])
-# 
-# edge_time_mat_list = list(edge_time_mat_list[[1]][1:60,1:60])
-# clusters_list[[1]][2:3] = NULL
-# truth = truth[1:60]
-# 
-# tmp = est_n0_vec_v7(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
-#                     freq_trun = 10,step_size = 5, max_iter = 20,
-#                     t_vec = seq(0,200,1),
-#                     )
-#                     # n0_vec_list = list(truth/0.2+runif(length(truth),0,20)))
-# plot(truth, tmp$v_vec_list[[1]])
-# abline(a=0,b=1,col=2)
-# 
-# 
-# 
-# tmp2 = est_n0_vec_cdf(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
-#                        t_vec = seq(0,200,1),
-#                        )
-#                       # n0_vec_list = list(truth/0.2+runif(length(truth),0,20)), 
-#                       # n0_mat_list = n0_vec2mat(list(truth/0.2+runif(length(truth),0,20))) )
-# plot(truth, tmp2$v_vec_list[[1]])
-# abline(a=0,b=1,col=2)
 

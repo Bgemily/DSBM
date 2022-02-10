@@ -1,4 +1,4 @@
-# obtain aggregated pdf_vec list (N_node*1)
+# Obtain aggregated pdf_vec list (N_node*1)
 get_aggre_pdf_list = function(edge_time_mat, pairwise_dist, dist_thres, t_vec, tau_mat, true_pdf_fun_list, membership_true){
   aggre_pdf_list = list() 
   N_node = nrow(edge_time_mat)

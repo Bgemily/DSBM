@@ -1,7 +1,6 @@
 
 
 ### Obtain truncated fourier series (smoothed point process) for each pair of clusters 
-### using multiple subjects
 get_center_fft_array = function(edge_time_mat_list, clusters_list, 
                                 n0_mat_list=NULL, freq_trun=15,
                                 t_vec=seq(0, 200, length.out=1000),

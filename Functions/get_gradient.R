@@ -91,35 +91,3 @@ get_gradient = function(edge_time_mat_list, clusters_list,
   
 }
 
-
-
-# Test --------------------------------------------------------------------
-
-# edge_time_mat = kronecker(matrix(1,2,2), matrix(100,5,5))
-# t_vec = seq(0,200,1)
-# t_unit = t_vec[2] - t_vec[1]
-# n0_mat = (edge_time_mat*0+5)/t_unit
-# n0_vec = rep(5,nrow(edge_time_mat))
-# edge_time_mat = edge_time_mat + 5
-# 
-# freq_trun = 5
-# tmp = 0*t_vec
-# tmp[100] = 1
-# fft_true_array = fft(tmp)/length(t_vec)
-# fft_true_array = c(tail(fft_true_array, freq_trun),
-#                    head(fft_true_array, freq_trun+1))
-# 
-# clusters = list(1:5,6:10)
-# 
-# edge_time_mat_list = list(edge_time_mat,edge_time_mat)
-# n0_vec_list = list(n0_vec, n0_vec)
-# n0_mat_list = list(n0_mat, n0_mat)
-# clusters_list = list(clusters,clusters)
-# center_fft_array = array(dim=c(2,2,2*freq_trun+1))
-# center_fft_array[1,1,] = center_fft_array[2,2,] = center_fft_array[1,2,] = center_fft_array[2,1,] = fft_true_array
-# 
-# 
-# get_gradient(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list, 
-#              n0_vec_list = lapply(n0_vec_list, function(x)x+runif(length(x),0,10)), 
-#              freq_trun = freq_trun, t_vec = t_vec)
-

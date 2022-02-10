@@ -11,9 +11,7 @@ find_permn = function(center_cdf_array_from, center_cdf_array_to){
   min_dist = Inf
   for (permn in permn_list) {
     
-    ### V1: l2 distance
-    # dist = sum((center_cdf_array_from[permn, permn, ] - center_cdf_array_to)^2)
-    ### V2: cross-correlation
+    ### Use cross-correlation to measure similarity
     dist = 0
     for (q in 1:N_clus) {
       for (k in q:N_clus) {
@@ -30,8 +28,6 @@ find_permn = function(center_cdf_array_from, center_cdf_array_to){
       }
     }
   
-    ########
-    
     if(dist < min_dist){
       the_permn = permn
       min_dist = dist

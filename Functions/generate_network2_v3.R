@@ -1,5 +1,5 @@
 
-### Force the minimum time shifts to be zero.
+### Generate synthetic networks
 generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_vec=seq(0,total_time,length.out=1000), 
                                 clus_size_mat=matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                                 conn_patt_var=1, conn_patt_sep=2, conn_prob_mean=0.8, conn_prob_rad=0, 
@@ -86,52 +86,6 @@ generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
   if (!isSymmetric(conn_prob_mat))
     stop("Constructed conn_prob_mat is not symmetric.")
   
-  ### Specify connecting patterns' corresponding pdf functions and data generating functions
-  # {  
-  # pdfNrdsamp_fun_list = apply(matrix(nrow=N_clus, ncol=N_clus), 1, as.list)
-  # pdfNrdsamp_fun_list[[1]][[2]] = list(pdf = function(x) dgamma(x, shape=mean_mat[1,2]^2/var_mat[1,2], 
-  #                                                               rate=mean_mat[1,2]/var_mat[1,2])*conn_prob_mat[1,2], 
-  #                                      random = function(n) ifelse(test = runif(n)<=conn_prob_mat[1,2], 
-  #                                                                  yes = rgamma(n, shape=mean_mat[1,2]^2/var_mat[1,2], 
-  #                                                                               rate=mean_mat[1,2]/var_mat[1,2]), 
-  #                                                                  no = Inf)); 
-  # pdfNrdsamp_fun_list[[2]][[1]] = pdfNrdsamp_fun_list[[1]][[2]]
-  # pdfNrdsamp_fun_list[[1]][[3]] = list(pdf = function(x) dgamma(x, shape=mean_mat[1,3]^2/var_mat[1,3], 
-  #                                                               rate=mean_mat[1,3]/var_mat[1,3])*conn_prob_mat[1,3], 
-  #                                      random = function(n) ifelse(test = runif(n)<=conn_prob_mat[1,3], 
-  #                                                                  yes = rgamma(n, shape=mean_mat[1,3]^2/var_mat[1,3], 
-  #                                                                               rate=mean_mat[1,3]/var_mat[1,3]), 
-  #                                                                  no = Inf));
-  # pdfNrdsamp_fun_list[[3]][[1]] = pdfNrdsamp_fun_list[[1]][[3]]
-  # pdfNrdsamp_fun_list[[2]][[3]] = list(pdf = function(x) dgamma(x, shape=mean_mat[2,3]^2/var_mat[2,3], 
-  #                                                               rate=mean_mat[2,3]/var_mat[2,3])*conn_prob_mat[2,3], 
-  #                                      random = function(n) ifelse(test = runif(n)<=conn_prob_mat[2,3], 
-  #                                                                  yes = rgamma(n, shape=mean_mat[2,3]^2/var_mat[2,3], 
-  #                                                                               rate=mean_mat[2,3]/var_mat[2,3]), 
-  #                                                                  no = Inf));
-  # pdfNrdsamp_fun_list[[3]][[2]] = pdfNrdsamp_fun_list[[2]][[3]]
-  # 
-  # pdfNrdsamp_fun_list[[1]][[1]] = list(pdf = function(x) dgamma(x, shape=mean_mat[1,1]^2/var_mat[1,1], 
-  #                                                               rate=mean_mat[1,1]/var_mat[1,1])*conn_prob_mat[1,1], 
-  #                                      random = function(n) ifelse(test = runif(n)<=conn_prob_mat[1,1], 
-  #                                                                  yes = rgamma(n, shape=mean_mat[1,1]^2/var_mat[1,1], 
-  #                                                                               rate=mean_mat[1,1]/var_mat[1,1]), 
-  #                                                                  no = Inf))
-  # pdfNrdsamp_fun_list[[2]][[2]] = list(pdf = function(x) dgamma(x, shape=mean_mat[2,2]^2/var_mat[2,2], 
-  #                                                               rate=mean_mat[2,2]/var_mat[2,2])*conn_prob_mat[2,2], 
-  #                                      random = function(n) ifelse(test = runif(n)<=conn_prob_mat[2,2], 
-  #                                                                  yes = rgamma(n, shape=mean_mat[2,2]^2/var_mat[2,2], 
-  #                                                                         rate=mean_mat[2,2]/var_mat[2,2]), 
-  #                                                                  no = Inf) )
-  # pdfNrdsamp_fun_list[[3]][[3]] = list(pdf = function(x) dgamma(x, shape=mean_mat[3,3]^2/var_mat[3,3], 
-  #                                                               rate=mean_mat[3,3]/var_mat[3,3])*conn_prob_mat[3,3], 
-  #                                      random = function(n) ifelse(test = runif(n)<=conn_prob_mat[3,3], 
-  #                                                                  yes = rgamma(n, shape=mean_mat[3,3]^2/var_mat[3,3], 
-  #                                                                         rate=mean_mat[3,3]/var_mat[3,3]), 
-  #                                                                  no = Inf))
-  # 
-  #   }
-  
 
   ### Evaluate true connecting patterns
   pdf_true_array = cdf_true_array = array(dim = c(N_clus, N_clus, length(t_vec)))
@@ -202,21 +156,3 @@ generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_
   
 }
 
-
-# Test --------------------------------------------------------------------
-
-
-# res = generate_network2_v2(N_subj = 2,N_node_vec = c(30,30), N_clus = 3,total_time = 200,conn_patt_var = 2,
-#                            conn_patt_sep = 2, conn_prob_mean = 0.8,conn_prob_rad = 0, 
-#                            time_shift_mean_vec = rep(10,3),time_shift_rad = 5,)
-# 
-# 
-# par(mfrow=c(1,1))
-# image(res$edge_time_mat_list[[1]])
-# par(mfrow=c(3,3))
-# for (q in 1:3) {
-#   for (k in 1:3) {
-#     plot(res$pdf_true_array[q,k,])
-#   }
-# }
-# res$time_shift_list

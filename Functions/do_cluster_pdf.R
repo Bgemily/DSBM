@@ -1,8 +1,5 @@
 
-### main algorithm
-### Based on v14.2
-### When getting rough estimates by aligning cdf's, iterate several times rather than only once.
-
+### Perform algorithm based on cumulative intensities 
 do_cluster_pdf = function(edge_time_mat_list, N_clus, 
                           clusters_list_init, n0_vec_list_init, n0_mat_list_init,
                           freq_trun=15, step_size=200,
@@ -29,21 +26,13 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
   n0_mat_list = n0_mat_list_init
   order_list = lapply(n0_vec_list, function(n0_vec)order(n0_vec))
   
-  
-  
-  ### Evaluate loss function based on current estimation
   center_fft_array = get_center_fft_array(edge_time_mat_list = edge_time_mat_list, 
                                           clusters_list = clusters_list, 
                                           freq_trun = freq_trun, 
                                           n0_mat_list = n0_mat_list, t_vec = t_vec)
   
-  # loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list, 
-  #                     n0_mat_list = n0_mat_list, 
-  #                     clusters_list = clusters_list, 
-  #                     center_fft_array = center_fft_array, 
-  #                     freq_trun = freq_trun, t_vec = t_vec)$loss
-  # loss_history = c(loss_history, loss)
-  
+
+  ### Save estimation
   clusters_history = c(clusters_history, list(clusters_list))
   n0_mat_list_history = c(n0_mat_list_history, list(n0_mat_list))
   
@@ -122,15 +111,6 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
       center_fft_array_update -> center_fft_array_current 
       
       
-      # ### Evaluate loss[WARNING: revise this when there are multiple subjects!]
-      # loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list[m],
-      #                     n0_mat_list = n0_mat_list_current[m],
-      #                     clusters_list = clusters_list_current[m],
-      #                     center_fft_array = center_fft_array_current,
-      #                     freq_trun = freq_trun,
-      #                     t_vec = t_vec)$loss
-      # loss_history = c(loss_history, loss)
-      
       clusters_history = c(clusters_history, list(clusters_list_current[m]))
       n0_mat_list_history = c(n0_mat_list_history, list(n0_mat_list_current[m]))
       
@@ -138,7 +118,7 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
     }
     
     if (n_iter>MaxIter) {
-      message("[do_cluster_v14]: Reached maximum iteration number.")
+      message("[do_cluster_pdf]: Reached maximum iteration number.")
     }
     N_iteration = n_iter
     
@@ -173,14 +153,6 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
                                                   clusters_list = clusters_list_current, 
                                                   n0_mat_list = n0_mat_list_current, 
                                                   freq_trun = freq_trun,  t_vec = t_vec)
-  
-  # ### Evaluate loss function 
-  # loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list, 
-  #                     n0_mat_list = n0_mat_list_current, 
-  #                     clusters_list = clusters_list_current, 
-  #                     center_fft_array = center_fft_array_current, 
-  #                     freq_trun = freq_trun, t_vec = t_vec)$loss
-  # loss_history = c(loss_history, loss)
   
   clusters_history = c(clusters_history, list(clusters_list_current))
   n0_mat_list_history = c(n0_mat_list_history, list(n0_mat_list_current))
@@ -218,15 +190,7 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
       
       clusters_history = c(clusters_history, list(clusters_list_update))
       
-      
-      # ### Evaluate loss function 
-      # loss = eval_loss_pdf(edge_time_mat_list = edge_time_mat_list, 
-      #                     n0_mat_list = n0_mat_list_current, 
-      #                     clusters_list = clusters_list_update, 
-      #                     center_fft_array = center_fft_array_update, 
-      #                     freq_trun = freq_trun, t_vec = t_vec)$loss
-      # loss_history = c(loss_history, loss)
-      
+
       ### Evaluate stopping criterion
       delta_n0_vec = sum((unlist(n0_vec_list_update)-unlist(n0_vec_list_current))^2) / 
         ( sum(unlist(n0_vec_list_current)^2) + .Machine$double.eps )
@@ -260,7 +224,7 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
     
     
     if (n_iter>MaxIter) {
-      message("[do_cluster_v14]: Reached maximum iteration number.")
+      message("[do_cluster_pdf]: Reached maximum iteration number.")
     }
     
   }
@@ -301,15 +265,7 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
     }
   }
   
-  # ### Get estimated pdf using kernel smoothing
-  # v_mat_list_est = n0_vec2mat(n0_vec = v_vec_list)
-  # n0_mat_list_est = lapply(v_mat_list_est, function(v_mat)round(v_mat/(t_vec[2]-t_vec[1])))
-  # center_pdf_array = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
-  #                                            clusters_list = clusters_list, 
-  #                                            n0_mat_list = n0_mat_list_est, 
-  #                                            t_vec = t_vec)
-  
-  
+
   return(list(clusters_list=clusters_list, 
               loss_history=loss_history,
               clusters_history=clusters_history, n0_mat_list_history=n0_mat_list_history,
@@ -323,23 +279,3 @@ do_cluster_pdf = function(edge_time_mat_list, N_clus,
 }
 
 
-# Test --------------------------------------------------------------------
-
-# res = generate_network2_v3(N_subj = 1,N_node_vec = c(30), N_clus = 3, total_time = 200,conn_patt_var = 1,
-#                            conn_patt_sep = 1.5, conn_prob_mean = 0.8,conn_prob_rad = 0,
-#                            time_shift_mean_vec = rep(10,3),time_shift_rad = 10,)
-# edge_time_mat_list = res$edge_time_mat_list
-# pdf_true_array = res$pdf_true_array
-# clusters_list = res$clus_true_list
-# time_shift_list = res$time_shift_list
-# 
-# tmp = do_cluster_v14(edge_time_mat_list = edge_time_mat_list, N_clus = 3)
-# plot(tmp$loss_history)
-# tmp$clusters_list
-# tmp$clusters_history
-# plot(time_shift_list[[1]][], tmp$v_vec_list[[1]][])
-
-# tmp2 = do_cluster(edge_time_mat = edge_time_mat_list[[1]], N_clus = 3)
-# tmp2$clusters
-# tmp2$clusters_history[[1]]
-# plot(time_shift_list[[1]], tmp2$n0_vec)

@@ -1,9 +1,6 @@
 
 
-# k-means clustering
-### Based on v9.2
-### When getting rough estimates by aligning cdf's, iterate several times rather than only once.
-
+# Perform centering step once and clustering step once
 cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list, 
                              n0_vec_list=NULL, n0_mat_list=NULL, 
                              center_fft_array=NULL, 
@@ -75,8 +72,7 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
                                                rmv_conn_prob = TRUE, 
                                                freq_trun = freq_trun)
     
-    ### Update clusters
-    ############### V1: classification. Compare each node with each cluster
+    ### Update clusters. Compare each node with each cluster
     membership = numeric(N_node)
     dist_to_centr_vec = numeric(N_node)
 
@@ -126,19 +122,6 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
     }
     clusters = mem2clus(membership = membership, N_clus_min = N_clus)
 
-    ################ V2: clustering. Use pairwise distance, do not need estimated centers
-    # pdist_array = array(0, dim=c(N_node, N_node, N_clus))
-    # for (l in 1:N_clus) {
-    #   pdist_array[ , ,l] = rdist::pdist(node_pdf_array[ ,l, ])
-    # }
-    # weights = sapply(clusters, length)
-    # weights = weights/sum(weights)
-    # pdist_mat = apply(pdist_array, c(1,2), function(dij_vec) sqrt(sum(weights*(dij_vec)^2)))
-    # membership = cluster::pam(x=pdist_mat, k=N_clus, diss=TRUE, cluster.only=TRUE)
-    # clusters = mem2clus(membership)
-    # dist_to_centr_vec=NA
-    ##############################
-    
     clusters_list[[m]] = clusters
   }
   
@@ -190,26 +173,3 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
 }
 
 
-# Test --------------------------------------------------------------------
-
-# res = generate_network2_v3(N_subj = 1,N_node_vec = c(30), N_clus = 3, total_time = 200,conn_patt_var = 1,
-#                            conn_patt_sep = 1.5, conn_prob_mean = 0.8,conn_prob_rad = 0,
-#                            time_shift_mean_vec = rep(10,3),time_shift_rad = 10,)
-# 
-# edge_time_mat_list = res$edge_time_mat_list
-# pdf_true_array = res$pdf_true_array
-# clusters_list = res$clus_true_list
-# time_shift_list = res$time_shift_list
-# 
-# tmp = cluster_kmeans_v9(edge_time_mat_list = edge_time_mat_list,
-#                         clusters_list = list(list(1:5,11:15,c(6:10,16:30))))
-# tmp$clusters_list
-# plot(tmp$v_vec_list[[1]], time_shift_list[[1]])
-# abline(a=0,b=1,col=2)
-# 
-# 
-# tmp2 = cluster_kmeans_cdf(edge_time_mat_list = edge_time_mat_list, 
-#                         clusters_list = list(list(1:5,11:15,c(6:10,16:30))))
-# tmp2$clusters_list
-# plot(tmp2$v_vec_list[[1]], time_shift_list[[1]])
-# abline(a=0,b=1,col=2)

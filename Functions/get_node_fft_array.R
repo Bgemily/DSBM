@@ -1,6 +1,5 @@
 
 ### Obtain truncated fourier series (smoothed shifted point process) between each node and each cluster 
-### using multiple subjects
 
 get_node_fft_array = function(edge_time_mat, clusters, 
                               n0_mat=edge_time_mat*0, freq_trun=15,

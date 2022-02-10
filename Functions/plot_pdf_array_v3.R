@@ -6,9 +6,6 @@ plot_pdf_array_v3 = function(pdf_array_list,
                              y_lim=c(0, 0.04),xlim=c(0,200))
 {
   
-  # library(tidyverse)
-  # library(ggplot2)
-  
   if (dim(pdf_array_list[[1]])!=dim(pdf_array_list[[2]]))
     stop("Dimension not match: pdf_array_list[[1]] and pdf_array_list[[2]] should have same dimension")
   
@@ -91,7 +88,6 @@ plot_pdf_array_v3 = function(pdf_array_list,
   
   label_df = label_df %>%
     ungroup() %>%
-    # group_by(clus.pair) %>%
     mutate(ind_subj=ind_subj,
               label = paste0(ifelse(ind_subj=='ind_subj1','L','R'), '\n',
                              conn_prob,
@@ -144,21 +140,7 @@ plot_pdf_array_v3 = function(pdf_array_list,
               panel.grid.minor = element_blank(),
               plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"))  + 
         coord_cartesian(xlim = xlim, ylim = y_lim)
-      # g = g +
-      #   geom_segment(data = big.df %>% filter(clus.pair==paste0('(',q,',',l,')')) %>%
-      #                  group_by(clus.pair, ind_subj) %>% 
-      #                  summarise(quantile_5=unique(quantile_5),
-      #                            quantile_95=unique(quantile_95)) %>% 
-      #                  ungroup() %>% mutate(clus.pair=as_factor(clus.pair), 
-      #                                       ind_subj=as.factor(ind_subj)),
-      #                aes(x=quantile_5,xend=quantile_95, 
-      #                    y=y_lim[1], yend=y_lim[1],
-      #                    color=clus.pair, linetype=ind_subj), 
-      #                inherit.aes = FALSE,
-      #                arrow=arrow(angle = 0,
-      #                            length = unit(0.08, "inches"), 
-      #                            ends='both'),
-      #                alpha=0.4, size=1) 
+
       g_list = c(g_list, list(g))
     }
   }
@@ -168,10 +150,5 @@ plot_pdf_array_v3 = function(pdf_array_list,
   
   return(list(g=g, big.df=big.df, g_list=g_list))
   
-  # fill curves with colors
-  # g + geom_rect(data=big.df, 
-  #               mapping=aes(xmin=t,xmax=t+0.3,ymax=value,ymin=0), 
-  #               fill=big.df$fill.col,stat="identity")
-  
-  
+
 }

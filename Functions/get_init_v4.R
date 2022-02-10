@@ -1,13 +1,10 @@
-### Initialization of clusters and n0_mat
+### Initialize of cluster memberships and time shifts
 ### Initialize time shifts by earliest edge time.
 get_init_v4 = function(edge_time_mat_list, N_clus, 
                        freq_trun=Inf,
                        t_vec=seq(0, 200, length.out=1000))
 {
-  # print("####################")
-  # print("get_init_v4: Initialize time shifts by the earliest edge time.")
-  # print("####################")
-  
+
   time_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
   N_node_vec = sapply(edge_time_mat_list, nrow)
@@ -41,7 +38,6 @@ get_init_v4 = function(edge_time_mat_list, N_clus,
                                            n0_mat = matrix(n0_vec,nrow=N_node,ncol=N_node), 
                                            freq_trun = freq_trun,
                                            t_vec = t_vec)
-    # aligned_cdf_mat = t(sapply(1:N_node, function(i) node_cdf_array[i,1,] ))
     aligned_cdf_mat = t(sapply(1:N_node, function(i) node_cdf_array[i,1,]/max(node_cdf_array[i,1,]+.Machine$double.eps) ))
     membership = cluster::pam(x=aligned_cdf_mat, k=N_clus, diss=FALSE, cluster.only=TRUE)
     membership_list[[m]] = membership
@@ -60,11 +56,3 @@ get_init_v4 = function(edge_time_mat_list, N_clus,
               v_vec_list=v_vec_list))
 }
 
-### Test
-# edge_time_mat = matrix(1:4,2,2)
-# edge_time_mat = kronecker(edge_time_mat, matrix(10,5,5))
-# edge_time_mat_list = list(edge_time_mat, edge_time_mat)
-# res = get_init_v2(edge_time_mat_list = edge_time_mat_list, N_clus = 2)
-# res$clusters_list
-# res$n0_vec_list
-# res$membership_list

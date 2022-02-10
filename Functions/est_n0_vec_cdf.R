@@ -1,9 +1,6 @@
 
-### Update time shifts and connecting patterns alternatively
-
-### Based on v4
+### Centering step: Update time shifts and connecting patterns alternatively
 ### Force n0 to be less than earliest edge time.
-### Normalize node_cdf_array when estimating time shifts
 
 est_n0_vec_cdf = function(edge_time_mat_list, 
                          clusters_list, center_cdf_array=NULL, 
@@ -31,8 +28,7 @@ est_n0_vec_cdf = function(edge_time_mat_list,
                                                t_vec = t_vec)
   }
   
-  # browser(); mean(center_cdf_array)
-  
+
   # Update time shifts and connecting patterns alternatively ----------------
   n_iter = 1
   converge = FALSE
@@ -79,14 +75,9 @@ est_n0_vec_cdf = function(edge_time_mat_list,
           f_target_list = lapply(1:N_clus, function(l) node_cdf_array[i,l, ])
           f_origin_list = lapply(1:N_clus, function(l) center_cdf_array_current[q,l, ])
           
-          ##### V1: Eliminate the difference between the constant values at the right end of curves.
+          ##### Eliminate the difference between the constant values at the right end of curves.
           f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6))
           f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/max(max(f_target_list[[l]]), 1e-6))
-          
-          ##### V2
-          # f_origin_list = lapply(1:length(clusters_tmp), function(l) f_origin_list[[l]]/max(max(f_origin_list[[l]]), 1e-6)*max(max(f_target_list[[l]]), 1e-6))
-          # f_target_list = lapply(1:length(clusters_tmp), function(l) f_target_list[[l]]/1)
-          ####################
           
           weights = weight_mat[i,]
           if(sum(weights)==0)
@@ -130,10 +121,7 @@ est_n0_vec_cdf = function(edge_time_mat_list,
       n0_vec_list_update[[m]] = n0_vec_list_update[[m]] + floor(abs(global_timeshift/t_unit))*sign(global_timeshift)
       
     }
-    ### Debug
-    # browser()
-    # plot(n0_vec_list_current[[1]], n0_vec_list_update[[1]])
-    
+
     ### Update connecting patterns 
     n0_mat_list_update = n0_vec2mat(n0_vec = n0_vec_list_update)
     
@@ -176,24 +164,3 @@ est_n0_vec_cdf = function(edge_time_mat_list,
 }
 
 
-
-
-# Test --------------------------------------------------------------------
-
-# res = generate_network2_v2(N_subj = 1,N_node_vec = c(30), N_clus = 3,total_time = 200,conn_patt_var = 1,
-#                            conn_patt_sep = 1.5, conn_prob_mean = 0.8,conn_prob_rad = 0,
-#                            time_shift_mean_vec = rep(10,3),time_shift_rad = 10,)
-# 
-# edge_time_mat_list = res$edge_time_mat_list
-# cdf_true_array = res$cdf_true_array
-# pdf_true_array = res$pdf_true_array
-# clusters_list = res$clus_true_list
-# time_shift_list = res$time_shift_list
-# truth = (time_shift_list[[1]])
-# 
-# tmp = est_n0_vec_v4(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list)
-# tmp$v_vec_list
-# plot(truth, tmp$v_vec_list[[1]])
-# 
-# est = est_n0_vec(edge_time_mat = edge_time_mat_list[[1]], clusters = clusters_list[[1]], t_vec = seq(0,200,length.out=1000))
-# plot(truth, est)

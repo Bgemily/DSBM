@@ -26,7 +26,6 @@ select_model = function(edge_time_mat_list, N_node_vec,
       if (is.null(N_basis_mat) & !is.null(freq_trun_mat)){
         N_basis_mat = 1+2*freq_trun_mat
       } else if (is.null(N_basis_mat) & is.null(freq_trun_mat)){
-        # N_basis_mat = matrix(dim(center_pdf_array_tmp)[3],nrow=N_clus_tmp, ncol=N_clus_tmp)
         N_basis_mat = matrix(2,nrow=N_clus_tmp, ncol=N_clus_tmp)
       }
       pi_vec = res_tmp$pi_vec

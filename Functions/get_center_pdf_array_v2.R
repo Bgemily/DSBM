@@ -1,6 +1,6 @@
 
 
-### Obtain connecting pattern (pdf of shifted events) for each pair of clusters using multiple subjects
+### Obtain connecting pattern (pdf of shifted events) for each pair of clusters 
 get_center_pdf_array_v2 = function(edge_time_mat_list, clusters_list, 
                                    n0_mat_list=NULL, t_vec=seq(0, 50, 0.05),
                                    bw_mat=NULL,

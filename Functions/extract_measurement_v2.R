@@ -1,6 +1,6 @@
 
-# Extract certain measurement from a folder_path with same param_setting but various param_value and multiple replicates
-# Output: dataframe, cols: param_value | ARI | F_mse | v_mse | 
+# Extract certain measurement from results of multiple replicates
+# Output: dataframe, cols: param_value | measurement(s) | 
 
 extract_measurement_v2 = function(folder_path, measurement=c("ARI_mean", "F_mean_sq_err", "v_mean_sq_err")){
   

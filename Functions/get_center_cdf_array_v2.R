@@ -1,5 +1,5 @@
 
-### Obtain connecting pattern for each pair of clusters using multiple subjects
+### Obtain connecting pattern for each pair of clusters 
 get_center_cdf_array_v2 = function(edge_time_mat_list, clusters_list, 
                                    n0_mat_list=NULL, freq_trun=Inf,
                                    t_vec=seq(0, 50, 0.05)){  
@@ -59,25 +59,3 @@ get_center_cdf_array_v2 = function(edge_time_mat_list, clusters_list,
   return(cdf_array)
 }
 
-
-# ### Test
-# edge_time_mat1 = kronecker(matrix(1:4,2,2), matrix(10,5,5))
-# edge_time_mat2 = kronecker(matrix(1:4,2,2), matrix(10,3,3))+1
-# clusters1 = list(1:5,6:10)
-# clusters2 = list(1:3,4:6)
-# edge_time_mat_list = list(edge_time_mat1)
-# clusters_list = list(clusters1)
-# n0_mat_list = list(edge_time_mat1*0+1/0.05)
-# 
-# res = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list,
-#                               clusters_list = clusters_list,
-#                               freq_trun = 20,
-#                               t_vec = seq(0,50,length.out=200),
-#                               n0_mat_list = n0_mat_list)
-# par(mfrow=c(2,2))
-# for (q in 1:2) {
-#   for (k in 1:2) {
-#     plot(res[q,k,], type='l')
-#   }
-# }
-# par(mfrow=c(1,1))

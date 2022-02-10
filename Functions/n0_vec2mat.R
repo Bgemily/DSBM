@@ -28,7 +28,3 @@ n0_vec2mat = function(n0_vec){
 }
 
 
-### Test
-# n0_vec = 1:10
-# n0_vec2mat(n0_vec)
-# n0_vec2mat(list(n0_vec-5, n0_vec))

@@ -49,8 +49,6 @@ eval_loss_v2 = function(edge_time_mat_list,
       }
     }
     
-    # loss = loss + sum((counting_proc_array-event_rate_array)^2)
-    
   }
   
   return(list(loss=loss))
@@ -59,28 +57,3 @@ eval_loss_v2 = function(edge_time_mat_list,
 
 
 
-
-# Test --------------------------------------------------------------------
-# 
-# edge_time_mat = kronecker(matrix(1,2,2), matrix(100,5,5))
-# t_vec = seq(0,200,0.2)
-# t_unit = t_vec[2] - t_vec[1]
-# n0_mat = (edge_time_mat*0+5)/t_unit
-# edge_time_mat = edge_time_mat + 5
-# cdf_true_array = ecdf(100)(t_vec)
-# clusters = list(1:5,6:10)
-# 
-# edge_time_mat_list = list(edge_time_mat,edge_time_mat)
-# n0_mat_list = list(n0_mat, n0_mat)
-# clusters_list = list(clusters,clusters)
-# center_cdf_array = array(dim=c(2,2,length(t_vec)))
-# center_cdf_array[1,1,] = center_cdf_array[2,2,] = center_cdf_array[1,2,] = center_cdf_array[2,1,] = cdf_true_array
-# 
-# 
-# loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list,
-#                    n0_mat_list = n0_mat_list,
-#                    clusters_list = clusters_list,
-#                    center_cdf_array = center_cdf_array, t_vec = t_vec)$loss
-# 
-# 
-# 
