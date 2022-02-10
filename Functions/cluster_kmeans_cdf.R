@@ -7,6 +7,7 @@ cluster_kmeans_cdf = function(edge_time_mat_list,
                              freq_trun = Inf,
                              t_vec=seq(0,200,length.out=1000), order_list=NULL, 
                              fix_timeshift=FALSE,
+                             gamma=0.1,
                              ...)
 {
   
@@ -91,7 +92,7 @@ cluster_kmeans_cdf = function(edge_time_mat_list,
         dist_array_1[,q,k] = tmp
         
         ### Weighted sum of conn_prob and shape
-        dist_array[,q,k] = dist_array_1[,q,k]*(conn_prob_N_vec) + dist_array_2[,q,k]*(length(t_vec)*0.1)
+        dist_array[,q,k] = dist_array_1[,q,k]*(conn_prob_N_vec) + dist_array_2[,q,k]*gamma*length(t_vec)
         
       }
     }

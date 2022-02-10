@@ -6,7 +6,7 @@ est_n0_vec_cdf = function(edge_time_mat_list,
                          clusters_list, center_cdf_array=NULL, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          freq_trun = Inf,
-                         t_vec=seq(0,200,length.out=1000), step_size=0.02,
+                         t_vec=seq(0,200,length.out=1000), step_size=7176,
                          max_iter=5, epsilon=0.001, order_list=NULL)
 {
   t_unit = t_vec[2] - t_vec[1]
@@ -139,10 +139,6 @@ est_n0_vec_cdf = function(edge_time_mat_list,
     n0_vec_list_current = n0_vec_list_update
     n0_mat_list_current = n0_mat_list_update
     center_cdf_array_current = center_cdf_array_update
-  }
-  
-  if (n_iter>max_iter) {
-    message("[est_n0_vec_cdf]: Reached maximum iteration number ", max_iter)
   }
   
   ### Compute time shift matrix and connecting patterns

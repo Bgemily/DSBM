@@ -1,6 +1,7 @@
 ### Initialize of cluster memberships and time shifts randomly
 get_init_v5 = function(edge_time_mat_list, N_clus, 
                        N_restart=1,
+                       gamma=0.1,
                        t_vec=seq(0, 200, length.out=1000))
 {
   time_unit = t_vec[2] - t_vec[1]
@@ -55,6 +56,7 @@ get_init_v5 = function(edge_time_mat_list, N_clus,
                           n0_mat_list = n0_mat_list, 
                           clusters_list = clusters_list, 
                           center_cdf_array = center_cdf_array, 
+                          gamma = gamma,
                           t_vec = t_vec)$loss
     }
     

@@ -1,8 +1,9 @@
-### Loss = \sum_{i,j: t_{i,j}<\infty} T^{-1}*|N/N(T)-S^{v}F/F(T)|^2 + 0.1* \sum_{i,j: i\neq j} [N_{i,j}(T)-F_{z_i,z_j}(T)]^2
+### Loss = \sum_{i,j: t_{i,j}<\infty} T^{-1}*|N/N(T)-S^{v}F/F(T)|^2 + gamma* \sum_{i,j: i\neq j} [N_{i,j}(T)-F_{z_i,z_j}(T)]^2
 
 eval_loss_v2 = function(edge_time_mat_list, 
                         n0_mat_list, clusters_list, center_cdf_array,
                         freq_trun = Inf,
+                        gamma=0.1,
                         t_vec=seq(0,200,length.out=1000)){
 
   N_subj = length(edge_time_mat_list)
@@ -36,9 +37,9 @@ eval_loss_v2 = function(edge_time_mat_list,
             if(edge_time_mat[i,j]<Inf & i!=j){
               loss_ij = mean((counting_proc_array[i,j,]/max(counting_proc_array[i,j,]+.Machine$double.eps) -
                                 event_rate_array[i,j,]/max(event_rate_array[i,j,]+.Machine$double.eps))^2) +
-                  0.1*(max(counting_proc_array[i,j,])-max(event_rate_array[i,j,]))^2
+                  gamma*(max(counting_proc_array[i,j,])-max(event_rate_array[i,j,]))^2
             } else if(edge_time_mat[i,j]==Inf & i!=j){
-              loss_ij = 0.1*(max(counting_proc_array[i,j,])-max(event_rate_array[i,j,]))^2
+              loss_ij = gamma*(max(counting_proc_array[i,j,])-max(event_rate_array[i,j,]))^2
             } else{
               loss_ij = 0
             }

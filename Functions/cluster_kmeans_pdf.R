@@ -9,6 +9,7 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
                              opt_radius=max(t_vec)/2,
                              fix_timeshift=FALSE,
                              prob_err_mtplr=0.005,
+                             gamma=0.001,
                              ...)
 {
   
@@ -102,7 +103,7 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
           ( length(edge_time_mat[clusters[[q]], clusters[[k]]]) - I(q==k)*length(clusters[[q]]) )
         dist_array_2[,q,k] = (conn_prob_N_vec - conn_prob_F)^2
         
-        dist_array[,q,k] = dist_array_1[,q,k]*(conn_prob_N_vec) + dist_array_2[,q,k]*(length(t_vec)*0.001)
+        dist_array[,q,k] = dist_array_1[,q,k]*(conn_prob_N_vec) + dist_array_2[,q,k]*gamma*length(t_vec)
         
       }
     }

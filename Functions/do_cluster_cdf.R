@@ -7,6 +7,7 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
                          total_time = 200, t_vec=seq(0,total_time,length.out=1000),
                          MaxIter=10, conv_thres=5e-3, save_est_history=FALSE, 
                          fix_timeshift=FALSE,
+                         gamma=0.1,
                          ...)
 {
   t_unit = t_vec[2] - t_vec[1]
@@ -71,6 +72,7 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
                               freq_trun = freq_trun,
                               t_vec=t_vec, order_list=NULL, 
                               fix_timeshift=fix_timeshift,
+                              gamma=gamma,
                               ...)
       clusters_list_update[m] = res$clusters_list
       n0_vec_list_update[m] = res$n0_vec_list
@@ -168,6 +170,7 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
                               center_cdf_array = center_cdf_array_current,
                               t_vec=t_vec, order_list=NULL, 
                               fix_timeshift=fix_timeshift,
+                              gamma=gamma,
                               ...)
       clusters_list_update = res$clusters_list
       n0_vec_list_update = res$n0_vec_list

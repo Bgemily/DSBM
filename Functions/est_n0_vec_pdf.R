@@ -4,7 +4,8 @@ est_n0_vec_pdf = function(edge_time_mat_list,
                          clusters_list, 
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          freq_trun=5,
-                         t_vec=seq(0,200,length.out=1000), step_size=200,
+                         t_vec=seq(0,200,length.out=1000), 
+                         step_size=10000/nrow(edge_time_mat_list[[1]]),
                          max_iter=50, epsilon=0.001, shrink=0.5, order_list=NULL, 
                          opt_radius=max(t_vec)/2,
                          ...)
@@ -68,7 +69,7 @@ est_n0_vec_pdf = function(edge_time_mat_list,
     
     ### Update n0_vec_list_update
     for (m in 1:N_subj) {
-      step_size_correct = step_size*(50/N_node_vec[1])
+      step_size_correct = step_size
       n0_vec_list_update[[m]] = n0_vec_list_current[[m]] - step_size_correct*gradient_vec_list[[m]]  
       n0_vec_list_update[[m]] = round(n0_vec_list_update[[m]])
       
@@ -115,10 +116,7 @@ est_n0_vec_pdf = function(edge_time_mat_list,
     center_fft_array_current = center_fft_array_update
   }
   
-  if (n_iter>max_iter) {
-    message("[est_n0_vec_pdf]: Reached maximum iteration number ", max_iter)
-  }
-  
+
   
   ### Compute time shift matrix 
   n0_vec_list = n0_vec_list_current
