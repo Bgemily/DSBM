@@ -20,6 +20,7 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
   
   v_vec_history = list()
   center_cdf_array_history = list()
+  conv_crit_history = c()
 
   # Initialize clusters and time shifts -------------------------------------
   
@@ -100,7 +101,8 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
                                     (sum(center_cdf_array_current^2) + .Machine$double.eps),
                                   error=function(x)1)
       
-      stopping = mean(c(delta_center_cdf,delta_clusters,delta_n0_vec)) < conv_thres
+      conv_crit = mean(c(delta_center_cdf,delta_clusters,delta_n0_vec))
+      stopping = conv_crit < conv_thres
       
       
       
@@ -118,6 +120,7 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
         clusters_history = c(clusters_history, list(clusters_list_current[[m]]))
         v_vec_history = c(v_vec_history, list(v_vec_list_current[[m]]))
         center_cdf_array_history= c(center_cdf_array_history, list(center_cdf_array_current))
+        conv_crit_history = c(conv_crit_history, conv_crit)
       }
       
     }
@@ -256,6 +259,7 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
               clusters_history=clusters_history, 
               v_vec_history=v_vec_history,
               center_cdf_array_history=center_cdf_array_history,
+              conv_crit_history=conv_crit_history,
               loss_history=loss_history,
               freq_trun_mat=freq_trun_mat,
               N_iteration=N_iteration,

@@ -121,6 +121,8 @@ select_model = function(edge_time_mat_list, N_node_vec,
   # Output ------------------------------------------------------------------
   
   return(list(N_clus_est = N_clus_est, 
+              ind_best_N_clus = ind_best_N_clus,
+              ind_best_freq_trun = ind_best_freq_trun,
               res_best = res, 
               ICL_mat = ICL_mat,
               compl_log_lik_mat = compl_log_lik_mat, 

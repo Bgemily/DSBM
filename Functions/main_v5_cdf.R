@@ -1,11 +1,5 @@
 
 ### Generate network_list, run our algorithm using multiple cluster numbers, and output measurements of errors.
-### Based on v3.4.5 
-### Add arguments: N_clus_min, N_clus_max
-### Add output value: N_clus_est, correct_N_clus, ICL_vec, compl_log_lik_vec, penalty_vec
-### Add estimation of cluster number using ICL
-### Remove output value: t_vec (this is contained in network_param)
-
 
 main_v5_cdf = function(### Parameters for generative model
   SEED, N_subj=1, N_node_vec = rep(90,N_subj),
@@ -154,6 +148,7 @@ main_v5_cdf = function(### Parameters for generative model
     clusters_history = res$clusters_history
     v_vec_history = res$v_vec_history
     center_cdf_array_history = res$center_cdf_array_history
+    conv_crit_history = res$conv_crit_history
   }
   
   # Compute estimation error ------------------------------------------------
@@ -267,6 +262,7 @@ main_v5_cdf = function(### Parameters for generative model
                 v_mean_sq_err_history=v_mean_sq_err_history,
                 clusters_history = clusters_history,
                 v_vec_history = v_vec_history,
+                conv_crit_history = conv_crit_history,
                 # network parameter
                 network_param=network_param, 
                 N_node_vec_entropy=N_node_vec_entropy,

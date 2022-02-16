@@ -61,7 +61,7 @@ for (param_name in param_name_vec) {
         mutate(param_value = factor(param_value, levels = sort(unique(param_value),
                                                                decreasing = param_name=="V")) )
     } else{
-      results_df_tmp = results_df
+      results_df_tmp = results_df 
     }
     results_df_tmp = results_df_tmp %>% 
       mutate(time_per_iter=time_estimation/N_iteration)
@@ -84,24 +84,27 @@ for (param_name in param_name_vec) {
                           "V_mse" = v_mean_sq_err), 
                  # linetype=method,
                  color=method)) +
-      stat_summary(aes(group=method), position = position_dodge(.0),
-                   # geom="pointrange",
-                   # fun.min = function(x)quantile(x,0.25),
-                   # fun.max = function(x)quantile(x,0.75),
-                   # fun.min = function(x)mean(x)-sd(x),
-                   # fun.max = function(x)mean(x)+sd(x),
-                   geom="point",
-                   fun = "mean",
-                   alpha=0.7) +
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",
+                   size=0.7,
                    alpha=0.8,
                    fun = "mean") +
-      theme(legend.position = "right") +
+      # stat_summary(data = results_df_tmp %>%
+      #                filter(param_value==ifelse(is.factor(results_df_tmp$param_value),
+      #                                           levels(results_df_tmp$param_value)[1],
+      #                                           sort(results_df_tmp$param_value, 
+      #                                                decreasing = param_name=="V")[1])),
+      #              aes(group=method), position = position_dodge(.0),
+      #              geom="point",
+      #              fun = "mean",
+      #              alpha=0.7) +
+      theme_bw()+
+      theme(legend.position = "right", 
+            legend.box.background = element_rect(color="gray")) +
       guides(color=guide_legend(title="Method")) +
       scale_color_manual(breaks=c("CDF","PDF",'PPSBM'),
                          values=hue_pal()(3), 
-                         labels=c("CDF","PDF",'PPSBM'),
+                         labels=c("SibSBM-C","SibSBM-P",'PPSBM'),
                          drop=FALSE) +
       # guides(color=guide_legend(nrow=2,byrow=TRUE),
       #        linetype=guide_legend(nrow=2,byrow=TRUE)) +
@@ -193,20 +196,22 @@ for (param_name in param_name_vec) {
                           "V_mse" = v_mean_sq_err), 
                  # linetype=method,
                  color=method)) +
-      stat_summary(aes(group=method), position = position_dodge(.0),
-                   # geom="pointrange",
-                   alpha=0.7,
-                   # fun.min = function(x)quantile(x,0.25),
-                   # fun.max = function(x)quantile(x,0.75),
-                   # fun.min = function(x)mean(x)-sd(x),
-                   # fun.max = function(x)mean(x)+sd(x),
-                   geom="point",
-                   fun = "mean") +
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",
                    alpha=0.8,
                    fun = "mean") +
-      theme(legend.position = "right") +
+      stat_summary(data = results_df_tmp %>%
+                     filter(param_value==ifelse(is.factor(results_df_tmp$param_value),
+                                                levels(results_df_tmp$param_value)[1],
+                                                sort(results_df_tmp$param_value, 
+                                                     decreasing = param_name=="V")[1])),
+                   aes(group=method), position = position_dodge(.0),
+                   geom="point",
+                   fun = "mean",
+                   alpha=0.7) +
+      theme_bw()+
+      theme(legend.position = "right", 
+            legend.box.background = element_rect(color="gray")) +
       guides(color=guide_legend(title="Method"))+
       # guides(color=guide_legend(nrow=2,byrow=TRUE)) +
       coord_cartesian(ylim = switch(measurement,
@@ -382,9 +387,9 @@ for (param_name in param_name_vec) {
     pdf(file=paste0("../Results/Plots/Temp/ICL_vs_Nclus/",
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement),
                     '_', 'N_clus', ".pdf"),
-        width = 8, height = 3)
+        width = 3.8, height = 3.5)
     g = results_df %>%
-      filter(freq_trun %in% c("NA",3,4,5)) %>%
+      filter(freq_trun %in% c("NA",2,3,4)) %>%
       ggplot(aes(x=switch(measurement,
                           "ICL" = N_clus_ICL,
                           "compl_log_lik" = N_clus_compl_log_lik,
@@ -401,7 +406,7 @@ for (param_name in param_name_vec) {
                  alpha=freq_trun,
                  color=freq_trun)) +
       stat_summary(aes(group=freq_trun),position = position_dodge(.0),
-                   geom="line",
+                   geom="line", size=0.7,
                    # alpha=0.7,
                    fun = "mean") +
       # stat_summary(aes(group=freq_trun),position = position_dodge(.0),
@@ -410,28 +415,39 @@ for (param_name in param_name_vec) {
       #              size=1,
       #              fun = "mean") +
       scale_color_manual(values = c(hue_pal()(3)[1],
-                                    brewer_pal(palette = "Dark2")(8)[c(2,3)],
+                                    brewer_pal(palette = "Dark2")(8)[c(3)],
                                     hue_pal()(3)[2],
-                                    brewer_pal(palette = "Dark2")(8)[c(4,6)]),
-                         labels = c("CDF", 2:6),
-                         breaks = c('NA',2:6)) +
+                                    brewer_pal(palette = "Dark2")(8)[c(4)]),
+                         labels = c("SidSBM-C", paste0("SidSBM-P","(    = ",2:4,")")),
+                         breaks = c('NA',2:4)) +
       scale_size_manual(values = c(0.7, 
-                                   rep(0.5,2),
+                                   0.5,
                                    0.7,
-                                   rep(0.5,2)),
-                        labels = c("CDF", 2:6),
-                        breaks = c('NA',2:6)) +
+                                   0.5),
+                        labels = c("SidSBM-C", paste0("SidSBM-P","(    = ",2:4,")")),
+                        breaks = c('NA',2:4)) +
       scale_alpha_manual(values = c(0.9, 
-                                    rep(0.4,2),
+                                    0.4,
                                     0.9,
-                                    rep(0.4,2)),
-                         labels = c("CDF", 2:6),
-                         breaks = c('NA',2:6)) +
-      theme(legend.position = "right") +
-      guides(color=guide_legend(title=" "),
-             alpha=guide_legend((title=" ")),
-             size=guide_legend((title=" "))) +
-      coord_cartesian(ylim = c()) +
+                                    0.4),
+                         labels = c("SidSBM-C", paste0("SidSBM-P","(    = ",2:4,")")),
+                         breaks = c('NA',2:4)) +
+      theme_bw()+
+      theme(legend.position = c(0.99,0.99),
+            legend.justification = c("right","top"),
+            legend.background = element_rect(fill='transparent'),
+            legend.box.background = element_rect(color="gray"),
+            legend.key = element_rect(size=1, fill = NA, color = NA),
+            legend.key.height = unit(.4, 'cm'),
+            # legend.key.width = unit(.5, 'cm'),
+            legend.title = element_text(size=9.5, 
+                                        margin=margin(b=-3,unit='pt')),
+            legend.margin = margin(3,3,3,3),
+            legend.text = element_text(size = 8.5 )) +
+      guides(color=guide_legend(title="Method", nrow=2, byrow=F),
+             alpha=guide_legend(title="Method", nrow=2, byrow=F),
+             size=guide_legend(title="Method", nrow=2, byrow=F)) +
+      coord_cartesian(ylim = c(-2100,-1250)) +
       ylab(measurement) + 
       scale_x_discrete(labels=1:5) +
       xlab("Number of clusters")
@@ -446,11 +462,11 @@ for (param_name in param_name_vec) {
 # ARI/F_mse/v_mse vs iteration number -------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/Our_init/pr=0.9,n=30,beta=1.6,V=80/"
-path_vec[2] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/1/pr=0.9,n=30,beta=1.6,V=80/"
-path_vec[3] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/5/pr=0.9,n=30,beta=1.6,V=80/"
-path_vec[4] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/10/pr=0.9,n=30,beta=1.6,V=80/"
-path_vec[5] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/20/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[1] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/Our_init/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[2] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/1/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[3] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/5/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[4] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/10/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[5] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/20/pr=0.9,n=30,beta=1.9,V=80/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -463,11 +479,11 @@ for (param_name in param_name_vec) {
                                          "F_mean_sq_err_history", 
                                          'time_init',
                                          "v_mean_sq_err_history")))
-  results_df = bind_rows(bind_cols(results_list[[1]],"method"="Proposed init"),
-                         bind_cols(results_list[[3]],"method"="5 random init"),
-                         bind_cols(results_list[[4]],"method"="10 random init"),
-                         # bind_cols(results_list[[5]],"method"="20 random init"),
-                         bind_cols(results_list[[2]],"method"="1 random init"))
+  results_df = bind_rows(bind_cols(results_list[[1]],"method"="Proposal"),
+                         # bind_cols(results_list[[3]],"method"="5 random"),
+                         bind_cols(results_list[[4]],"method"="10 random"),
+                         # bind_cols(results_list[[5]],"method"="20 random"),
+                         bind_cols(results_list[[2]],"method"="1 random"))
   
   results_df = results_df %>% 
     mutate(param_value = as_factor(param_value)) %>%
@@ -476,18 +492,18 @@ for (param_name in param_name_vec) {
     pivot_longer(cols = starts_with("v_mean_sq_err"), names_to = "Iter_v_mean_sq_err", values_to = "v_mean_sq_err")
   
   results_df = results_df %>% 
-    mutate(method=fct_relevel(method,"10 random init", "20 random init", after=Inf),
-           method=fct_relevel(method,"Proposed init", after=0),
+    mutate(method=fct_relevel(method,"10 random", "20 random", after=Inf),
+           method=fct_relevel(method,"Proposal", after=0),
            Iter_ARI=fct_relevel(Iter_ARI,"ARI_history10","ARI_history11", after = Inf),
            Iter_F_mean_sq_err=fct_relevel(Iter_F_mean_sq_err,"F_mean_sq_err_history10","F_mean_sq_err_history11", after = Inf),
            Iter_v_mean_sq_err=fct_relevel(Iter_v_mean_sq_err,"v_mean_sq_err_history10","v_mean_sq_err_history11", after = Inf))
   
   ### Plot ICL vs N_clus
-  for (measurement in c("1-ARI","F_mean_sq_err",'v_mean_sq_err')) {
+  for (measurement in c("F_mean_sq_err",'v_mean_sq_err',"1-ARI")) {
     pdf(file=paste0("../Results/Plots/Temp/Initialization/", 
                     if_else(measurement=="1-ARI", true = "ARI", false = measurement), 
                     '_', 'Iteration', ".pdf"), 
-        width = 4, height = 2)
+        width = 3.5, height = 2)
     g = results_df %>% 
       filter(Iter_ARI!="ARI_history11",
              Iter_F_mean_sq_err!="F_mean_sq_err_history11",
@@ -503,17 +519,45 @@ for (param_name in param_name_vec) {
                  linetype=method,
                  color=method)) +
       stat_summary(aes(group=method),position = position_dodge(.0),
-                   geom="line",alpha=0.7,
+                   geom="line",alpha=0.9, size=0.7,
                    fun = "mean") +
-      # theme(legend.position = "bottom") +
-      scale_linetype_manual(breaks = c("Proposed init",
-                                       "1 random init",
-                                       "5 random init",
-                                       "10 random init",
-                                       "20 random init"),
+      theme_bw()+
+      theme(legend.position = switch(measurement, "1-ARI"=c(0.995,0.99), "none"),
+            legend.justification = c("right", "top"),
+            legend.background = element_rect(fill='transparent'),
+            legend.box.background = element_rect(color="gray"),
+            legend.key = element_rect(size=1, fill = NA, color = NA),
+            legend.key.height = unit(.4, 'cm'),
+            legend.key.width = unit(.8, 'cm'),
+            legend.title = element_text(size=9.5, 
+                                        margin=margin(b=-3,unit='pt')),
+            legend.margin = margin(3,3,3,3),
+            legend.text = element_text(size = 9.5 )) +
+      scale_color_discrete(breaks = c("Proposal",
+                                    "1 random",
+                                    "5 random",
+                                    "10 random",
+                                    "20 random"),
+                         labels = c("Proposal",
+                                    "Random (1 restart)",
+                                    "Random (5 restarts)",
+                                    "Random (10 restarts)",
+                                    "Random (20 restarts)")) +
+      scale_linetype_manual(breaks = c("Proposal",
+                                       "1 random",
+                                       "5 random",
+                                       "10 random",
+                                       "20 random"),
+                            labels = c("Proposal",
+                                       "Random (1 restart)",
+                                       "Random (5 restarts)",
+                                       "Random (10 restarts)",
+                                       "Random (20 restarts)"),
                             values = c("solid",rep('dashed',4))) +
-      guides(color=guide_legend(title="Initialization"), linetype=guide_legend(title="Initialization")) +
+      guides(color=guide_legend(title="Initialization Scheme"), 
+             linetype=guide_legend(title="Initialization Scheme")) +
       coord_cartesian(ylim=switch(measurement,
+                                  "1-ARI"=c(0,1),
                                   "v_mean_sq_err" = c(40,100)
                                   )) +
       ylab(switch(measurement,
@@ -527,6 +571,7 @@ for (param_name in param_name_vec) {
   }
   
 }
+
 
 
 # ARI vs Iteration for n=30,66,150 ----------------------------------------
