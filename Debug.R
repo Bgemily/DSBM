@@ -9,14 +9,60 @@ sapply(file.sources, source)
 
 # -------------------------------------------------------------------------
 
-res = 3
-L2_vec = c()
+network_list = do.call(generate_network2_v3, results[[8]]$network_param)
 
-generated_network = do.call(generate_network2_v3, results[[res]]$network_param)
-tmp=sum(apply((generated_network$pdf_true_array)^2,c(1,2),sum))
+edge_time_mat_list = network_list$edge_time_mat_list # Generated connecting time matrix
 
 
-L2_vec = c(L2_vec, tmp)
+freq_trun = Inf # Cut-off frequency (corresponding to \ell_0 in the main text). For cumulative-intensity-based algorithm, set freq_trun to be Inf.
+N_clus_tmp = 3 # Desired number of clusters 
+MaxIter = 10 # Maximal number of iterations between the centering and aligning steps
+conv_thres = 0.01 # Threshold in convergence criterion
+max_iter = 10 # Maximal number of iterations between updating time shifts and intensities in the centering step
+t_vec = results[[6]]$network_param$t_vec
+
+### Apply proposed initialization scheme
+res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
+               N_clus = N_clus_tmp,
+               t_vec = t_vec)
+
+clusters_list_init = res$clusters_list # Initial clustering
+n0_vec_list_init = res$n0_vec_list # Initial node-specific time shifts
+n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init) # Initial edge-specific time shifts
 
 
-plot(L2_vec)
+### Apply algorithm 
+res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+                     total_time = total_time, max_iter=max_iter, t_vec=t_vec,
+                     clusters_list_init = clusters_list_init,
+                     n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
+                     freq_trun = freq_trun,
+                     conv_thres = conv_thres,
+                     MaxIter = MaxIter)
+
+clusters_list_est = res$clusters_list # Estimated clusters
+v_vec_list_est = res$v_vec_list # Estimated time shifts
+center_cdf_array_est = res$center_cdf_array # Estimated cumulative connecting intensities
+center_pdf_array_est = res$center_pdf_array # Estimated connecting intensities
+
+
+cdf_true_array = network_list$cdf_true_array # True cumulative connecting intensities
+
+
+### Match the estimated clusters and the true clusters 
+### Identifiable upon to permutation
+### ONLY for simulation 
+
+permn = find_permn(center_cdf_array_from = center_cdf_array_est, 
+                   center_cdf_array_to = cdf_true_array)$permn
+
+
+### Plot estimated intensities (black curves) and true intensities (red curves)
+
+center_cdf_array_est_permn = center_cdf_array_est[permn, permn, ] # Estimated cumulative intensities with permuted cluster label
+
+plot_pdf_array(pdf_array_list = center_cdf_array_est_permn, 
+               pdf_true_array = cdf_true_array, 
+               t_vec = t_vec, 
+               y_lim = c(0,max(c(center_cdf_array_est_permn, cdf_true_array))) )
+

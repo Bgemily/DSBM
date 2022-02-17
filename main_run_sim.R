@@ -568,12 +568,12 @@ N_clus = 3
 # ### n
 # N_node_persubj_list = list(30)
 # ### beta
-# conn_patt_sep_list = list(1.6)
+# conn_patt_sep_list = list(1.7)
 # 
 # 
 # top_level_folder = "../Results/Rdata"
 # setup = 'ICL_v1'
-# default_setting = 'pr=0.9,n=30,beta=1.6,V=80'
+# default_setting = 'pr=0.9,n=30,beta=1.7,V=80'
 # 
 # method = 'main_v5_pdf_v4'
 # for (. in 1:split) {
@@ -623,7 +623,7 @@ setup = 'Initialization_v1'
 default_setting = 'pr=0.9,n=30,beta=1.9,V=80'
 
 method = 'main_v5_cdf_v2'
-for (N_restart in c(1,5,10,20)) {
+for (N_restart in c(2)) {
   for (. in 1:split) {
     ### beta
     for (i in 1:length(conn_patt_sep_list)) {
@@ -647,7 +647,7 @@ for (N_restart in c(1,5,10,20)) {
       param_name = "beta"
       param_value = conn_patt_sep
       folder_path = paste0(top_level_folder, '/', setup, '/', method,
-                           '/', 'N_restart', '/', N_restart,
+                           '/', 'N_restart_v2', '/', N_restart,
                            '/', default_setting,
                            '/', param_name, '/', param_value)
       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
@@ -662,39 +662,39 @@ for (N_restart in c(1,5,10,20)) {
 }
 
 
-for (. in 1:split) {
-  ### beta
-  for (i in 1:length(conn_patt_sep_list)) {
-    conn_patt_sep = conn_patt_sep_list[[i]]
-    results <- foreach(j = 1:N_trial) %dopar% {
-      SEED = sample(1:1e7,1)
-      tryCatch(main_v5_cdf(SEED = SEED,
-                           N_node_vec = rep(30,1),
-                           conn_prob_mean = 0.9,
-                           conn_patt_sep = 1.9,
-                           time_shift_mean_vec = rep(40,3),
-                           t_vec = seq(0,200,length.out=200),
-                           freq_trun_vec=c(Inf),
-                           save_est_history = TRUE,
-                           # N_restart = N_restart,
-                           conv_thres = 0, MaxIter = 10,
-                           N_clus_min = 3, N_clus_max = 3),
-               error = function(x) print(SEED))
-    }
-    param_name = "beta"
-    param_value = conn_patt_sep
-    folder_path = paste0(top_level_folder, '/', setup, '/', method,
-                         '/', 'Our_init',
-                         '/', default_setting,
-                         '/', param_name, '/', param_value)
-    dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-
-    now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-    save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
-    rm(results)
-  }
-
-}
+# for (. in 1:split) {
+#   ### beta
+#   for (i in 1:length(conn_patt_sep_list)) {
+#     conn_patt_sep = conn_patt_sep_list[[i]]
+#     results <- foreach(j = 1:N_trial) %dopar% {
+#       SEED = sample(1:1e7,1)
+#       tryCatch(main_v5_cdf(SEED = SEED,
+#                            N_node_vec = rep(30,1),
+#                            conn_prob_mean = 0.9,
+#                            conn_patt_sep = 1.9,
+#                            time_shift_mean_vec = rep(40,3),
+#                            t_vec = seq(0,200,length.out=200),
+#                            freq_trun_vec=c(Inf),
+#                            save_est_history = TRUE,
+#                            # N_restart = N_restart,
+#                            conv_thres = 0, MaxIter = 10,
+#                            N_clus_min = 3, N_clus_max = 3),
+#                error = function(x) print(SEED))
+#     }
+#     param_name = "beta"
+#     param_value = conn_patt_sep
+#     folder_path = paste0(top_level_folder, '/', setup, '/', method,
+#                          '/', 'Our_init',
+#                          '/', default_setting,
+#                          '/', param_name, '/', param_value)
+#     dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+# 
+#     now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+#     save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+#     rm(results)
+#   }
+# 
+# }
 
 
 # Archive -----------------------------------------------------------------

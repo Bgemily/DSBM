@@ -10,6 +10,7 @@ main_v5_cdf = function(### Parameters for generative model
   time_shift_rad = min(time_shift_mean_vec),
   t_vec = seq(0,total_time,length.out=1000),
   ### Parameters for algorithms
+  gamma=0.1,
   freq_trun=Inf, bw=5, 
   conv_thres=1e-2, MaxIter=5,
   jitter_time_rad = 10, max_iter=10,
@@ -72,7 +73,7 @@ main_v5_cdf = function(### Parameters for generative model
       } else if(rand_init) {
         res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
                           N_clus = N_clus_tmp,
-                          N_restart = N_restart,
+                          N_restart = 1,
                           t_vec = t_vec)
       } else{
         res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
@@ -106,6 +107,59 @@ main_v5_cdf = function(### Parameters for generative model
       time_estimation = as.numeric(time_estimation, units='secs')
       N_iteration = res$N_iteration
       
+      # Re-start ---------
+      if(rand_init==TRUE & N_restart>1){
+        ### Initialize best estimator as current estimator
+        res_best = res
+        ### Initialize best loss as loss for current estimator
+        n0_mat_list = res_best$n0_mat_list
+        clusters_list = res_best$clusters_list
+        center_cdf_array = res_best$center_cdf_array
+        loss_best = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
+                            n0_mat_list = n0_mat_list, 
+                            clusters_list = clusters_list, 
+                            center_cdf_array = center_cdf_array, 
+                            gamma = gamma,
+                            t_vec = t_vec)$loss
+        for (ind_restart in 1:(N_restart-1)) {
+          ### Get init
+          res = get_init_v5(edge_time_mat_list = edge_time_mat_list,
+                            N_clus = N_clus_tmp,
+                            N_restart = 1,
+                            t_vec = t_vec)
+          clusters_list_init = res$clusters_list
+          n0_vec_list_init = res$n0_vec_list
+          n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
+          ### Apply algorithm
+          res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+                               total_time = total_time, max_iter=max_iter, t_vec=t_vec,
+                               clusters_list_init = clusters_list_init,
+                               n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
+                               save_est_history = save_est_history,
+                               freq_trun = freq_trun,
+                               conv_thres = conv_thres,
+                               MaxIter = MaxIter, 
+                               fix_timeshift = fix_timeshift,
+                               ...)
+          N_iteration = res$N_iteration
+          ### Calculate loss
+          n0_mat_list = res$n0_mat_list
+          clusters_list = res$clusters_list
+          center_cdf_array = res$center_cdf_array
+          loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
+                              n0_mat_list = n0_mat_list, 
+                              clusters_list = clusters_list, 
+                              center_cdf_array = center_cdf_array, 
+                              gamma = gamma,
+                              t_vec = t_vec)$loss
+          ### Update best estimation
+          if(loss < loss_best){
+            loss_best = loss
+            res_best = res
+          }
+        }
+        res = res_best
+      }
       # Save results of N_clus_tmp ----------------------------------------------
       res_list[[ind_N_clus]][[ind_freq_trun]] = res
     }

@@ -343,8 +343,8 @@ for (method in c("CDF","PDF")) {
 # ICL vs N_clus (put PDF and CDF on same plot) ----------------------------
 
 path_vec = rep(0,2)
-path_vec[1] = "../Results/Rdata/ICL_v1/main_v5_cdf_v2/pr=0.9,n=30,beta=1.9,V=80/"
-path_vec[2] = "../Results/Rdata/ICL_v1/main_v5_pdf_v4/pr=0.9,n=30,beta=1.9,V=80//"
+path_vec[1] = "../Results/Rdata/ICL_v1/main_v5_cdf_v2/pr=0.9,n=30,beta=1.6,V=80/"
+path_vec[2] = "../Results/Rdata/ICL_v1/main_v5_pdf_v4/pr=0.9,n=30,beta=1.7,V=80//"
 param_name_vec = list.files(path_vec[1])
 
 freq_trun_vec_CDF = c("NA")
@@ -463,10 +463,10 @@ for (param_name in param_name_vec) {
 path_vec = rep(0,6)
 
 path_vec[1] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/Our_init/pr=0.9,n=30,beta=1.9,V=80/"
-path_vec[2] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/1/pr=0.9,n=30,beta=1.9,V=80/"
-path_vec[3] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/5/pr=0.9,n=30,beta=1.9,V=80/"
-path_vec[4] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/10/pr=0.9,n=30,beta=1.9,V=80/"
-path_vec[5] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart/20/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[2] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart_v2/1/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[3] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart_v2/10/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[4] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart_v2/2/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[5] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart_v2/3/pr=0.9,n=30,beta=1.9,V=80/"
 
 param_name_vec = list.files(path_vec[1])
 
@@ -480,9 +480,9 @@ for (param_name in param_name_vec) {
                                          'time_init',
                                          "v_mean_sq_err_history")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="Proposal"),
-                         # bind_cols(results_list[[3]],"method"="5 random"),
-                         bind_cols(results_list[[4]],"method"="10 random"),
-                         # bind_cols(results_list[[5]],"method"="20 random"),
+                         # bind_cols(results_list[[3]],"method"="10 random"),
+                         bind_cols(results_list[[4]],"method"="2 random"),
+                         bind_cols(results_list[[5]],"method"="3 random"),
                          bind_cols(results_list[[2]],"method"="1 random"))
   
   results_df = results_df %>% 
@@ -520,7 +520,10 @@ for (param_name in param_name_vec) {
                  color=method)) +
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",alpha=0.9, size=0.7,
-                   fun = "mean") +
+                   fun = switch(measurement,
+                                "F_mean_sq_err"="median",
+                                "v_mean_sq_err"="median",
+                                "mean")) +
       theme_bw()+
       theme(legend.position = switch(measurement, "1-ARI"=c(0.995,0.99), "none"),
             legend.justification = c("right", "top"),
@@ -534,31 +537,40 @@ for (param_name in param_name_vec) {
             legend.margin = margin(3,3,3,3),
             legend.text = element_text(size = 9.5 )) +
       scale_color_discrete(breaks = c("Proposal",
-                                    "1 random",
-                                    "5 random",
-                                    "10 random",
-                                    "20 random"),
+                                      "1 random",
+                                      "2 random",
+                                      "3 random",
+                                      "5 random",
+                                      "10 random",
+                                      "20 random"),
                          labels = c("Proposal",
                                     "Random (1 restart)",
+                                    "Random (2 restarts)",
+                                    "Random (3 restarts)",
                                     "Random (5 restarts)",
                                     "Random (10 restarts)",
                                     "Random (20 restarts)")) +
       scale_linetype_manual(breaks = c("Proposal",
                                        "1 random",
+                                       "2 random",
+                                       "3 random",
                                        "5 random",
                                        "10 random",
                                        "20 random"),
                             labels = c("Proposal",
                                        "Random (1 restart)",
+                                       "Random (2 restarts)",
+                                       "Random (3 restarts)",
                                        "Random (5 restarts)",
                                        "Random (10 restarts)",
                                        "Random (20 restarts)"),
-                            values = c("solid",rep('dashed',4))) +
+                            values = c("solid",rep('dashed',6))) +
       guides(color=guide_legend(title="Initialization Scheme"), 
              linetype=guide_legend(title="Initialization Scheme")) +
       coord_cartesian(ylim=switch(measurement,
                                   "1-ARI"=c(0,1),
-                                  "v_mean_sq_err" = c(40,100)
+                                  "F_mean_sq_err" = c(0,8),
+                                  "v_mean_sq_err" = c(0,100)
                                   )) +
       ylab(switch(measurement,
                   "F_mean_sq_err"="F_mse",
