@@ -1,6 +1,6 @@
 ### Initialize of clusters memberships and time shifts
 ### Initialize time shifts by jittering true time shifts.
-get_init_v3 = function(edge_time_mat_list, N_clus, v_true_list, 
+get_init_jittertruev = function(edge_time_mat_list, N_clus, v_true_list, 
                        jitter_time_rad = 0,
                        t_vec=seq(0, 200, length.out=1000))
 {

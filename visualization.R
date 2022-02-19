@@ -343,8 +343,8 @@ for (method in c("CDF","PDF")) {
 # ICL vs N_clus (put PDF and CDF on same plot) ----------------------------
 
 path_vec = rep(0,2)
-path_vec[1] = "../Results/Rdata/ICL_v1/main_v5_cdf_v2/pr=0.9,n=30,beta=1.6,V=80/"
-path_vec[2] = "../Results/Rdata/ICL_v1/main_v5_pdf_v4/pr=0.9,n=30,beta=1.7,V=80//"
+path_vec[1] = "../Results/Rdata/ICL_v1/main_v5_cdf_v2/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[2] = "../Results/Rdata/ICL_v1/main_v5_pdf_v4/pr=0.9,n=30,beta=1.9,V=80//"
 param_name_vec = list.files(path_vec[1])
 
 freq_trun_vec_CDF = c("NA")
@@ -480,7 +480,7 @@ for (param_name in param_name_vec) {
                                          'time_init',
                                          "v_mean_sq_err_history")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="Proposal"),
-                         # bind_cols(results_list[[3]],"method"="10 random"),
+                         bind_cols(results_list[[3]],"method"="10 random"),
                          bind_cols(results_list[[4]],"method"="2 random"),
                          bind_cols(results_list[[5]],"method"="3 random"),
                          bind_cols(results_list[[2]],"method"="1 random"))
@@ -521,8 +521,8 @@ for (param_name in param_name_vec) {
       stat_summary(aes(group=method),position = position_dodge(.0),
                    geom="line",alpha=0.9, size=0.7,
                    fun = switch(measurement,
-                                "F_mean_sq_err"="median",
-                                "v_mean_sq_err"="median",
+                                "F_mean_sq_err"="mean",
+                                "v_mean_sq_err"="mean",
                                 "mean")) +
       theme_bw()+
       theme(legend.position = switch(measurement, "1-ARI"=c(0.995,0.99), "none"),

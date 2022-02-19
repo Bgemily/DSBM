@@ -1,5 +1,5 @@
 ### Initialize of cluster memberships and time shifts randomly
-get_init_v5 = function(edge_time_mat_list, N_clus, 
+get_init_random = function(edge_time_mat_list, N_clus, 
                        N_restart=1,
                        gamma=0.1,
                        t_vec=seq(0, 200, length.out=1000))

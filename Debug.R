@@ -9,7 +9,7 @@ sapply(file.sources, source)
 
 # -------------------------------------------------------------------------
 
-network_list = do.call(generate_network2_v3, results[[8]]$network_param)
+network_list = do.call(generate_network, results[[6]]$network_param)
 
 edge_time_mat_list = network_list$edge_time_mat_list # Generated connecting time matrix
 
@@ -22,7 +22,7 @@ max_iter = 10 # Maximal number of iterations between updating time shifts and in
 t_vec = results[[6]]$network_param$t_vec
 
 ### Apply proposed initialization scheme
-res = get_init_v4(edge_time_mat_list = edge_time_mat_list,
+res = get_init(edge_time_mat_list = edge_time_mat_list,
                N_clus = N_clus_tmp,
                t_vec = t_vec)
 
@@ -30,12 +30,25 @@ clusters_list_init = res$clusters_list # Initial clustering
 n0_vec_list_init = res$n0_vec_list # Initial node-specific time shifts
 n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init) # Initial edge-specific time shifts
 
+set.seed(183)
+mem = clus2mem(clusters_list_init[[1]])
+mem2 = mem
+tmp1 = sample(which(mem==1), 3)
+tmp2 = sample(which(mem==2), 2)
+tmp3 = sample(which(mem==3), 1)
+mem[sample(1:30,6,replace = FALSE)] = sample(c(1:3), 6, replace=TRUE)
+clusters_list_init_2 = list(mem2clus(mem))
+
+n0_vec_list_init_2 = n0_vec_list_init
+n0_vec_list_init_2[[1]] = round(jitter(n0_vec_list_init[[1]]))
+n0_mat_list_init_2 = n0_vec2mat(n0_vec = n0_vec_list_init_2) 
 
 ### Apply algorithm 
 res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
                      total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                     clusters_list_init = clusters_list_init,
-                     n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
+                     clusters_list_init = clusters_list_init_2,
+                     n0_vec_list_init = n0_vec_list_init_2, 
+                     n0_mat_list_init = n0_mat_list_init_2,
                      freq_trun = freq_trun,
                      conv_thres = conv_thres,
                      MaxIter = MaxIter)

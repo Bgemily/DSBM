@@ -1,5 +1,5 @@
 
-### Use generate_network2_v3
+### Use generate_network
 ### Output measurements of errors
 apply_ppsbm_v2 = function(### Parameters for generative model
                           SEED, N_subj=1, N_node_vec = rep(90,N_subj),
@@ -19,7 +19,7 @@ apply_ppsbm_v2 = function(### Parameters for generative model
   # Generate networks -------------------------------------------------------
   
   
-  network_list = generate_network2_v3(SEED = SEED, N_subj = N_subj, N_node_vec = N_node_vec, 
+  network_list = generate_network(SEED = SEED, N_subj = N_subj, N_node_vec = N_node_vec, 
                                       N_clus = N_clus, clus_size_mat = clus_size_mat,
                                       total_time = total_time, 
                                       conn_patt_var = conn_patt_var, conn_patt_sep = conn_patt_sep, const = const,

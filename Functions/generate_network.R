@@ -1,6 +1,6 @@
 
 ### Generate synthetic networks
-generate_network2_v3 = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_vec=seq(0,total_time,length.out=1000), 
+generate_network = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_vec=seq(0,total_time,length.out=1000), 
                                 clus_size_mat=matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
                                 conn_patt_var=1, conn_patt_sep=2, conn_prob_mean=0.8, conn_prob_rad=0, 
                                 time_shift_mean_vec=rep(10,N_clus), time_shift_rad=min(time_shift_mean_vec), 

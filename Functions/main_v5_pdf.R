@@ -29,7 +29,7 @@ main_v5_pdf = function(### Parameters for generative model
   
   # Generate networks -------------------------------------------------------
   
-  network_list = generate_network2_v3(SEED = SEED, N_subj = N_subj, N_node_vec = N_node_vec, 
+  network_list = generate_network(SEED = SEED, N_subj = N_subj, N_node_vec = N_node_vec, 
                                       N_clus = N_clus, clus_size_mat = clus_size_mat,
                                       total_time = total_time, t_vec = t_vec, 
                                       conn_patt_var = conn_patt_var, conn_patt_sep = conn_patt_sep, const = const,
@@ -60,13 +60,13 @@ main_v5_pdf = function(### Parameters for generative model
       
       ### Get initialization -----------
       if (fix_timeshift) {
-        res = get_init_v3(edge_time_mat_list = edge_time_mat_list, 
+        res = get_init_jittertruev(edge_time_mat_list = edge_time_mat_list, 
                           N_clus = N_clus_tmp, 
                           v_true_list = v_true_list, 
                           jitter_time_rad = 0,
                           t_vec = t_vec)
       } else{
-        res = get_init_v4(edge_time_mat_list = edge_time_mat_list, 
+        res = get_init(edge_time_mat_list = edge_time_mat_list, 
                           N_clus = N_clus_tmp, 
                           t_vec = t_vec)
       }

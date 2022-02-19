@@ -1,6 +1,6 @@
 ### Initialize of cluster memberships and time shifts
 ### Initialize time shifts by earliest edge time.
-get_init_v4 = function(edge_time_mat_list, N_clus, 
+get_init = function(edge_time_mat_list, N_clus, 
                        freq_trun=Inf,
                        t_vec=seq(0, 200, length.out=1000))
 {
