@@ -104,7 +104,7 @@ for (param_name in param_name_vec) {
       guides(color=guide_legend(title="Method")) +
       scale_color_manual(breaks=c("CDF","PDF",'PPSBM'),
                          values=hue_pal()(3), 
-                         labels=c("SibSBM-C","SibSBM-P",'PPSBM'),
+                         labels=c("SidSBM-C","SidSBM-P",'PPSBM'),
                          drop=FALSE) +
       # guides(color=guide_legend(nrow=2,byrow=TRUE),
       #        linetype=guide_legend(nrow=2,byrow=TRUE)) +
@@ -200,19 +200,23 @@ for (param_name in param_name_vec) {
                    geom="line",
                    alpha=0.8,
                    fun = "mean") +
-      stat_summary(data = results_df_tmp %>%
-                     filter(param_value==ifelse(is.factor(results_df_tmp$param_value),
-                                                levels(results_df_tmp$param_value)[1],
-                                                sort(results_df_tmp$param_value, 
-                                                     decreasing = param_name=="V")[1])),
-                   aes(group=method), position = position_dodge(.0),
-                   geom="point",
-                   fun = "mean",
-                   alpha=0.7) +
+      # stat_summary(data = results_df_tmp %>%
+      #                filter(param_value==ifelse(is.factor(results_df_tmp$param_value),
+      #                                           levels(results_df_tmp$param_value)[1],
+      #                                           sort(results_df_tmp$param_value, 
+      #                                                decreasing = param_name=="V")[1])),
+      #              aes(group=method), position = position_dodge(.0),
+      #              geom="point",
+      #              fun = "mean",
+      #              alpha=0.7) +
       theme_bw()+
       theme(legend.position = "right", 
             legend.box.background = element_rect(color="gray")) +
       guides(color=guide_legend(title="Method"))+
+      scale_color_manual(breaks=c("CDF","PDF",'PPSBM'),
+                         values=hue_pal()(3), 
+                         labels=c("SidSBM-C","SidSBM-P",'PPSBM'),
+                         drop=FALSE) +
       # guides(color=guide_legend(nrow=2,byrow=TRUE)) +
       coord_cartesian(ylim = switch(measurement,
                                     # "time_est" = c(0,350),
@@ -462,7 +466,7 @@ for (param_name in param_name_vec) {
 # ARI/F_mse/v_mse vs iteration number -------------------------------------
 path_vec = rep(0,6)
 
-path_vec[1] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/Our_init/pr=0.9,n=30,beta=1.9,V=80/"
+path_vec[1] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/Our_init_v7/pr=0.9,n=30,beta=1.9,V=80/"
 path_vec[2] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart_v2/1/pr=0.9,n=30,beta=1.9,V=80/"
 path_vec[3] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart_v2/10/pr=0.9,n=30,beta=1.9,V=80/"
 path_vec[4] = "../Results/Rdata/Initialization_v1/main_v5_cdf_v2/N_restart_v2/2/pr=0.9,n=30,beta=1.9,V=80/"
@@ -478,6 +482,7 @@ for (param_name in param_name_vec) {
                            measurement=c("ARI_history", "ARI_mean",
                                          "F_mean_sq_err_history", 
                                          'time_init',
+                                         'N_restart',
                                          "v_mean_sq_err_history")))
   results_df = bind_rows(bind_cols(results_list[[1]],"method"="Proposal"),
                          bind_cols(results_list[[3]],"method"="10 random"),

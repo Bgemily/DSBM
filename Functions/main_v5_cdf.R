@@ -107,7 +107,43 @@ main_v5_cdf = function(### Parameters for generative model
       time_estimation = as.numeric(time_estimation, units='secs')
       N_iteration = res$N_iteration
       
+      
+      
       # Re-start ---------
+      if (rand_init==FALSE) {
+        ### Inject noise if smallest cluster size is less than 10% of p
+        min_clus_size = min(sapply(res$clusters_list[[1]], length))
+        N_jitter = 0
+        while(min_clus_size<=3 & N_jitter<=9){
+          mem = clus2mem(clusters_list_init[[1]])
+          mem[sample(1:length(mem),6,replace = FALSE)] = sample(1:N_clus_tmp, 6, replace=TRUE)
+          while(length(unique(mem))<N_clus_tmp | min(table(mem)) <= 3){
+            mem[sample(1:length(mem),6,replace = FALSE)] = sample(1:N_clus_tmp, 6, replace=TRUE)
+          }
+          clusters_list_init_2 = list(mem2clus(mem))
+          n0_vec_list_init_2 = n0_vec_list_init
+          n0_vec_list_init_2[[1]] = round(jitter(n0_vec_list_init[[1]]))
+          n0_mat_list_init_2 = n0_vec2mat(n0_vec = n0_vec_list_init_2) 
+          res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+                               total_time = total_time, max_iter=max_iter, t_vec=t_vec,
+                               clusters_list_init = clusters_list_init_2,
+                               n0_vec_list_init = n0_vec_list_init_2,
+                               n0_mat_list_init = n0_mat_list_init_2,
+                               save_est_history = save_est_history,
+                               freq_trun = freq_trun,
+                               conv_thres = conv_thres,
+                               MaxIter = MaxIter, 
+                               fix_timeshift = fix_timeshift,
+                               ...)
+          clusters_list_init_2 -> clusters_list_init
+          n0_vec_list_init_2 -> n0_vec_list_init
+          n0_mat_list_init_2 -> n0_mat_list_init
+          
+          min_clus_size = min(sapply(res$clusters_list[[1]], length))
+          N_jitter = N_jitter + 1
+        }
+        N_restart_proposal = 1 + N_jitter 
+      }
       if(rand_init==TRUE & N_restart>1){
         ### Initialize best estimator as current estimator
         res_best = res
@@ -349,6 +385,7 @@ main_v5_cdf = function(### Parameters for generative model
                 time_estimation=time_estimation,
                 time_init=time_init,
                 N_iteration=N_iteration,
+                N_restart=ifelse(rand_init==FALSE, N_restart_proposal, N_restart),
                 loss_history=loss_history, 
                 cluster_time=cluster_time, 
                 align_time=align_time
@@ -385,6 +422,7 @@ main_v5_cdf = function(### Parameters for generative model
                 time_estimation=time_estimation,
                 time_init=time_init,
                 N_iteration=N_iteration,
+                N_restart=ifelse(rand_init==FALSE, N_restart_proposal, N_restart),
                 loss_history=loss_history, 
                 cluster_time=cluster_time, 
                 align_time=align_time

@@ -1,52 +1,66 @@
 library(ggplot2)
 t_vec = seq(0,200,1)
 
-empirical_cdf = ecdf(83)(t_vec)
 set.seed(10)
-event_time_vec = c(runif(30,45,120),rep(Inf,60))
-event_time_vec_2 = c(runif(30,45,120),rep(Inf,1))
-estimated_cdf = ecdf(event_time_vec)(t_vec)
-estimated_cdf_2 = ecdf(event_time_vec_2)(t_vec)
-estimated_cdf_3 = pmin(estimated_cdf_2, max(estimated_cdf))
-estimated_cdf_4 = c(rep(0,70),head(estimated_cdf_2, length(estimated_cdf_2)-70))
-estimated_cdf_5 = pmin(estimated_cdf_4, max(estimated_cdf))
+event_time_vec_1 = c(runif(30,20,140),rep(Inf,60))
+event_time_vec_2 = c(runif(300,45,120),rep(Inf,50))
+event_time_vec_3 = c(runif(300,95,110),rep(Inf,100))
 
-g_cdf = ggplot() +
-  geom_line(mapping = aes(x=t_vec, y=estimated_cdf_2),
-            size=1, color='black', alpha=0.6, linetype='solid') +
-  geom_line(mapping = aes(x=t_vec, y=estimated_cdf),
-            size=1, color='black', alpha=0.6, linetype='dashed') +
-  geom_ribbon(aes(x=t_vec, 
-                  ymin=pmin(estimated_cdf_2, estimated_cdf_3),
-                  ymax=pmax(estimated_cdf_2, estimated_cdf_3)),
+Nbar = ecdf(event_time_vec_1)(t_vec)
+# F_true = ecdf(event_time_vec_2)(t_vec)
+F_true = pnorm(t_vec,80,20)*(6/7)
+# arbitrF = ecdf(event_time_vec_3)(t_vec)
+arbitrF = pnorm(t_vec, 100,3)*(1/3+0.1)
+estimated_cdf_3 = pmin(F_true, max(Nbar))
+
+F_shift_right = c(rep(0,60),head(F_true, length(F_true)-60))
+estimated_cdf_5 = pmin(F_shift_right, max(Nbar))
+
+ind_red = which(Nbar==max(Nbar) & F_true==max(F_true))
+ind_blue = setdiff(1:length(t_vec), ind_red)
+ind_blue = c(1,ind_blue+1)
+
+
+g_cdf_1 = ggplot() +
+  geom_ribbon(aes(x=t_vec,
+                  ymin=pmin(Nbar, F_true),
+                  ymax=pmax(Nbar, F_true)),
               size=0,
-              fill="red", alpha=0.5, colour=NA) +
+              fill="blue", alpha=0.4, colour=NA) +
   geom_ribbon(aes(x=t_vec, 
-                  ymin=pmin(estimated_cdf, estimated_cdf_3),
-                  ymax=pmax(estimated_cdf, estimated_cdf_3)),
+                  ymin=pmin(arbitrF, Nbar),
+                  ymax=pmax(arbitrF, Nbar)),
               size=0,
-              fill="blue", alpha=0.5, colour=NA) +
+              fill="red", alpha=0.4, colour=NA) +
+  geom_line(mapping = aes(x=t_vec, y=arbitrF),
+            size=1, color='red', alpha=0.8, linetype='dashed') +
+  geom_line(mapping = aes(x=t_vec, y=F_true),
+            size=1, color='blue', alpha=0.8, linetype='dashed') +
+  geom_line(mapping = aes(x=t_vec, y=Nbar),
+            size=1, color='black', alpha=0.8, linetype='solid') +
   coord_cartesian(ylim=c(0,1), xlim=c(0,200)) +
   theme_void() +
   theme(panel.background=element_rect(colour="gray",size = 1))
-g_cdf
+g_cdf_1
 
 
 g_cdf_2 = ggplot() +
-  geom_line(mapping = aes(x=t_vec, y=estimated_cdf_4),
-            size=1, color='black', alpha=0.6, linetype='solid') +
-  geom_line(mapping = aes(x=t_vec, y=estimated_cdf),
-            size=1, color='black', alpha=0.6, linetype='dashed') +
   geom_ribbon(aes(x=t_vec, 
-                  ymin=pmin(estimated_cdf_4, estimated_cdf_5),
-                  ymax=pmax(estimated_cdf_4, estimated_cdf_5)),
+                  ymin=pmin(Nbar, F_true),
+                  ymax=pmax(Nbar, F_true)),
               size=0,
-              fill="red", alpha=0.5, colour=NA) +
+              fill="blue", alpha=0.4, colour=NA) +
   geom_ribbon(aes(x=t_vec, 
-                  ymin=pmin(estimated_cdf, estimated_cdf_5),
-                  ymax=pmax(estimated_cdf, estimated_cdf_5)),
+                  ymin=pmin(Nbar, F_shift_right),
+                  ymax=pmax(Nbar, F_shift_right)),
               size=0,
-              fill="blue", alpha=0.5, colour=NA) +
+              fill="red", alpha=0.4, colour=NA) +
+  geom_line(mapping = aes(x=t_vec, y=F_shift_right),
+            size=1, color='red', alpha=0.8, linetype='dashed') +
+  geom_line(mapping = aes(x=t_vec, y=F_true),
+            size=1, color='blue', alpha=0.8, linetype='dashed') +
+  geom_line(mapping = aes(x=t_vec, y=Nbar),
+            size=1, color='black', alpha=0.8, linetype='solid') +
   coord_cartesian(ylim=c(0,1), xlim=c(0,200)) +
   theme_void() +
   theme(panel.background=element_rect(colour="gray",size = 1))
@@ -59,21 +73,15 @@ g_cdf_2
 pdf(file=paste0("../Results/Plots/Temp/Shape_and_prob/",
                 "cdf",
                 ".pdf"),
-    width = 3, height = 2)
-g_cdf
+    width = 4, height = 2)
+g_cdf_1
 dev.off()
 
 pdf(file=paste0("../Results/Plots/Temp/Shape_and_prob/",
                 "cdf_2",
                 ".pdf"),
-    width = 3, height = 2)
+    width = 4, height = 2)
 g_cdf_2
 dev.off()
 
-pdf(file=paste0("../Results/Plots/Temp/Shape_and_prob/",
-                "pdf",
-                ".pdf"),
-    width = 2, height = 1.3)
-g_pdf
-dev.off()
 

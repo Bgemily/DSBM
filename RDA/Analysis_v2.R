@@ -100,7 +100,7 @@ for (subj in 3:4){
       N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
       for (ind_freq_trun_tmp in 1:1) {
         ### Get initialization
-        res = get_init_v4(edge_time_mat_list = edge_time_mat_list_tmp,
+        res = get_init(edge_time_mat_list = edge_time_mat_list_tmp,
                           N_clus = N_clus_tmp,
                           t_vec = t_vec)
 
@@ -215,7 +215,7 @@ for (subj in 3:4){
   ### Save result with freq_trun and total_time_cutoff
   res = res_best
   res_Nclus = res$res_list
-  method = paste0("CDF_v15_rmv2+3_keeptop",
+  method = paste0("CDF_vtest_rmv2+3_keeptop",
                   "_Nrestart",N_restart,
                   "_","totaltime",total_time)
   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
