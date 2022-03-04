@@ -9,7 +9,7 @@ sapply(file.sources, source)
 
 # -------------------------------------------------------------------------
 
-network_list = do.call(generate_network, results[[9]]$network_param)
+network_list = do.call(generate_network, results[[1]]$network_param)
 
 edge_time_mat_list = network_list$edge_time_mat_list # Generated connecting time matrix
 

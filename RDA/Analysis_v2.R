@@ -80,13 +80,6 @@ for (subj in 3:4){
   res_multi_restart = list()
   ICL_history = matrix(nrow=N_restart,ncol=length(N_clus_min:N_clus_max))
   compl_log_lik_history = matrix(nrow=N_restart,ncol=length(N_clus_min:N_clus_max))
-  seed_restart = sample(1e5,1)
-  if (subj == 3) {
-    seed_restart = 80901
-  } else if (subj == 4) {
-    seed_restart = 98289
-  }
-  set.seed(seed_restart)
 
   time_start = Sys.time()
   for (ind_restart in 1:N_restart){
@@ -105,20 +98,6 @@ for (subj in 3:4){
                           t_vec = t_vec)
 
         clusters_list_init = res$clusters_list
-
-        ### Add noise to initial clusters
-        seed_init = sample(1e5,1)
-        set.seed(seed_init)
-        if (ind_restart>1) {
-          mem_init = clus2mem(clusters = clusters_list_init[[1]])
-          clus_size = sapply(clusters_list_init[[1]], length)
-          ind = sample(unlist(clusters_list_init[[1]][clus_size>4]),4)
-          mem_init[ind] = (mem_init[ind]+
-                             sample(1:(N_clus_tmp-1),length(ind),replace=TRUE)) %% N_clus_tmp
-          mem_init[mem_init==0] = N_clus_tmp
-          clusters_list_init[[1]] = mem2clus(membership = mem_init, N_clus_min = N_clus_tmp)
-        }
-
         n0_vec_list_init = res$n0_vec_list
         n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init)
 
@@ -139,7 +118,6 @@ for (subj in 3:4){
         time_end = Sys.time()
         time_estimation = time_end - time_start
         N_iteration = res$N_iteration
-        res$seed_init = seed_init
         res$t_vec=t_vec
 
         res$edge_time_mat = edge_time_mat_list_tmp[[1]]
@@ -215,7 +193,7 @@ for (subj in 3:4){
   ### Save result with freq_trun and total_time_cutoff
   res = res_best
   res_Nclus = res$res_list
-  method = paste0("CDF_vtest_rmv2+3_keeptop",
+  method = paste0("CDF_vtest2_rmv2+3_keeptop",
                   "_Nrestart",N_restart,
                   "_","totaltime",total_time)
   folder_path = paste0('../Results/Rdata/RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
@@ -224,7 +202,7 @@ for (subj in 3:4){
   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
   save(res,ICL_history,compl_log_lik_history,time_total,
        res_Nclus,
-       seed_restart,res_multi_restart,
+       res_multi_restart,
        file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
 
 }

@@ -20,6 +20,7 @@ main_v5_cdf = function(### Parameters for generative model
   save_est_history=FALSE,
   rand_init=FALSE,
   N_restart=1,
+  our_restart=FALSE,
   fix_timeshift=FALSE,
   save_center_pdf_array=FALSE,
   ...)
@@ -110,7 +111,7 @@ main_v5_cdf = function(### Parameters for generative model
       
       
       # Re-start ---------
-      if (rand_init==FALSE) {
+      if (rand_init==FALSE & our_restart==TRUE) {
         ### Inject noise if smallest cluster size is less than 10% of p
         min_clus_size = min(sapply(res$clusters_list[[1]], length))
         N_jitter = 0
@@ -385,7 +386,7 @@ main_v5_cdf = function(### Parameters for generative model
                 time_estimation=time_estimation,
                 time_init=time_init,
                 N_iteration=N_iteration,
-                N_restart=ifelse(rand_init==FALSE, N_restart_proposal, N_restart),
+                N_restart=ifelse(rand_init==FALSE & our_restart==TRUE, N_restart_proposal, N_restart),
                 loss_history=loss_history, 
                 cluster_time=cluster_time, 
                 align_time=align_time
@@ -422,7 +423,7 @@ main_v5_cdf = function(### Parameters for generative model
                 time_estimation=time_estimation,
                 time_init=time_init,
                 N_iteration=N_iteration,
-                N_restart=ifelse(rand_init==FALSE, N_restart_proposal, N_restart),
+                N_restart=ifelse(rand_init==FALSE & our_restart==TRUE, N_restart_proposal, N_restart),
                 loss_history=loss_history, 
                 cluster_time=cluster_time, 
                 align_time=align_time

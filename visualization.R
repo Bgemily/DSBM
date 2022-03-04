@@ -14,6 +14,7 @@ library("tidyverse")
 library("dplyr")
 library(ggplot2)
 library('scales')
+library("ggpubr")
 
 
 # cdf vs pdf vs ppsbm (V!=0) ------------------------------------------------------------
@@ -45,10 +46,7 @@ for (param_name in param_name_vec) {
   
   
   ### Plot ARI/F_mse vs n/beta/V
-  for (measurement in c("1-ARI","f_mse","V_mse",
-                        "N_iteration",
-                        "time_per_iter",
-                        "time_est")) {
+  for (measurement in c("1-ARI","f_mse","V_mse")) {
     ### Manipulate column "param_value"
     if (measurement %in% c("1-ARI","f_mse","V_mse")){
       if (param_name == 'n') {
@@ -127,10 +125,95 @@ for (param_name in param_name_vec) {
     dev.off()
   }
   
+  if (param_name == 'n') {
+    ### Plot computing time vs n
+    for (measurement in c("N_iteration",
+                          "time_per_iter",
+                          "time_est")) {
+      ### Manipulate column "param_value"
+      if (measurement %in% c("1-ARI","f_mse","V_mse")){
+        if (param_name == 'n') {
+          results_df_tmp = results_df %>%
+            filter(param_value <= 90)
+        } else{
+          results_df_tmp = results_df
+        }
+        results_df_tmp = results_df_tmp %>%
+          mutate(param_value = factor(param_value, levels = sort(unique(param_value),
+                                                                 decreasing = param_name=="V")) )
+      } else{
+        results_df_tmp = results_df 
+      }
+      results_df_tmp = results_df_tmp %>% 
+        mutate(time_per_iter=time_estimation/N_iteration)
+      
+      fig_width = ifelse(measurement=='time_est', 4, 4)
+      fig_height = ifelse(measurement=='time_est', 2.5,2.5)
+      pdf(file=paste0("../Results/Plots/Temp/Cdf_vs_pdf_vs_ppsbm_Vnot0/", 
+                      if_else(measurement=="1-ARI", true = "ARI", false = measurement),
+                      '_', 'vs', '_', 
+                      switch(param_name,"beta"='beta','n'='p','V'='V'),
+                      ".pdf"), 
+          width = fig_width, height = fig_height)
+      g = results_df_tmp %>% 
+        mutate(time_per_iter=time_estimation/N_iteration,
+               method=as_factor(method)) %>%
+        ggplot(aes(x=param_value, 
+                   y=switch(measurement,
+                            "1-ARI" = 1-ARI_mean,
+                            "f_mse" = F_mean_sq_err,
+                            "time_est"= time_estimation,
+                            "N_iteration" = N_iteration,
+                            "time_per_iter" = time_per_iter,
+                            "V_mse" = v_mean_sq_err), 
+                   # linetype=method,
+                   color=method)) +
+        stat_summary(aes(group=method),position = position_dodge(.0),
+                     geom="line",
+                     size=0.7,
+                     alpha=0.8,
+                     fun = "mean") +
+        theme_bw()+
+        theme(legend.position = "right",
+              legend.box.spacing = unit(4,"pt"),
+              legend.title = element_text(size=11),
+              legend.text = element_text(size = 10 ),
+              legend.box.background = element_rect(color="gray")) +
+        guides(color=guide_legend(title="Method")) +
+        scale_color_manual(breaks=c("CDF","PDF",'PPSBM'),
+                           values=hue_pal()(3), 
+                           labels=c("SidSBM-C","SidSBM-P",'PPSBM'),
+                           drop=FALSE) +
+        scale_x_continuous(breaks = seq(40, 140, by = 20)) +
+        coord_cartesian(ylim = switch(measurement,
+                                      "N_iteration" = c(4.5,11),
+                                      "time_est" = c(0,400),
+                                      "time_per_iter" = c(0,20),
+                                      "V_mse" = c(0,150),
+                                      "f_mse" = c(0,0.04),
+                                      "1-ARI" = c(0,1) )) +
+        ylab(switch(measurement, 'time_est'='Total time (sec)',
+                    "time_per_iter"='Time per iter (sec)',
+                    "N_iteration"='Number of iterations',
+                    measurement) ) +
+        xlab(switch(param_name, 'n'="p",
+                    'beta'="beta",
+                    'V'="V"))
+      
+      print(g)
+      dev.off()
+    }
+    
+  }
   
 }
 
 
+pdf(file=paste0("../Results/Plots/Temp/Cdf_vs_pdf_vs_ppsbm_Vnot0/", 
+                "legend.pdf"), 
+    width = 1.1, height = 1.2)
+grid.arrange(tmp)
+dev.off()
 
 
 # cdf vs pdf vs ppsbm (V==0) ------------------------------------------------------------

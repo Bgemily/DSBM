@@ -59,7 +59,6 @@ gradient_v2 = function(theta_prime, gamma_prime, n0, pad=1)
   gradient = 2 * sum(Re(1i*2*pi*(l_vec/N)*(theta_prime)*Conj(gamma_prime)*exp(1i*2*pi*(-n0)*l_vec/N))) + 
               (-2)*Re(theta_prime_0 - n0*pad - gamma_prime_0)*pad 
     
-  gradient = gradient/(N^2)
   return (gradient)
 }
 
