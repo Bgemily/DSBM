@@ -3,6 +3,7 @@ plot_pdf_array = function(pdf_array_list,
                              clus_size_vec_1,
                              clus_size_vec_2,
                              t_vec, conn_prob_mat_list=NULL,
+                          subj1_name="L", subj2_name="R",
                              y_lim=c(0, 0.04),xlim=c(0,200))
 {
   
@@ -87,7 +88,7 @@ plot_pdf_array = function(pdf_array_list,
   label_df = label_df %>%
     ungroup() %>%
     mutate(ind_subj=ind_subj,
-              label = paste0(ifelse(ind_subj=='ind_subj1','L','R'), '\n',
+              label = paste0(ifelse(ind_subj=='ind_subj1',subj1_name,subj2_name), '\n',
                              conn_prob,
                              ifelse(is.na(clus_size),
                                     yes = '', 
