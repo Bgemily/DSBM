@@ -28,30 +28,13 @@ for(m in 1:length(path_vec)){
   ### Read information from data
   edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
   edge_time_mat = edge_time_mat[,-1]
-  avai.inds = as.matrix(read.csv(paste(path,'/AvaiNeurons.csv',sep='')))
-  avai.inds = avai.inds[,-1];
-  locs.all = as.matrix(read.csv(paste(path,'/locs_all.csv',sep='')))
-  locs.all = locs.all[,-1]
-  locs_mat = locs.all[avai.inds,]
-  ### Separate networks in left and right spines
-  inds_L = which(locs_mat[,2]<0)
-  inds_R = which(locs_mat[,2]>0)
-  locs_mat_L = locs_mat[inds_L,]
-  locs_mat_R = locs_mat[inds_R,]
-  edge_time_mat_L = edge_time_mat[inds_L, inds_L]
-  edge_time_mat_R = edge_time_mat[inds_R, inds_R]
-  ### Remove neurons with no connection and neurons with abnormal behavior
-  avai_inds_L = which(rowSums(edge_time_mat_L<Inf)>0 )
-  avai_inds_R = which(rowSums(edge_time_mat_R<Inf)>0 )
-  if (TRUE | m==2) {
-    avai_inds_L = avai_inds_L[-c(1,2)]
-    avai_inds_R = avai_inds_R[-c(45,34,15)]
-  }
-  edge_time_mat_L = edge_time_mat_L[avai_inds_L, avai_inds_L]
-  edge_time_mat_R = edge_time_mat_R[avai_inds_R, avai_inds_R]
-  
+  inds_neuron_analyzed_L = read.csv(paste(path,'/Index_neuron_analyzed_L.csv',sep=''), row.names = 1)$x
+  inds_neuron_analyzed_R = read.csv(paste(path,'/Index_neuron_analyzed_R.csv',sep=''), row.names = 1)$x
+  edge_time_mat_L = edge_time_mat[inds_neuron_analyzed_L,inds_neuron_analyzed_L]
+  edge_time_mat_R = edge_time_mat[inds_neuron_analyzed_R,inds_neuron_analyzed_R]
+
   edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
-  avai_inds_list[c(2*m-1,2*m)] = list(inds_L[avai_inds_L], inds_R[avai_inds_R])
+  avai_inds_list[c(2*m-1,2*m)] = list(inds_neuron_analyzed_L, inds_neuron_analyzed_R)
   
 }
 
