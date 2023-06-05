@@ -25,7 +25,7 @@ get_pdf_vec = function(edge_time_vec, t_vec=seq(0, 50, 0.05),
   
   if(intensity) {
     conn_prob = sum(edge_time_vec<=max(t_vec))/length(edge_time_vec)
-    pdf_vec = pdf_vec/sum(pdf_vec*(t_vec[2]-t_vec[1])) * conn_prob
+    pdf_vec = pdf_vec/max(sum(pdf_vec*(t_vec[2]-t_vec[1])), .Machine$double.eps) * conn_prob
   }
   
   
