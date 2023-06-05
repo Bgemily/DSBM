@@ -20,13 +20,15 @@ library(reshape2)
 data_folder = "../Processed_FunctionalData/func_20150417"
 path_vec = c(data_folder)
 file_vec = c("func_20150417")
+rho = 0.5
+
 edge_time_mat_list = vector(mode = "list", length = length(path_vec)*2)
 avai_inds_list = list()
 for(m in 1:length(path_vec)){ 
   path = path_vec[m]
   
   ### Read information from data
-  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
+  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime_rho',rho,'.csv', sep='')))
   edge_time_mat = edge_time_mat[,-1]
   inds_neuron_analyzed_L = read.csv(paste(path,'/Index_neuron_analyzed_L.csv',sep=''), row.names = 1)$x
   inds_neuron_analyzed_R = read.csv(paste(path,'/Index_neuron_analyzed_R.csv',sep=''), row.names = 1)$x
@@ -55,6 +57,12 @@ max_time = max(sapply(edge_time_mat_list, function(edge_time_mat)max(edge_time_m
 total_time = max_time + 10
 total_time = 336
 t_vec = seq(0, total_time, 1)
+
+folder_res = '../Results/Rdata/Reproduce_RDA_v3/'
+method = paste0("CDF_v15_rmv2+3_keeptop",
+                "_Nrestart",N_restart,
+                "_","totaltime",total_time,
+                "_rho",rho)
 
 
 for (subj in 1:2){
@@ -176,10 +184,7 @@ for (subj in 1:2){
   ### Save result with freq_trun and total_time_cutoff
   res = res_best
   res_Nclus = res$res_list
-  method = paste0("CDF_v15_rmv2+3_keeptop",
-                  "_Nrestart",N_restart,
-                  "_","totaltime",total_time)
-  folder_path = paste0('../Results/Rdata/Reproduce_RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
+  folder_path = paste0(folder_res, method, '/', file_vec[(subj+1)%/%2])
   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
   file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
