@@ -48,7 +48,7 @@ if (TRUE){
   
   top_level_folder = "../Results/Rdata"
   setup = 'sensitivity_gamma'
-  method = 'main_v5_cdf_v1'
+  method = 'main_v5_cdf_v1.1'
   
   default_setting = 'pr=0.9,n=30,beta=1.6,V=80'
   for (id_split in 1:split) {
@@ -95,7 +95,7 @@ gamma_value_list = list(0.001,0.003,0.01,0.03,0.1,0.3,1,3,10)
 
 top_level_folder = "../Results/Rdata"
 setup = 'sensitivity_gamma'
-method = 'main_v5_cdf_v1'
+method = 'main_v5_cdf_v1.1'
 
 default_setting = 'pr=vary,n=30,beta=1.6,V=80'
 for (id_split in 1:split) {
