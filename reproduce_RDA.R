@@ -20,38 +20,23 @@ library(reshape2)
 data_folder = "../Processed_FunctionalData/func_20150417"
 path_vec = c(data_folder)
 file_vec = c("func_20150417")
+rho = 0.5
+
 edge_time_mat_list = vector(mode = "list", length = length(path_vec)*2)
 avai_inds_list = list()
 for(m in 1:length(path_vec)){ 
   path = path_vec[m]
   
   ### Read information from data
-  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime.csv', sep='')))
+  edge_time_mat = as.matrix(read.csv(paste(path, '/EdgeTime_rho',rho,'.csv', sep='')))
   edge_time_mat = edge_time_mat[,-1]
-  avai.inds = as.matrix(read.csv(paste(path,'/AvaiNeurons.csv',sep='')))
-  avai.inds = avai.inds[,-1];
-  locs.all = as.matrix(read.csv(paste(path,'/locs_all.csv',sep='')))
-  locs.all = locs.all[,-1]
-  locs_mat = locs.all[avai.inds,]
-  ### Separate networks in left and right spines
-  inds_L = which(locs_mat[,2]<0)
-  inds_R = which(locs_mat[,2]>0)
-  locs_mat_L = locs_mat[inds_L,]
-  locs_mat_R = locs_mat[inds_R,]
-  edge_time_mat_L = edge_time_mat[inds_L, inds_L]
-  edge_time_mat_R = edge_time_mat[inds_R, inds_R]
-  ### Remove neurons with no connection and neurons with abnormal behavior
-  avai_inds_L = which(rowSums(edge_time_mat_L<Inf)>0 )
-  avai_inds_R = which(rowSums(edge_time_mat_R<Inf)>0 )
-  if (TRUE | m==2) {
-    avai_inds_L = avai_inds_L[-c(1,2)]
-    avai_inds_R = avai_inds_R[-c(45,34,15)]
-  }
-  edge_time_mat_L = edge_time_mat_L[avai_inds_L, avai_inds_L]
-  edge_time_mat_R = edge_time_mat_R[avai_inds_R, avai_inds_R]
-  
+  inds_neuron_analyzed_L = read.csv(paste(path,'/Index_neuron_analyzed_L.csv',sep=''), row.names = 1)$x
+  inds_neuron_analyzed_R = read.csv(paste(path,'/Index_neuron_analyzed_R.csv',sep=''), row.names = 1)$x
+  edge_time_mat_L = edge_time_mat[inds_neuron_analyzed_L,inds_neuron_analyzed_L]
+  edge_time_mat_R = edge_time_mat[inds_neuron_analyzed_R,inds_neuron_analyzed_R]
+
   edge_time_mat_list[c(2*m-1,2*m)] = list(edge_time_mat_L, edge_time_mat_R)
-  avai_inds_list[c(2*m-1,2*m)] = list(inds_L[avai_inds_L], inds_R[avai_inds_R])
+  avai_inds_list[c(2*m-1,2*m)] = list(inds_neuron_analyzed_L, inds_neuron_analyzed_R)
   
 }
 
@@ -72,6 +57,12 @@ max_time = max(sapply(edge_time_mat_list, function(edge_time_mat)max(edge_time_m
 total_time = max_time + 10
 total_time = 336
 t_vec = seq(0, total_time, 1)
+
+folder_res = '../Results/Rdata/Reproduce_RDA_v3/'
+method = paste0("CDF_v15_rmv2+3_keeptop",
+                "_Nrestart",N_restart,
+                "_","totaltime",total_time,
+                "_rho",rho)
 
 
 for (subj in 1:2){
@@ -193,10 +184,7 @@ for (subj in 1:2){
   ### Save result with freq_trun and total_time_cutoff
   res = res_best
   res_Nclus = res$res_list
-  method = paste0("CDF_v15_rmv2+3_keeptop",
-                  "_Nrestart",N_restart,
-                  "_","totaltime",total_time)
-  folder_path = paste0('../Results/Rdata/Reproduce_RDA_v3/', method, '/', file_vec[(subj+1)%/%2])
+  folder_path = paste0(folder_res, method, '/', file_vec[(subj+1)%/%2])
   dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
   file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
   now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
