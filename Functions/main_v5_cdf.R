@@ -102,6 +102,7 @@ main_v5_cdf = function(### Parameters for generative model
                             conv_thres = conv_thres,
                             MaxIter = MaxIter, 
                             fix_timeshift = fix_timeshift,
+                           gamma = gamma,
                             ...)
       time_end = Sys.time()
       time_estimation = time_end - time_start
@@ -115,7 +116,9 @@ main_v5_cdf = function(### Parameters for generative model
         ### Inject noise if smallest cluster size is less than 10% of p
         min_clus_size = min(sapply(res$clusters_list[[1]], length))
         N_jitter = 0
-        while(min_clus_size<=3 & N_jitter<=9){
+        N_jitter_max = 9
+        clus_size_lower_bound = 3
+        while(min_clus_size<=clus_size_lower_bound & N_jitter<=N_jitter_max){
           mem = clus2mem(clusters_list_init[[1]])
           mem[sample(1:length(mem),6,replace = FALSE)] = sample(1:N_clus_tmp, 6, replace=TRUE)
           while(length(unique(mem))<N_clus_tmp | min(table(mem)) <= 3){
@@ -135,6 +138,7 @@ main_v5_cdf = function(### Parameters for generative model
                                conv_thres = conv_thres,
                                MaxIter = MaxIter, 
                                fix_timeshift = fix_timeshift,
+                               gamma = gamma,
                                ...)
           clusters_list_init_2 -> clusters_list_init
           n0_vec_list_init_2 -> n0_vec_list_init
@@ -177,6 +181,7 @@ main_v5_cdf = function(### Parameters for generative model
                                conv_thres = conv_thres,
                                MaxIter = MaxIter, 
                                fix_timeshift = fix_timeshift,
+                               gamma = gamma,
                                ...)
           N_iteration = res$N_iteration
           ### Calculate loss
