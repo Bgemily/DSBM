@@ -57,14 +57,14 @@ top_level_folder = "../Results/Rdata"
 setup = 'various_gamma_SNR_Vnot0_v4'
 default_setting = 'pr=0.9,n=30,beta=1.3,V=80'
 
-for (. in 1:split) {
+for (id_split in 1:split) {
   method = 'main_v5_cdf_gamma0.3'
   for (freq_trun in c(Inf)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(N_node,1),
                              conn_prob_mean = 0.9,
@@ -92,7 +92,7 @@ for (. in 1:split) {
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -120,7 +120,7 @@ for (. in 1:split) {
     for (i in 1:length(time_shift_mean_vec_list)) {
       time_shift_mean_vec = time_shift_mean_vec_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -152,7 +152,7 @@ for (. in 1:split) {
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(N_node,1),
                              conn_prob_mean = 0.9,
@@ -180,7 +180,7 @@ for (. in 1:split) {
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -208,7 +208,7 @@ for (. in 1:split) {
     for (i in 1:length(time_shift_mean_vec_list)) {
       time_shift_mean_vec = time_shift_mean_vec_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -241,7 +241,7 @@ for (. in 1:split) {
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(N_node,1),
                              conn_prob_mean = 0.9,
@@ -269,7 +269,7 @@ for (. in 1:split) {
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -297,7 +297,7 @@ for (. in 1:split) {
     for (i in 1:length(time_shift_mean_vec_list)) {
       time_shift_mean_vec = time_shift_mean_vec_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -331,7 +331,7 @@ for (. in 1:split) {
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(N_node,1),
                              conn_prob_mean = 0.9,
@@ -360,7 +360,7 @@ for (. in 1:split) {
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -389,7 +389,7 @@ for (. in 1:split) {
     for (i in 1:length(time_shift_mean_vec_list)) {
       time_shift_mean_vec = time_shift_mean_vec_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -422,7 +422,7 @@ for (. in 1:split) {
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(N_node,1),
                              conn_prob_mean = 0.9,
@@ -451,7 +451,7 @@ for (. in 1:split) {
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -480,7 +480,7 @@ for (. in 1:split) {
     for (i in 1:length(time_shift_mean_vec_list)) {
       time_shift_mean_vec = time_shift_mean_vec_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -513,7 +513,7 @@ for (. in 1:split) {
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(N_node,1),
                              conn_prob_mean = 0.9,
@@ -542,7 +542,7 @@ for (. in 1:split) {
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -571,7 +571,7 @@ for (. in 1:split) {
     for (i in 1:length(time_shift_mean_vec_list)) {
       time_shift_mean_vec = time_shift_mean_vec_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -604,7 +604,7 @@ for (. in 1:split) {
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(N_node,1),
                              conn_prob_mean = 0.9,
@@ -633,7 +633,7 @@ for (. in 1:split) {
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -662,7 +662,7 @@ for (. in 1:split) {
     for (i in 1:length(time_shift_mean_vec_list)) {
       time_shift_mean_vec = time_shift_mean_vec_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = sample(1:1e7,1)
+        SEED = id_split*10000 + j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
