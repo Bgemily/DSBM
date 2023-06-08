@@ -18,6 +18,7 @@ main_v5_pdf = function(### Parameters for generative model
   ### Parameters for algorithms
   freq_trun=15, bw=5, 
   conv_thres=1e-2, MaxIter=5,
+  gamma = 0.001,
   jitter_time_rad = 10, max_iter=50,
   opt_radius=total_time/2,
   N_clus_min=N_clus-2, N_clus_max=N_clus+2,
@@ -93,14 +94,15 @@ main_v5_pdf = function(### Parameters for generative model
       time_start = Sys.time()
       ### Estimation z,v,f based on pdf
       res = do_cluster_pdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
-                               clusters_list_init = clusters_list_est,
-                               n0_vec_list_init = n0_vec_list_est, n0_mat_list_init = n0_mat_list_est,
-                               total_time = total_time, max_iter=max_iter, t_vec=t_vec,
-                               freq_trun=freq_trun, 
-                               conv_thres=conv_thres, MaxIter=MaxIter,
-                               opt_radius=opt_radius,
-                               fix_timeshift=fix_timeshift,
-                               ...)
+                           clusters_list_init = clusters_list_est,
+                           n0_vec_list_init = n0_vec_list_est, n0_mat_list_init = n0_mat_list_est,
+                           total_time = total_time, max_iter=max_iter, t_vec=t_vec,
+                           freq_trun=freq_trun, 
+                           conv_thres=conv_thres, MaxIter=MaxIter,
+                           opt_radius=opt_radius,
+                           fix_timeshift=fix_timeshift,
+                           gamma = gamma,
+                           ...)
       time_end = Sys.time()
       time_estimation = time_end - time_start
       time_estimation = as.numeric(time_estimation, units='secs')
