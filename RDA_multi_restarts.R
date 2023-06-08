@@ -135,23 +135,23 @@ for (subj in 1:2){
         n0_vec_list_init_2[[1]] = round(jitter(n0_vec_list_init[[1]]))
         n0_mat_list_init_2 = n0_vec2mat(n0_vec = n0_vec_list_init_2) 
         # Apply the algorithm based on jittered memberships and time shifts
-        res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
-                             total_time = total_time, max_iter=max_iter, t_vec=t_vec,
+        res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list_tmp,
+                             N_clus = N_clus_tmp,
                              clusters_list_init = clusters_list_init_2,
                              n0_vec_list_init = n0_vec_list_init_2,
                              n0_mat_list_init = n0_mat_list_init_2,
-                             save_est_history = save_est_history,
-                             freq_trun = freq_trun,
-                             conv_thres = conv_thres,
-                             MaxIter = MaxIter, 
-                             fix_timeshift = fix_timeshift,
+                             total_time = total_time,
+                             max_iter=max_iter,
+                             t_vec=t_vec,
+                             freq_trun = Inf,
                              gamma = gamma,
-                             ...)
+                             conv_thres=conv_thres,
+                             MaxIter=MaxIter)
         ### Calculate loss
         n0_mat_list = res$n0_mat_list
         clusters_list = res$clusters_list
         center_cdf_array = res$center_cdf_array
-        loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list, 
+        loss = eval_loss_v2(edge_time_mat_list = edge_time_mat_list_tmp, 
                             n0_mat_list = n0_mat_list, 
                             clusters_list = clusters_list, 
                             center_cdf_array = center_cdf_array, 
