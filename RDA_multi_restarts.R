@@ -46,12 +46,12 @@ for(m in 1:length(path_vec)){
 
 
 # Apply algorithm ---------------------------------------------------------
-N_clus_min = 1 # Minimal number of clusters
-N_clus_max = 4 # Maximal number of clusters
+N_clus_min = 3 # Minimal number of clusters
+N_clus_max = 3 # Maximal number of clusters
 MaxIter = 10 # Maximal iteration number between centering step and clustering step
 conv_thres = 1e-3 # Convergence threshold
 max_iter = 10 # Maximal iteration number for within centering step
-N_restart = 1 #
+N_restart = 9 #
 gamma = 0.1
 
 max_time = max(sapply(edge_time_mat_list, function(edge_time_mat)max(edge_time_mat[which(edge_time_mat<Inf)])))
@@ -64,7 +64,7 @@ method = paste0("CDF_v15_rmv2+3_keeptop",
                 "_Nrestart",N_restart,
                 "_","totaltime",total_time)
 
-
+set.seed(0)
 for (subj in 1:2){
   edge_time_mat_list_tmp = edge_time_mat_list[subj]
   avai_inds = avai_inds_list[[subj]]
@@ -120,7 +120,6 @@ for (subj in 1:2){
       ### Restart the algorithm
       res_restarts_tmp = list()
       res_restarts_tmp[[1]] = res
-      N_restart = 9
       for(ind_restart in 1:N_restart){
         # Inject noise to initial memberships
         mem = clus2mem(clusters_list_init[[1]])
@@ -171,6 +170,15 @@ for (subj in 1:2){
       res_restarts_list[[ind_N_clus]][[ind_freq_trun_tmp]] = res_restarts_tmp
     }
   }
+  
+  ### Save result 
+  res_Nclus = res_list
+  folder_path = paste0(folder_res, method, '/', file_vec[(subj+1)%/%2])
+  dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+  file_name = ifelse(subj%%2==1, yes = "Left", no = "Right")
+  now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+  save(res_Nclus, res_restarts_list,
+       file = paste0(folder_path, '/', file_name, '_', now_trial, '.Rdata'))
   
   ### Select best cluster number using ICL
   sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list_tmp,
