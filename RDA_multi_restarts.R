@@ -64,7 +64,7 @@ method = paste0("CDF_v15_rmv2+3_keeptop",
                 "_Nrestart",N_restart,
                 "_","totaltime",total_time)
 
-set.seed(0)
+set.seed(1)
 for (subj in 1:2){
   edge_time_mat_list_tmp = edge_time_mat_list[subj]
   avai_inds = avai_inds_list[[subj]]
@@ -121,6 +121,7 @@ for (subj in 1:2){
                                center_cdf_array = center_cdf_array, 
                                gamma = gamma,
                                t_vec = t_vec)$loss
+      res$loss = loss_best
       ### Restart the algorithm
       res_restarts_tmp = list()
       res_restarts_tmp[[1]] = res
