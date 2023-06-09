@@ -58,7 +58,7 @@ setup = 'various_gamma_SNR_Vnot0_v4'
 default_setting = 'pr=0.9,n=30,beta=1.3,V=80'
 
 for (id_split in 1:split) {
-  for (gamma in c(0.3, 0.03, 0.01)){
+  for (gamma in c(0.1)){
     method = paste0('main_v5_cdf_gamma', gamma)
     for (freq_trun in c(Inf)){
       ### N_node
@@ -149,7 +149,7 @@ for (id_split in 1:split) {
     
   }
 
-  for (gamma in c(0.01, 0.003, 0.0003, 0.0001)) {
+  for (gamma in c(0.001)) {
     method = paste0('main_v5_pdf_gamma', gamma)
     for (freq_trun in c(4)){
       ### N_node
