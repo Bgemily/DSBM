@@ -128,7 +128,7 @@ for (subj in 1:2){
       for(ind_restart in 1:N_restart){
         # Inject noise to initial memberships
         mem = clus2mem(clusters_list_init[[1]])
-        N_shuffle = length(mem) %/% 5
+        N_shuffle = length(mem) %/% 10
         mem[sample(1:length(mem),N_shuffle,replace = FALSE)] = sample(1:N_clus_tmp, N_shuffle, replace=TRUE)
         while(length(unique(mem))<N_clus_tmp | min(table(mem)) <= (length(mem) %/% 10)){
           mem[sample(1:length(mem),N_shuffle,replace = FALSE)] = sample(1:N_clus_tmp, N_shuffle, replace=TRUE)
