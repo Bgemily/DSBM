@@ -64,7 +64,7 @@ method = paste0("CDF_v15_rmv2+3_keeptop",
                 "_Nrestart",N_restart,
                 "_","totaltime",total_time)
 
-set.seed(1)
+set.seed(0)
 for (subj in 1:2){
   edge_time_mat_list_tmp = edge_time_mat_list[subj]
   avai_inds = avai_inds_list[[subj]]
@@ -128,7 +128,7 @@ for (subj in 1:2){
       for(ind_restart in 1:N_restart){
         # Inject noise to initial memberships
         mem = clus2mem(clusters_list_init[[1]])
-        N_shuffle = length(mem) %/% 10
+        N_shuffle = length(mem) %/% 5
         mem[sample(1:length(mem),N_shuffle,replace = FALSE)] = sample(1:N_clus_tmp, N_shuffle, replace=TRUE)
         while(length(unique(mem))<N_clus_tmp | min(table(mem)) <= (length(mem) %/% 10)){
           mem[sample(1:length(mem),N_shuffle,replace = FALSE)] = sample(1:N_clus_tmp, N_shuffle, replace=TRUE)
