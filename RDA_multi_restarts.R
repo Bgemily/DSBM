@@ -103,6 +103,10 @@ for (subj in 1:2){
       time_estimation = time_end - time_start
       time_estimation = as.numeric(time_estimation, units='secs')
       N_iteration = res$N_iteration
+      res$t_vec=t_vec
+      res$edge_time_mat = edge_time_mat_list_tmp[[1]]
+      res$avai_inds = avai_inds
+      res$v_vec = res$v_vec_list[[1]]
       
       # Re-start ---------
       ### Initialize best estimator as current estimator
@@ -146,6 +150,10 @@ for (subj in 1:2){
                              gamma = gamma,
                              conv_thres=conv_thres,
                              MaxIter=MaxIter)
+        res$t_vec=t_vec
+        res$edge_time_mat = edge_time_mat_list_tmp[[1]]
+        res$avai_inds = avai_inds
+        res$v_vec = res$v_vec_list[[1]]
         ### Calculate loss
         n0_mat_list = res$n0_mat_list
         clusters_list = res$clusters_list
