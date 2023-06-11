@@ -54,7 +54,7 @@ setup = 'rerun_sim_SNR_Vis0'
 default_setting = 'pr=0.9,n=30,beta=1.3,V=0'
 
 for (id_split in 1:split) {
-  method = 'main_v5_cdf'
+  method = 'main_v5_cdf_v2'
   for (freq_trun in c(Inf)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
@@ -69,7 +69,7 @@ for (id_split in 1:split) {
                              t_vec = seq(0,200,length.out=200),
                              freq_trun_vec = c(freq_trun),
                              MaxIter = 10,
-                             gamma = 0.01,
+                             gamma = 0.001,
                              fix_timeshift = TRUE,
                              N_clus_min = N_clus, N_clus_max = N_clus),
                  error = function(x) print(SEED))
@@ -98,7 +98,7 @@ for (id_split in 1:split) {
                              t_vec = seq(0,200,length.out=200),
                              freq_trun_vec = c(freq_trun),
                              MaxIter = 10,
-                             gamma = 0.01,
+                             gamma = 0.001,
                              fix_timeshift = TRUE,
                              N_clus_min = N_clus, N_clus_max = N_clus),
                  error = function(x) print(SEED))
@@ -117,8 +117,8 @@ for (id_split in 1:split) {
   }
   
   
-  method = 'main_v5_pdf'
-  for (freq_trun in c(4)){
+  method = 'main_v5_pdf_v2'
+  for (freq_trun in c(7)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
