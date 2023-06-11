@@ -335,6 +335,7 @@ main_v5_cdf = function(### Parameters for generative model
     ARI_mean=NA
     F_mean_sq_err=NA 
     v_mean_sq_err=NA
+    clusters_list_est_permn=NA
   }
   
   # Extract network related parameters -----------------------------------------
