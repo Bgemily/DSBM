@@ -50,7 +50,7 @@ setup = 'select_gamma_various_Nclus'
 
 
 
-default_setting = 'pr=0.9,n=30,beta=1.6,V=80'
+default_setting = 'pr=0.9,n=30,beta=1.9,V=80'
 for (id_split in 1:split) {
   for (N_clus_est in c(2,3,4)){
     method = paste0('main_v5_cdf_Nclusest', N_clus_est)
@@ -62,7 +62,7 @@ for (id_split in 1:split) {
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
-                             conn_patt_sep = 1.6,
+                             conn_patt_sep = 1.9,
                              time_shift_mean_vec = rep(40,N_clus),
                              t_vec = seq(0,200,length.out=200),
                              gamma = gamma,
