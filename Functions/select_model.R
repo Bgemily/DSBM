@@ -24,7 +24,7 @@ select_model = function(edge_time_mat_list, N_node_vec,
       freq_trun_mat = res_tmp$freq_trun_mat
       N_basis_mat = res_tmp$N_basis_mat
       if (is.null(N_basis_mat) & !is.null(freq_trun_mat)){
-        N_basis_mat = 1+2*freq_trun_mat
+        N_basis_mat = freq_trun_mat
       } else if (is.null(N_basis_mat) & is.null(freq_trun_mat)){
         N_basis_mat = matrix(2,nrow=N_clus_tmp, ncol=N_clus_tmp)
       }
