@@ -46,7 +46,7 @@ N_clus = 3
 gamma_value_list = list(0.001,0.003,0.01,0.03,0.1,0.3,1,3,10)
 
 top_level_folder = "../Results/Rdata"
-setup = 'select_gamma_various_Nclus_v2'
+setup = 'select_gamma_various_Nclus_v3'
 
 for (id_split in 1:split){
   # ICL vs gamma, CDF, IDENTICAL scale across clusters -----
@@ -96,8 +96,8 @@ for (id_split in 1:split){
           SEED = id_split*10000+j
           tryCatch(main_v5_cdf(SEED = SEED,
                                N_node_vec = rep(30,1),
-                               conn_prob_mean = 0.5,
-                               conn_prob_rad = 0.4,
+                               conn_prob_mean = 0.6,
+                               conn_prob_rad = 0.3,
                                conn_patt_sep = 1.9,
                                time_shift_mean_vec = rep(40,N_clus),
                                t_vec = seq(0,200,length.out=200),
@@ -131,8 +131,8 @@ for (id_split in 1:split){
         SEED = id_split*10000+j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
-                             conn_prob_mean = 0.5,
-                             conn_prob_rad = 0.4,
+                             conn_prob_mean = 0.6,
+                             conn_prob_rad = 0.3,
                              conn_patt_sep = 1,
                              time_shift_mean_vec = rep(40,N_clus),
                              t_vec = seq(0,200,length.out=200),
