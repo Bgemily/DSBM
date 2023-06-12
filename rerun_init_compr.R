@@ -49,7 +49,7 @@ top_level_folder = "../Results/Rdata"
 setup = 'rerun_Initialization'
 default_setting = 'pr=0.9,n=30,beta=1.9,V=80'
 
-method = 'main_v5_cdf_v2'
+method = 'main_v5_cdf'
 for (id_split in 1:split) {
   for (N_restart in c(1,2,3,10)) {
     ### beta
