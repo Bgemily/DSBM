@@ -41,14 +41,12 @@ registerDoParallel(cores=N_cores)
 N_clus = 3
 
 ### Parameters' possible values:
-### n
-N_node_persubj_list = list(30)
 ### beta
 conn_patt_sep_list = list(1.9)
 
 top_level_folder = "../Results/Rdata"
 setup = 'rerun_justify_ICL_freqtrun'
-default_setting = 'pr=0.9,n=30,beta=1.9,V=80'
+default_setting = 'pr=0.9,n=90,beta=1.9,V=80'
 
 
 for (id_split in 1:split) {
@@ -59,7 +57,7 @@ for (id_split in 1:split) {
     results <- foreach(j = 1:N_trial) %dopar% {
       SEED = id_split*10000+j
       tryCatch(main_v5_cdf(SEED = SEED,
-                           N_node_vec = rep(30,1),
+                           N_node_vec = rep(90,1),
                            conn_prob_mean = 0.9,
                            conn_patt_sep = conn_patt_sep,
                            time_shift_mean_vec = rep(40,N_clus),
@@ -90,7 +88,7 @@ for (id_split in 1:split) {
       results <- foreach(j = 1:N_trial) %dopar% {
         SEED = id_split*10000+j
         tryCatch(main_v5_pdf(SEED = SEED,
-                             N_node_vec = rep(30,1),
+                             N_node_vec = rep(90,1),
                              conn_prob_mean = 0.9,
                              conn_patt_sep = conn_patt_sep,
                              time_shift_mean_vec = rep(40,N_clus),

@@ -50,8 +50,8 @@ setup = 'select_gamma_various_Nclus'
 
 for (id_split in 1:split){
   # ICL vs gamma, CDF, IDENTICAL scale across clusters -----
-  if (FALSE) {
-    default_setting = 'pr=0.9,n=30,beta=1.9,V=80'
+  if (TRUE) {
+    default_setting = 'pr=0.9,n=90,beta=1.9,V=80'
     for (N_clus_est in c(2,3,4)){
       method = paste0('main_v5_cdf_Nclusest', N_clus_est)
       for (i in 1:length(gamma_value_list)) {
@@ -60,7 +60,7 @@ for (id_split in 1:split){
           SEED = id_split*10000+j
           print(SEED)
           tryCatch(main_v5_cdf(SEED = SEED,
-                               N_node_vec = rep(30,1),
+                               N_node_vec = rep(90,1),
                                conn_prob_mean = 0.9,
                                conn_patt_sep = 1.9,
                                time_shift_mean_vec = rep(40,N_clus),
@@ -86,7 +86,7 @@ for (id_split in 1:split){
     }
   }
   # ICL vs gamma, CDF, DIFFERENT scale and DIFFERENT shape across clusters -----
-  default_setting = 'pr=vary,n=30,beta=1.9,V=80'
+  default_setting = 'pr=vary,n=90,beta=1.9,V=80'
   for (N_clus_est in c(2,3,4)){
     method = paste0('main_v5_cdf_Nclusest', N_clus_est)
     for (i in 1:length(gamma_value_list)) {
@@ -94,7 +94,7 @@ for (id_split in 1:split){
       results <- foreach(j = 1:N_trial) %dopar% {
         SEED = id_split*10000+j
         tryCatch(main_v5_cdf(SEED = SEED,
-                             N_node_vec = rep(30,1),
+                             N_node_vec = rep(90,1),
                              conn_prob_mean = 0.5,
                              conn_prob_rad = 0.4,
                              conn_patt_sep = 1.9,
@@ -120,7 +120,7 @@ for (id_split in 1:split){
     }
   }
   # ICL vs gamma, CDF, DIFFERENT scale and IDENTICAL shape across clusters -----
-  default_setting = 'pr=vary,n=30,beta=1,V=80'
+  default_setting = 'pr=vary,n=90,beta=1,V=80'
   for (N_clus_est in c(2,3,4)){
     method = paste0('main_v5_cdf_Nclusest', N_clus_est)
     for (i in 1:length(gamma_value_list)) {
@@ -128,7 +128,7 @@ for (id_split in 1:split){
       results <- foreach(j = 1:N_trial) %dopar% {
         SEED = id_split*10000+j
         tryCatch(main_v5_cdf(SEED = SEED,
-                             N_node_vec = rep(30,1),
+                             N_node_vec = rep(90,1),
                              conn_prob_mean = 0.5,
                              conn_prob_rad = 0.4,
                              conn_patt_sep = 1,
