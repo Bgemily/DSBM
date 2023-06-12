@@ -46,7 +46,7 @@ N_clus = 3
 gamma_value_list = list(0.001,0.003,0.01,0.03,0.1,0.3,1,3,10)
 
 top_level_folder = "../Results/Rdata"
-setup = 'select_gamma_various_Nclus'
+setup = 'select_gamma_various_Nclus_v2'
 
 for (id_split in 1:split){
   # ICL vs gamma, CDF, IDENTICAL scale across clusters -----
@@ -86,7 +86,7 @@ for (id_split in 1:split){
     }
   }
   # ICL vs gamma, CDF, DIFFERENT scale and DIFFERENT shape across clusters -----
-  if (FALSE) {
+  if (TRUE) {
     default_setting = 'pr=vary,n=30,beta=1.9,V=80'
     for (N_clus_est in c(2,3,4)){
       method = paste0('main_v5_cdf_Nclusest', N_clus_est)
@@ -122,7 +122,7 @@ for (id_split in 1:split){
     }
   }
   # ICL vs gamma, CDF, DIFFERENT scale and IDENTICAL shape across clusters -----
-  default_setting = 'pr=vary,n=30,beta=1.3,V=80'
+  default_setting = 'pr=vary,n=30,beta=1,V=80'
   for (N_clus_est in c(2,3,4)){
     method = paste0('main_v5_cdf_Nclusest', N_clus_est)
     for (i in 1:length(gamma_value_list)) {
@@ -133,7 +133,7 @@ for (id_split in 1:split){
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.5,
                              conn_prob_rad = 0.4,
-                             conn_patt_sep = 1.3,
+                             conn_patt_sep = 1,
                              time_shift_mean_vec = rep(40,N_clus),
                              t_vec = seq(0,200,length.out=200),
                              gamma = gamma,

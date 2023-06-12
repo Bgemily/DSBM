@@ -80,8 +80,10 @@ generate_network = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_vec=
   }
   
   conn_prob_mat = matrix(ncol=N_clus, nrow=N_clus)
-  conn_prob_mat[!lower.tri(conn_prob_mat)] = seq( from=conn_prob_min, to=conn_prob_max, length.out=((N_clus^2+N_clus)/2) )
-  conn_prob_mat[lower.tri(conn_prob_mat)] = t(conn_prob_mat)[lower.tri(conn_prob_mat)]
+  diag(conn_prob_mat) = seq( from=conn_prob_min, to=conn_prob_max, length.out=N_clus )
+  conn_prob_mat[1,2] = conn_prob_mat[2,1] = conn_prob_mat[1,1]
+  conn_prob_mat[1,3] = conn_prob_mat[3,1] = conn_prob_mat[2,2]
+  conn_prob_mat[2,3] = conn_prob_mat[3,2] = conn_prob_mat[3,3]
   
   if (!isSymmetric(conn_prob_mat))
     stop("Constructed conn_prob_mat is not symmetric.")
