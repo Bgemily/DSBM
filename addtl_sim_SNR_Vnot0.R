@@ -49,7 +49,7 @@ N_node_persubj_list = list(12,18,24,30,36,42,48,54)
 
 top_level_folder = "../Results/Rdata"
 setup = 'addtl_sim_SNR_Vnot0'
-default_setting = 'pr=0.9,n=vary,beta=1.6,V=80'
+default_setting = 'pr=0.5,n=vary,beta=1.9,V=80'
 
 for (id_split in 1:split) {
   method = 'main_v5_cdf'
@@ -61,8 +61,8 @@ for (id_split in 1:split) {
         SEED = id_split*100+j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(N_node,1),
-                             conn_prob_mean = 0.9,
-                             conn_patt_sep = 1.6,
+                             conn_prob_mean = 0.5,
+                             conn_patt_sep = 1.9,
                              time_shift_mean_vec = rep(40,N_clus),
                              t_vec = seq(0,200,length.out=200),
                              freq_trun_vec = c(freq_trun),
@@ -94,8 +94,8 @@ for (id_split in 1:split) {
         SEED = id_split*100+j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(N_node,1),
-                             conn_prob_mean = 0.9,
-                             conn_patt_sep = 1.6,
+                             conn_prob_mean = 0.5,
+                             conn_patt_sep = 1.9,
                              time_shift_mean_vec = rep(40,N_clus),
                              t_vec = seq(0,200,length.out=200),
                              freq_trun_vec = c(freq_trun),
