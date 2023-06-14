@@ -258,15 +258,22 @@ main_v5_cdf = function(### Parameters for generative model
         ARI_tmp = get_one_ARI(memb_est_vec = clus2mem(clusters_history[[ind_iter]]), 
                               memb_true_vec = membership_true_list[[1]])
         ### Calculate F_mse
-        res = find_permn(center_cdf_array_from = center_cdf_array_history[[ind_iter]],
-                         center_cdf_array_to = cdf_true_array)
+        ### Get estimated pdf using kernel smoothing
+        clusters_list_tmp = list(clusters_history[[ind_iter]])
+        n0_mat_list_tmp = list(n0_vec2mat(v_vec_history[[ind_iter]] / (t_vec[2]-t_vec[1])))
+        center_pdf_array_tmp = get_center_pdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
+                                                   clusters_list = clusters_list_tmp, 
+                                                   n0_mat_list = n0_mat_list_tmp, 
+                                                   t_vec = t_vec)
+        res = find_permn(center_cdf_array_from = center_pdf_array_tmp,
+                         center_cdf_array_to = pdf_true_array)
         permn = res$permn
-        center_cdf_array_est_permn = center_cdf_array_history[[ind_iter]][permn, permn, ]
+        center_pdf_array_tmp_permn = center_pdf_array_tmp[permn, permn, ]
         
         dist_mat = matrix(nrow=N_clus, ncol=N_clus)
         for (q in 1:N_clus) {
           for (k in 1:N_clus) {
-            dist_mat[q,k] = sqrt(sum( (center_cdf_array_est_permn[q,k,] - cdf_true_array[q,k,])^2 * 
+            dist_mat[q,k] = sqrt(sum( (center_pdf_array_tmp_permn[q,k,] - pdf_true_array[q,k,])^2 * 
                                         (t_vec[2]-t_vec[1]) ))
           }
         }
@@ -335,6 +342,7 @@ main_v5_cdf = function(### Parameters for generative model
     ARI_mean=NA
     F_mean_sq_err=NA 
     v_mean_sq_err=NA
+    clusters_list_est_permn=NA
   }
   
   # Extract network related parameters -----------------------------------------
