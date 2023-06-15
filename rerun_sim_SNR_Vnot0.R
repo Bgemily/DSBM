@@ -149,8 +149,8 @@ for (id_split in 1:split) {
   }
   
 
-  method = 'main_v5_pdf_kernel'
-  for (freq_trun in c(4)){
+  method = 'main_v5_pdf_kernel_freqtrun3'
+  for (freq_trun in c(3)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
