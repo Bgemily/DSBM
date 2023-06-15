@@ -58,7 +58,7 @@ setup = 'rerun_sim_SNR_Vnot0'
 default_setting = 'pr=0.9,n=30,beta=1.3,V=80'
 
 for (id_split in 1:split) {
-  method = 'main_v5_pdf_Nclusest1_kernel'
+  method = 'main_v5_pdf_Nclusest1_kernel_v2'
   for (freq_trun in c(4)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
