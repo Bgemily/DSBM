@@ -162,7 +162,7 @@ main_v5_pdf_Nclusest1 = function(### Parameters for generative model
   
   res$clusters_list -> clusters_list_est
   res$v_vec_list -> v_vec_list_est
-  res$center_pdf_array -> center_pdf_array_est
+  res$center_pdf_array_kernel -> center_pdf_array_est
   res$loss_history -> loss_history
   res$align_time -> align_time
   res$cluster_time -> cluster_time
