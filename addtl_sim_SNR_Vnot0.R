@@ -44,30 +44,29 @@ N_clus = 3
 
 ### Parameters' possible values:
 ### n
-N_node_persubj_list = list(9,15,21,27,33,39,45,51,57)
+N_node_persubj_list = list(12,18,24,30,36,42,48,54)
 
 
 top_level_folder = "../Results/Rdata"
-setup = 'addtl_sim_SNR_Vnot0_v2'
+setup = 'addtl_sim_SNR_Vnot0_v3'
 default_setting = 'pr=0.9,n=vary,beta=1.9,V=80'
 
 for (id_split in 1:split) {
   if (TRUE){
-    method = 'main_v5_cdf_freqtrun'
+    method = 'main_v5_cdf'
     for (freq_trun in c(Inf)){
       ### N_node
       for (i in 1:length(N_node_persubj_list)) {
         N_node = N_node_persubj_list[[i]]
         results <- foreach(j = 1:N_trial) %dopar% {
           SEED = id_split*100+j
-          tryCatch(main_v5_cdf_freqtrun(SEED = SEED,
+          tryCatch(main_v5_cdf(SEED = SEED,
                                N_node_vec = rep(N_node,1),
                                conn_prob_mean = 0.9,
                                conn_patt_sep = 1.9,
                                time_shift_mean_vec = rep(40,N_clus),
                                t_vec = seq(0,200,length.out=200),
                                freq_trun_vec = c(freq_trun),
-                               freq_trun_calc_mse = 4,
                                MaxIter = 10,
                                gamma = 0.01,
                                N_clus_min = N_clus, N_clus_max = N_clus),
@@ -89,14 +88,14 @@ for (id_split in 1:split) {
   }
  
   
-  method = 'main_v5_pdf'
+  method = 'main_v5_pdf_kernel'
   for (freq_trun in c(4)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
         SEED = id_split*100+j
-        tryCatch(main_v5_pdf(SEED = SEED,
+        tryCatch(main_v5_pdf_kernel(SEED = SEED,
                              N_node_vec = rep(N_node,1),
                              conn_prob_mean = 0.9,
                              conn_patt_sep = 1.9,
