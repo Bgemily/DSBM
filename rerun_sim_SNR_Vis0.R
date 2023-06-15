@@ -54,77 +54,80 @@ setup = 'rerun_sim_SNR_Vis0'
 default_setting = 'pr=0.9,n=30,beta=1.3,V=0'
 
 for (id_split in 1:split) {
-  method = 'main_v5_cdf_v2'
-  for (freq_trun in c(Inf)){
-    ### N_node
-    for (i in 1:length(N_node_persubj_list)) {
-      N_node = N_node_persubj_list[[i]]
-      results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = id_split*10000+j
-        tryCatch(main_v5_cdf(SEED = SEED,
-                             N_node_vec = rep(N_node,1),
-                             conn_prob_mean = 0.9,
-                             conn_patt_sep = 1.3,
-                             time_shift_mean_vec = rep(0,N_clus),
-                             t_vec = seq(0,200,length.out=200),
-                             freq_trun_vec = c(freq_trun),
-                             MaxIter = 10,
-                             gamma = 0.001,
-                             fix_timeshift = TRUE,
-                             N_clus_min = N_clus, N_clus_max = N_clus),
-                 error = function(x) print(SEED))
+  if (FALSE) {
+    method = 'main_v5_cdf_gamma0.01'
+    for (freq_trun in c(Inf)){
+      ### N_node
+      for (i in 1:length(N_node_persubj_list)) {
+        N_node = N_node_persubj_list[[i]]
+        results <- foreach(j = 1:N_trial) %dopar% {
+          SEED = id_split*10000+j
+          tryCatch(main_v5_cdf(SEED = SEED,
+                               N_node_vec = rep(N_node,1),
+                               conn_prob_mean = 0.9,
+                               conn_patt_sep = 1.3,
+                               time_shift_mean_vec = rep(0,N_clus),
+                               t_vec = seq(0,200,length.out=200),
+                               freq_trun_vec = c(freq_trun),
+                               MaxIter = 10,
+                               gamma = 0.01,
+                               fix_timeshift = TRUE,
+                               N_clus_min = N_clus, N_clus_max = N_clus),
+                   error = function(x) print(SEED))
+        }
+        param_name = "n"
+        param_value = N_node
+        folder_path = paste0(top_level_folder, '/', setup, '/', method,
+                             '/', default_setting,
+                             '/', param_name, '/', param_value)
+        dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+        
+        now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+        save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+        rm(results)
       }
-      param_name = "n"
-      param_value = N_node
-      folder_path = paste0(top_level_folder, '/', setup, '/', method,
-                           '/', default_setting,
-                           '/', param_name, '/', param_value)
-      dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-      
-      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-      save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
-      rm(results)
-    }
-    ### beta
-    for (i in 1:length(conn_patt_sep_list)) {
-      conn_patt_sep = conn_patt_sep_list[[i]]
-      results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = id_split*10000+j
-        tryCatch(main_v5_cdf(SEED = SEED,
-                             N_node_vec = rep(30,1),
-                             conn_prob_mean = 0.9,
-                             conn_patt_sep = conn_patt_sep,
-                             time_shift_mean_vec = rep(0,N_clus),
-                             t_vec = seq(0,200,length.out=200),
-                             freq_trun_vec = c(freq_trun),
-                             MaxIter = 10,
-                             gamma = 0.001,
-                             fix_timeshift = TRUE,
-                             N_clus_min = N_clus, N_clus_max = N_clus),
-                 error = function(x) print(SEED))
+      ### beta
+      for (i in 1:length(conn_patt_sep_list)) {
+        conn_patt_sep = conn_patt_sep_list[[i]]
+        results <- foreach(j = 1:N_trial) %dopar% {
+          SEED = id_split*10000+j
+          tryCatch(main_v5_cdf(SEED = SEED,
+                               N_node_vec = rep(30,1),
+                               conn_prob_mean = 0.9,
+                               conn_patt_sep = conn_patt_sep,
+                               time_shift_mean_vec = rep(0,N_clus),
+                               t_vec = seq(0,200,length.out=200),
+                               freq_trun_vec = c(freq_trun),
+                               MaxIter = 10,
+                               gamma = 0.01,
+                               fix_timeshift = TRUE,
+                               N_clus_min = N_clus, N_clus_max = N_clus),
+                   error = function(x) print(SEED))
+        }
+        param_name = "beta"
+        param_value = conn_patt_sep
+        folder_path = paste0(top_level_folder, '/', setup, '/', method,
+                             '/', default_setting,
+                             '/', param_name, '/', param_value)
+        dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+        
+        now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+        save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+        rm(results)
       }
-      param_name = "beta"
-      param_value = conn_patt_sep
-      folder_path = paste0(top_level_folder, '/', setup, '/', method,
-                           '/', default_setting,
-                           '/', param_name, '/', param_value)
-      dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
-      
-      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-      save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
-      rm(results)
     }
+    
   }
   
   
-  method = 'main_v5_pdf_v2'
+  method = 'main_v5_pdf_freqtrun7_kernel'
   for (freq_trun in c(7)){
     ### N_node
     for (i in 1:length(N_node_persubj_list)) {
       N_node = N_node_persubj_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
         SEED = id_split*10000+j
-        tryCatch(main_v5_pdf(SEED = SEED,
+        tryCatch(main_v5_pdf_kernel(SEED = SEED,
                              N_node_vec = rep(N_node,1),
                              conn_prob_mean = 0.9,
                              conn_patt_sep = 1.3,
@@ -154,7 +157,7 @@ for (id_split in 1:split) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
         SEED = id_split*10000+j
-        tryCatch(main_v5_pdf(SEED = SEED,
+        tryCatch(main_v5_pdf_kernel(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
                              conn_patt_sep = conn_patt_sep,
