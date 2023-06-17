@@ -17,9 +17,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=200, 
+  make_option(c("-n", "--N_trial"), type="integer", default=1800, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=20)
+  make_option("--split", type="integer", default=180)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -50,14 +50,14 @@ setup = 'select_gamma_various_Nclus_v2'
 
 for (id_split in 1:split){
   # ICL vs gamma, CDF, IDENTICAL scale across clusters -----
-  if (FALSE) {
+  if (TRUE) {
     default_setting = 'pr=0.9,n=30,beta=1.9,V=80'
     for (N_clus_est in c(2,3,4)){
       method = paste0('main_v5_cdf_Nclusest', N_clus_est)
       for (i in 1:length(gamma_value_list)) {
         gamma = gamma_value_list[[i]]
         results <- foreach(j = 1:N_trial) %dopar% {
-          SEED = id_split*10000+j
+          SEED = id_split*100+j
           print(SEED)
           tryCatch(main_v5_cdf(SEED = SEED,
                                N_node_vec = rep(30,1),
@@ -93,7 +93,7 @@ for (id_split in 1:split){
       for (i in 1:length(gamma_value_list)) {
         gamma = gamma_value_list[[i]]
         results <- foreach(j = 1:N_trial) %dopar% {
-          SEED = id_split*10000+j
+          SEED = id_split*100+j
           tryCatch(main_v5_cdf(SEED = SEED,
                                N_node_vec = rep(30,1),
                                conn_prob_mean = 0.5,
@@ -128,7 +128,7 @@ for (id_split in 1:split){
     for (i in 1:length(gamma_value_list)) {
       gamma = gamma_value_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = id_split*10000+j
+        SEED = id_split*100+j
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.5,
