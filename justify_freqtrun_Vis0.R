@@ -44,7 +44,7 @@ N_clus = 3
 
 top_level_folder = "../Results/Rdata"
 setup = 'justify_freqtrun_Vis0'
-default_setting = 'pr=0.9,n=90,beta=1.3,V=0'
+default_setting = 'pr=0.9,n=30,beta=1.9,V=0'
 
 
 for (id_split in 1:split) {
@@ -54,9 +54,9 @@ for (id_split in 1:split) {
     results <- foreach(j = 1:N_trial) %dopar% {
       SEED = id_split*10000+j
       tryCatch(main_v5_pdf(SEED = SEED,
-                           N_node_vec = rep(90,1),
+                           N_node_vec = rep(30,1),
                            conn_prob_mean = 0.9,
-                           conn_patt_sep = 1.3,
+                           conn_patt_sep = 1.9,
                            time_shift_mean_vec = rep(0,N_clus),
                            t_vec = seq(0,200,length.out=200),
                            freq_trun = freq_trun,
