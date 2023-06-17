@@ -56,7 +56,7 @@ for (id_split in 1:split) {
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = id_split*100+j
+        SEED = id_split*100+j+20000
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
@@ -89,7 +89,7 @@ for (id_split in 1:split) {
   for (i in 1:length(conn_patt_sep_list)) {
     conn_patt_sep = conn_patt_sep_list[[i]]
     results <- foreach(j = 1:N_trial) %dopar% {
-      SEED = id_split*100+j
+      SEED = id_split*100+j+20000
       tryCatch(main_v5_cdf(SEED = SEED,
                            N_node_vec = rep(30,1),
                            conn_prob_mean = 0.9,
