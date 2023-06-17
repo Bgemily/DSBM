@@ -43,28 +43,30 @@ N_clus = 3
 ### ARI vs SNR, V!=0 -----
 
 ### Parameters' possible values:
-### n
-N_node_persubj_list = list(30,42,54,66,78,90)
+### V
+time_shift_mean_vec_list = list(rep(15,N_clus), rep(20,N_clus),
+                                rep(25,N_clus), rep(30,N_clus),
+                                rep(35,N_clus), rep(40,N_clus))
 
 
 top_level_folder = "../Results/Rdata"
 setup = 'addtl_sim_SNR_Vnot0_v4'
-default_setting = 'pr=0.9,n=vary,beta=1.9,V=80'
+default_setting = 'pr=0.9,n=30,beta=1.9,V=vary'
 
 for (id_split in 1:split) {
   if (TRUE){
     method = 'main_v5_cdf'
     for (freq_trun in c(Inf)){
-      ### N_node
-      for (i in 1:length(N_node_persubj_list)) {
-        N_node = N_node_persubj_list[[i]]
+      ### V
+      for (i in 1:length(time_shift_mean_vec_list)) {
+        time_shift_mean_vec = time_shift_mean_vec_list[[i]]
         results <- foreach(j = 1:N_trial) %dopar% {
           SEED = id_split*100+j+2000
           tryCatch(main_v5_cdf(SEED = SEED,
-                               N_node_vec = rep(N_node,1),
+                               N_node_vec = rep(30,1),
                                conn_prob_mean = 0.9,
                                conn_patt_sep = 1.9,
-                               time_shift_mean_vec = rep(40,N_clus),
+                               time_shift_mean_vec = time_shift_mean_vec,
                                t_vec = seq(0,200,length.out=200),
                                freq_trun_vec = c(freq_trun),
                                MaxIter = 10,
@@ -72,8 +74,8 @@ for (id_split in 1:split) {
                                N_clus_min = N_clus, N_clus_max = N_clus),
                    error = function(x) print(SEED))
         }
-        param_name = "n"
-        param_value = N_node
+        param_name = "V"
+        param_value = time_shift_mean_vec[1]*2
         folder_path = paste0(top_level_folder, '/', setup, '/', method,
                              '/', default_setting,
                              '/', param_name, '/', param_value)
@@ -90,16 +92,16 @@ for (id_split in 1:split) {
   if (TRUE) {
     method = 'main_v5_pdf_kernel'
     for (freq_trun in c(4)){
-      ### N_node
-      for (i in 1:length(N_node_persubj_list)) {
-        N_node = N_node_persubj_list[[i]]
+      ### V
+      for (i in 1:length(time_shift_mean_vec_list)) {
+        time_shift_mean_vec = time_shift_mean_vec_list[[i]]
         results <- foreach(j = 1:N_trial) %dopar% {
           SEED = id_split*100+j+2000
           tryCatch(main_v5_pdf_kernel(SEED = SEED,
-                                      N_node_vec = rep(N_node,1),
+                                      N_node_vec = rep(30,1),
                                       conn_prob_mean = 0.9,
                                       conn_patt_sep = 1.9,
-                                      time_shift_mean_vec = rep(40,N_clus),
+                                      time_shift_mean_vec = time_shift_mean_vec,
                                       t_vec = seq(0,200,length.out=200),
                                       freq_trun_vec = c(freq_trun),
                                       MaxIter = 10,
@@ -107,8 +109,8 @@ for (id_split in 1:split) {
                                       N_clus_min = N_clus, N_clus_max = N_clus),
                    error = function(x) print(SEED))
         }
-        param_name = "n"
-        param_value = N_node
+        param_name = "V"
+        param_value = time_shift_mean_vec[1]*2
         folder_path = paste0(top_level_folder, '/', setup, '/', method,
                              # '/','freq_trun','/',freq_trun,
                              '/', default_setting,
