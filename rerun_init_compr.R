@@ -17,9 +17,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=1000, 
+  make_option(c("-n", "--N_trial"), type="integer", default=100, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=100)
+  make_option("--split", type="integer", default=10)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -51,8 +51,8 @@ default_setting = 'pr=0.9,n=30,beta=1.9,V=80'
 
 method = 'main_v5_cdf'
 for (id_split in 1:split) {
+  ### Random init scheme
   for (N_restart in c(1,2,3,10)) {
-    ### beta
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
@@ -75,7 +75,7 @@ for (id_split in 1:split) {
       param_name = "beta"
       param_value = conn_patt_sep
       folder_path = paste0(top_level_folder, '/', setup, '/', method,
-                           '/', 'N_restart_v2', '/', N_restart,
+                           '/', 'N_restart_v2.1', '/', N_restart,
                            '/', default_setting,
                            '/', param_name, '/', param_value)
       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
@@ -85,7 +85,7 @@ for (id_split in 1:split) {
       rm(results)
     }
   }
-  ### beta
+  ### Proposed init scheme
   for (i in 1:length(conn_patt_sep_list)) {
     conn_patt_sep = conn_patt_sep_list[[i]]
     results <- foreach(j = 1:N_trial) %dopar% {
