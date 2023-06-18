@@ -75,7 +75,7 @@ for (id_split in 1:split) {
       param_name = "beta"
       param_value = conn_patt_sep
       folder_path = paste0(top_level_folder, '/', setup, '/', method,
-                           '/', 'N_restart_v2.1', '/', N_restart,
+                           '/', 'N_restart_v2.2', '/', N_restart,
                            '/', default_setting,
                            '/', param_name, '/', param_value)
       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
@@ -86,36 +86,39 @@ for (id_split in 1:split) {
     }
   }
   ### Proposed init scheme
-  for (i in 1:length(conn_patt_sep_list)) {
-    conn_patt_sep = conn_patt_sep_list[[i]]
-    results <- foreach(j = 1:N_trial) %dopar% {
-      SEED = id_split*100+j+20000
-      tryCatch(main_v5_cdf(SEED = SEED,
-                           N_node_vec = rep(30,1),
-                           conn_prob_mean = 0.9,
-                           conn_patt_sep = 1.9,
-                           time_shift_mean_vec = rep(40,3),
-                           t_vec = seq(0,200,length.out=200),
-                           freq_trun_vec=c(Inf),
-                           gamma = 0.01,
-                           save_est_history = TRUE,
-                           our_restart = TRUE,
-                           # N_restart = N_restart,
-                           conv_thres = 0, MaxIter = 10,
-                           N_clus_min = 3, N_clus_max = 3),
-               error = function(x) print(SEED))
+  if (FALSE) {
+    for (i in 1:length(conn_patt_sep_list)) {
+      conn_patt_sep = conn_patt_sep_list[[i]]
+      results <- foreach(j = 1:N_trial) %dopar% {
+        SEED = id_split*100+j+20000
+        tryCatch(main_v5_cdf(SEED = SEED,
+                             N_node_vec = rep(30,1),
+                             conn_prob_mean = 0.9,
+                             conn_patt_sep = 1.9,
+                             time_shift_mean_vec = rep(40,3),
+                             t_vec = seq(0,200,length.out=200),
+                             freq_trun_vec=c(Inf),
+                             gamma = 0.01,
+                             save_est_history = TRUE,
+                             our_restart = TRUE,
+                             # N_restart = N_restart,
+                             conv_thres = 0, MaxIter = 10,
+                             N_clus_min = 3, N_clus_max = 3),
+                 error = function(x) print(SEED))
+      }
+      param_name = "beta"
+      param_value = conn_patt_sep
+      folder_path = paste0(top_level_folder, '/', setup, '/', method,
+                           '/', 'Our_init_v7',
+                           '/', default_setting,
+                           '/', param_name, '/', param_value)
+      dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
+      
+      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+      save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
+      rm(results)
     }
-    param_name = "beta"
-    param_value = conn_patt_sep
-    folder_path = paste0(top_level_folder, '/', setup, '/', method,
-                         '/', 'Our_init_v7',
-                         '/', default_setting,
-                         '/', param_name, '/', param_value)
-    dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
     
-    now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
-    save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
-    rm(results)
   }
   
 }

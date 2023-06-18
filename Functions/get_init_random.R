@@ -31,7 +31,7 @@ get_init_random = function(edge_time_mat_list, N_clus,
       if (FALSE) {
         n0_vec = runif(length(n0_vec), min=0, max=n0_vec)
       } else {
-        n0_vec = n0_vec + runif(length(n0_vec), -(max(n0_vec)-min(n0_vec))/10, (max(n0_vec)-min(n0_vec))/10)
+        n0_vec = n0_vec + 0*runif(length(n0_vec), -(max(n0_vec)-min(n0_vec))/10, (max(n0_vec)-min(n0_vec))/10)
       }
       n0_vec = round(n0_vec)
       
