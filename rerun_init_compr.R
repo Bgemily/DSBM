@@ -17,9 +17,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=100, 
+  make_option(c("-n", "--N_trial"), type="integer", default=2000, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=10)
+  make_option("--split", type="integer", default=200)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -56,7 +56,7 @@ for (id_split in 1:split) {
     for (i in 1:length(conn_patt_sep_list)) {
       conn_patt_sep = conn_patt_sep_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = id_split*100+j+20000
+        SEED = id_split*100+j+40000
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
