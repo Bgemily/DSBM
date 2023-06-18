@@ -75,7 +75,7 @@ for (id_split in 1:split) {
       param_name = "beta"
       param_value = conn_patt_sep
       folder_path = paste0(top_level_folder, '/', setup, '/', method,
-                           '/', 'N_restart_v2.3', '/', N_restart,
+                           '/', 'N_restart_v2.4', '/', N_restart,
                            '/', default_setting,
                            '/', param_name, '/', param_value)
       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
