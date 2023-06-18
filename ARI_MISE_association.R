@@ -43,7 +43,7 @@ N_clus = 3
 
 ### Parameters' possible values:
 ### gamma
-gamma_value_list = list(1.26, 1.58, 2.5, 3.16, 6.3)
+gamma_value_list = list(3.2, 3.4, 3.6, 3.8, 4.2, 4.4, 4.6, 4.8, 5.2, 5.4, 5.6, 5.8)
 
 top_level_folder = "../Results/Rdata"
 setup = 'ARI_MISE_association'
