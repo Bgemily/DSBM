@@ -45,21 +45,21 @@ N_clus = 3
 top_level_folder = "../Results/Rdata"
 setup = 'justify_gamma_pdf'
 
-if (FALSE) {
+if (TRUE) {
   default_setting = 'pr=0.9,n=30,beta=1.9,V=0'
   for (id_split in 1:split) {
     # PDF
-    method = paste0('main_v5_pdf')
+    method = paste0('main_v5_pdf_freqtrun4')
     for (gamma in 10^(c(-6,-5,-4,-3,-2))) {
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = id_split*10000+j
+        SEED = id_split*100+j
         tryCatch(main_v5_pdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
                              conn_patt_sep = 1.9,
                              time_shift_mean_vec = rep(0,N_clus),
                              t_vec = seq(0,200,length.out=200),
-                             freq_trun = 7,
+                             freq_trun = 4,
                              MaxIter = 10,
                              gamma = gamma,
                              fix_timeshift = TRUE,
