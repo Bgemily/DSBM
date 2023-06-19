@@ -17,9 +17,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=200, 
+  make_option(c("-n", "--N_trial"), type="integer", default=2000, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=20)
+  make_option("--split", type="integer", default=200)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -43,14 +43,14 @@ N_clus = 3
 
 ### Parameters' possible values:
 ### gamma
-gamma_value_list = list(0.01, 0.03, 0.1, 0.3, 0.4,0.5,0.6,0.7,0.8,0.9, 0.93, 0.97, 1, 1.1, 1.2, 1.3)
+gamma_value_list = list(11, 12, 13,14,15)
 
 top_level_folder = "../Results/Rdata"
 setup = 'ARI_MISE_association'
 
 for (id_split in 1:split){
   if (TRUE) {
-    default_setting = 'pr=0.9,n=30,beta=1.9,V=80'
+    default_setting = 'pr=0.9,n=90,beta=1.9,V=80'
     method = paste0('main_v5_cdf')
     for (i in 1:length(gamma_value_list)) {
       gamma = gamma_value_list[[i]]
@@ -58,7 +58,7 @@ for (id_split in 1:split){
         SEED = id_split*100+j
         print(SEED)
         tryCatch(main_v5_cdf(SEED = SEED,
-                             N_node_vec = rep(30,1),
+                             N_node_vec = rep(90,1),
                              conn_prob_mean = 0.9,
                              conn_patt_sep = 1.9,
                              time_shift_mean_vec = rep(40,N_clus),
