@@ -43,14 +43,14 @@ N_clus = 3
 
 ### Parameters' possible values:
 ### gamma
-gamma_value_list = list(3.2, 3.4, 3.6, 3.8, 4.2, 4.4, 4.6, 4.8, 5.2, 5.4, 5.6, 5.8)
+gamma_value_list = list(1,2,3,4,5,6,7,8,9,10)
 
 top_level_folder = "../Results/Rdata"
 setup = 'ARI_MISE_association'
 
 for (id_split in 1:split){
   if (TRUE) {
-    default_setting = 'pr=0.9,n=90,beta=1.9,V=80'
+    default_setting = 'pr=0.9,n=30,beta=1.9,V=80'
     method = paste0('main_v5_cdf')
     for (i in 1:length(gamma_value_list)) {
       gamma = gamma_value_list[[i]]
@@ -58,7 +58,7 @@ for (id_split in 1:split){
         SEED = id_split*10000+j
         print(SEED)
         tryCatch(main_v5_cdf(SEED = SEED,
-                             N_node_vec = rep(90,1),
+                             N_node_vec = rep(30,1),
                              conn_prob_mean = 0.9,
                              conn_patt_sep = 1.9,
                              time_shift_mean_vec = rep(40,N_clus),
