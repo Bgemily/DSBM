@@ -43,7 +43,7 @@ N_clus = 3
 
 ### Parameters' possible values:
 ### gamma
-gamma_value_list = list(0.4,0.5,0.6,0.7,0.8,0.9, 1.3, 1.7)
+gamma_value_list = list(0.01, 0.03, 0.1, 0.3, 0.4,0.5,0.6,0.7,0.8,0.9, 0.93, 0.97, 1, 1.1, 1.2, 1.3)
 
 top_level_folder = "../Results/Rdata"
 setup = 'ARI_MISE_association'
@@ -55,7 +55,7 @@ for (id_split in 1:split){
     for (i in 1:length(gamma_value_list)) {
       gamma = gamma_value_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = id_split*10000+j
+        SEED = id_split*100+j
         print(SEED)
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
@@ -77,7 +77,7 @@ for (id_split in 1:split){
                            '/', param_name, '/', param_value)
       dir.create(path = folder_path, recursive = TRUE, showWarnings = FALSE)
       
-      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S")
+      now_trial = format(Sys.time(), "%Y%m%d_%H%M%S%OS6")
       save(results, file = paste0(folder_path, '/', 'N_trial', N_trial, '_', now_trial, '.Rdata'))
       rm(results)
     }
