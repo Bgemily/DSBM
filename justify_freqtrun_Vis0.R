@@ -17,9 +17,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=200, 
+  make_option(c("-n", "--N_trial"), type="integer", default=1800, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=20)
+  make_option("--split", type="integer", default=180)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -44,7 +44,7 @@ N_clus = 3
 
 top_level_folder = "../Results/Rdata"
 setup = 'justify_freqtrun_Vis0'
-default_setting = 'pr=0.9,n=90,beta=1.3,V=0'
+default_setting = 'pr=0.9,n=30,beta=1.9,V=0'
 
 
 for (id_split in 1:split) {
@@ -52,11 +52,11 @@ for (id_split in 1:split) {
   method = paste0('main_v5_pdf')
   for (freq_trun in 2:9) {
     results <- foreach(j = 1:N_trial) %dopar% {
-      SEED = id_split*10000+j
+      SEED = id_split*100+j
       tryCatch(main_v5_pdf(SEED = SEED,
-                           N_node_vec = rep(90,1),
+                           N_node_vec = rep(30,1),
                            conn_prob_mean = 0.9,
-                           conn_patt_sep = 1.3,
+                           conn_patt_sep = 1.9,
                            time_shift_mean_vec = rep(0,N_clus),
                            t_vec = seq(0,200,length.out=200),
                            freq_trun = freq_trun,
