@@ -3,10 +3,12 @@ get_adaptive_fft = function(event_time_vec, freq_trun_max, t_vec, freq_trun_min=
   if (length(t_vec)<2*freq_trun_max+1) {
     stop("Length of t_vec should be no less than 2*freq_trun_max+1.")
   }
+  t_unit = t_vec[2] - t_vec[1]
   
   loss_min = Inf
   ### Get empirical intensity of event times
   emp_intens_vec = hist(event_time_vec, breaks=t_vec, plot=FALSE)$counts / length(event_time_vec)
+  emp_intens_vec = emp_intens_vec / t_unit
   emp_intens_vec = c(0,emp_intens_vec)
   ### Get normalized fourier series
   emp_intens_fft = fft(emp_intens_vec) / length(t_vec)
