@@ -17,9 +17,9 @@ library(doParallel)
 # User input setup --------------------------------------------------------
 
 option_list = list(
-  make_option(c("-n", "--N_trial"), type="integer", default=1800, 
+  make_option(c("-n", "--N_trial"), type="integer", default=1000, 
               help="number of repeated trials"),
-  make_option("--split", type="integer", default=180)
+  make_option("--split", type="integer", default=100)
 ); 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -57,7 +57,7 @@ for (id_split in 1:split){
       for (i in 1:length(gamma_value_list)) {
         gamma = gamma_value_list[[i]]
         results <- foreach(j = 1:N_trial) %dopar% {
-          SEED = id_split*100+j
+          SEED = id_split*100+j+200000
           print(SEED)
           tryCatch(main_v5_cdf(SEED = SEED,
                                N_node_vec = rep(30,1),
@@ -93,7 +93,7 @@ for (id_split in 1:split){
       for (i in 1:length(gamma_value_list)) {
         gamma = gamma_value_list[[i]]
         results <- foreach(j = 1:N_trial) %dopar% {
-          SEED = id_split*100+j
+          SEED = id_split*100+j+200000
           tryCatch(main_v5_cdf(SEED = SEED,
                                N_node_vec = rep(30,1),
                                conn_prob_mean = 0.5,
@@ -128,7 +128,7 @@ for (id_split in 1:split){
     for (i in 1:length(gamma_value_list)) {
       gamma = gamma_value_list[[i]]
       results <- foreach(j = 1:N_trial) %dopar% {
-        SEED = id_split*100+j
+        SEED = id_split*100+j+200000
         tryCatch(main_v5_cdf(SEED = SEED,
                              N_node_vec = rep(30,1),
                              conn_prob_mean = 0.5,
