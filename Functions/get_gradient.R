@@ -56,6 +56,7 @@ get_gradient = function(edge_time_mat_list, clusters_list,
           ### Get empirical intensity of event times
           event_time_vec = tmp
           emp_intens_vec = hist(event_time_vec, breaks=t_vec, plot=FALSE)$counts / length(event_time_vec)
+          emp_intens_vec = emp_intens_vec / t_unit
           emp_intens_vec = c(0,emp_intens_vec)
           ### Get normalized fourier series
           emp_intens_fft = fft(emp_intens_vec) / length(t_vec)
