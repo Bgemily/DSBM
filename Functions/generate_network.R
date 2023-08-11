@@ -1,20 +1,20 @@
 
 ### Generate synthetic networks
-generate_network = function(N_subj, N_node_vec, N_clus=3, total_time=200, t_vec=seq(0,total_time,length.out=1000), 
-                                clus_size_mat=matrix(N_node_vec/N_clus, nrow=N_subj, ncol=N_clus),
-                                conn_patt_var=1, conn_patt_sep=2, conn_prob_mean=0.8, conn_prob_rad=0, 
+generate_network = function(N_node, N_clus=3, total_time=200, t_vec=seq(0,total_time,length.out=1000), 
+                            clus_size_vec = rep(N_node/N_clus, N_clus),
+                            conn_patt_sep=2, conn_prob_mean=0.8, conn_prob_rad=0, 
                                 time_shift_mean_vec=rep(10,N_clus), time_shift_rad=min(time_shift_mean_vec), 
                                 time_shift_struc=max, 
                                 SEED=NULL, const=20)
 {
   if(!is.null(SEED)) set.seed(SEED)
+  N_subj = 1
+  N_node_vec = rep(N_node, N_subj)
+  clus_size_mat=matrix(clus_size_vec, byrow = TRUE, nrow=N_subj, ncol=N_clus)
   
-  if (sum(rowSums(clus_size_mat)!=N_node_vec)>0) {
-    stop("N_node_vec is inconsistent with clus_size_mat.")
-  }
 
 # Generate cluster memberships ---------------------------------------
-
+  
   membership_true_list = clus_true_list = vector(mode="list", length=N_subj)
   for (i in 1:N_subj) {
     membership_tmp = rep(1:N_clus, clus_size_mat[i,])
