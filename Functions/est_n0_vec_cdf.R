@@ -7,7 +7,7 @@ est_n0_vec_cdf = function(edge_time_mat_list,
                          n0_vec_list=NULL, n0_mat_list=NULL,
                          freq_trun = Inf,
                          t_vec=seq(0,200,length.out=1000), step_size=0.02,
-                         max_iter=5, epsilon=0.001, order_list=NULL)
+                         max_iter=5, epsilon=0.001)
 {
   t_unit = t_vec[2] - t_vec[1]
   N_subj = length(edge_time_mat_list)
@@ -86,29 +86,13 @@ est_n0_vec_cdf = function(edge_time_mat_list,
             weights = weights/sum(weights)
           
           
-          if (!is.null(order_list)) {
-            position = which(order_list[[m]]==i)
-            n0_min = ifelse(test = position>=2, 
-                            yes = n0_vec_tmp[order_list[[m]][position-1]],
-                            no = 0)
-            n0_max = ifelse(test = position<=(N_node-1), 
-                            yes = n0_vec_tmp[order_list[[m]][position+1]],
-                            no = length(t_vec))
-            n0_vec_tmp[i] = align_multi_curves_gd_v2(f_origin_list = f_origin_list, f_target_list = f_target_list,
-                                                     step_size = step_size,
-                                                     t_unit = t_unit, weights = weights,
-                                                     n0_min = n0_min, n0_max = n0_max)$n0
-          }
-          else{
-            n0_max = min(edge_time_mat_list[[m]][i,])/t_unit
-            n0_max = round(n0_max)
-            n0_max = min(n0_max, length(t_vec)-1)
-            n0_vec_tmp[i] = align_multi_curves_gd_v2(f_origin_list = f_origin_list, f_target_list = f_target_list,
-                                                     step_size = step_size,
-                                                     t_unit = t_unit, weights = weights,
-                                                     n0_max = n0_max)$n0
-            
-          }
+          n0_max = min(edge_time_mat_list[[m]][i,])/t_unit
+          n0_max = round(n0_max)
+          n0_max = min(n0_max, length(t_vec)-1)
+          n0_vec_tmp[i] = align_multi_curves_gd_v2(f_origin_list = f_origin_list, f_target_list = f_target_list,
+                                                   step_size = step_size,
+                                                   t_unit = t_unit, weights = weights,
+                                                   n0_max = n0_max)$n0
           
         }
       }
