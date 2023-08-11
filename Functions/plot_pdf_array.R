@@ -1,13 +1,12 @@
-
 plot_pdf_array = function(pdf_array_list, 
-                             clus_size_vec_1,
-                             clus_size_vec_2,
-                             t_vec, conn_prob_mat_list=NULL,
+                          clus_size_vec_1,
+                          clus_size_vec_2,
+                          t_vec, conn_prob_mat_list=NULL,
                           subj1_name="L", subj2_name="R",
-                             y_lim=c(0, 0.04),xlim=c(0,200))
+                          y_lim=c(0, 0.04),xlim=c(0,200))
 {
   
-  if (dim(pdf_array_list[[1]])!=dim(pdf_array_list[[2]]))
+  if (!identical(dim(pdf_array_list[[1]]), dim(pdf_array_list[[2]])) )
     stop("Dimension not match: pdf_array_list[[1]] and pdf_array_list[[2]] should have same dimension")
   
   t_unit = t_vec[2] - t_vec[1]
@@ -32,7 +31,7 @@ plot_pdf_array = function(pdf_array_list,
       tmp.df$clus.pair = paste0("(",q,",",l,")")
       
       tmp.df$fill.col = grDevices::rainbow(300)[floor(tmp.df$t)+1]
-      
+      tmp.df$conn_prob = NA
       if (!is.null(conn_prob_mat_list)) {
         tmp.df$conn_prob[tmp.df$ind_subj=="ind_subj1"] = conn_prob_mat_list[[1]][q,l]
         tmp.df$conn_prob[tmp.df$ind_subj=="ind_subj2"] = conn_prob_mat_list[[2]][q,l]
@@ -48,7 +47,7 @@ plot_pdf_array = function(pdf_array_list,
     for (l in q:k2) {
       if(q < l){
         rgb_ave = (1/2)*(col2rgb(intensity_color_mat[q,q])+
-                    col2rgb(intensity_color_mat[l,l]) )
+                           col2rgb(intensity_color_mat[l,l]) )
         intensity_color_mat[q,l] = rgb(red = rgb_ave[1],
                                        green = rgb_ave[2],
                                        blue = rgb_ave[3],
@@ -57,11 +56,6 @@ plot_pdf_array = function(pdf_array_list,
       }
     }
   }
-  big.df = big.df %>%
-    group_by(ind_subj, clus.pair) %>% 
-    mutate(quantile_5 = sum(cumsum(pdf_val)/sum(pdf_val)<(5/100)),
-           quantile_95 = sum(cumsum(pdf_val)/sum(pdf_val)<(95/100))) %>%
-    ungroup()
   
   if (is.null(conn_prob_mat_list)) {
     big.df = big.df %>%
@@ -88,11 +82,11 @@ plot_pdf_array = function(pdf_array_list,
   label_df = label_df %>%
     ungroup() %>%
     mutate(ind_subj=ind_subj,
-              label = paste0(ifelse(ind_subj=='ind_subj1',subj1_name,subj2_name), '\n',
-                             conn_prob,
-                             ifelse(is.na(clus_size),
-                                    yes = '', 
-                                    no = paste0('\n', clus_size )) ) ) %>%
+           label = paste0(ifelse(ind_subj=='ind_subj1',subj1_name,subj2_name), '\n',
+                          conn_prob,
+                          ifelse(is.na(clus_size),
+                                 yes = '', 
+                                 no = paste0('\n', clus_size )) ) ) %>%
     ungroup()
   
   
@@ -130,16 +124,16 @@ plot_pdf_array = function(pdf_array_list,
               legend.background = element_blank(),
               legend.key.size = unit(-1, 'cm'), 
               legend.justification = c("right", "top")) +
-        guides(color=FALSE, size=FALSE, linetype=guide_legend(direction = 'horizontal', 
-                                                  override.aes = list(size = 0))
-               ) +
+        guides(color="none", size="none", linetype=guide_legend(direction = 'horizontal', 
+                                                                override.aes = list(size = 0))
+        ) +
         theme(strip.text.x = element_blank(),
               strip.background = element_blank(),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(),
               plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"))  + 
         coord_cartesian(xlim = xlim, ylim = y_lim)
-
+      
       g_list = c(g_list, list(g))
     }
   }
@@ -152,5 +146,5 @@ plot_pdf_array = function(pdf_array_list,
   
   return(list(g=g, big.df=big.df, g_list=g_list))
   
-
+  
 }
