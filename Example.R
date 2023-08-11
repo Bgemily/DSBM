@@ -22,21 +22,18 @@ library(reshape2)
 
 ### Parameters used for network generation
 SEED = 183  # Random seed
-N_subj = 1  # Number of subjects 
-N_node = 30 # Number of nodes per subject (p)
-N_node_vec = rep(N_node, N_subj) # Number of nodes for all subjects
+N_node = 30 # Number of nodes per subject 
 N_clus = 3  # Number of clusters 
 total_time = 200  # Total observation time length 
-conn_patt_sep = 1.9  # Separability (beta)
+conn_patt_sep = 1.9  # Separability of intensities across clusters (beta)
 conn_prob_mean = 0.9  # Connecting probability 
-time_shift_mean = 40 # Mean value of time shifts (corresponding to W/2 in the main text)
-time_shift_mean_vec = rep(time_shift_mean, N_clus)  
+time_shift_mean_vec = rep(40, N_clus) # Mean value of time shifts (corresponding to W/2 in the main text)
 t_vec = seq(0,200,length.out=200) # Time grid of connecting intensities 
 
 
 ### Network generation 
-network_list = generate_network(SEED = SEED, N_subj = N_subj, 
-                                    N_node_vec = N_node_vec, 
+network_list = generate_network(SEED = SEED, 
+                                    N_node = N_node, 
                                     N_clus = N_clus, 
                                     total_time = total_time, 
                                     conn_patt_sep = conn_patt_sep, 
@@ -50,7 +47,7 @@ image(edge_time_mat_list[[1]]) # Heatmap of the first generated connecting time 
 
 
 # 2. Estimation ------------------------------------
-
+gamma = 0.01 # Relative importance of scales of intensities
 freq_trun = Inf # Cut-off frequency (corresponding to \ell_0 in the main text). For cumulative-intensity-based algorithm, set freq_trun to be Inf.
 N_clus_tmp = 3 # Desired number of clusters 
 MaxIter = 10 # Maximal number of iterations between the centering and aligning steps
@@ -62,14 +59,14 @@ max_iter = 10 # Maximal number of iterations between updating time shifts and in
 res = get_init(edge_time_mat_list = edge_time_mat_list,
                   N_clus = N_clus_tmp,
                   t_vec = t_vec)
-
 clusters_list_init = res$clusters_list # Initial clustering
 n0_vec_list_init = res$n0_vec_list # Initial node-specific time shifts
 n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init) # Initial edge-specific time shifts
 
 
-### Apply algorithm 
-res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+### Apply SidSBM-C 
+res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, 
+                     N_clus = N_clus_tmp, gamma=gamma,
                      total_time = total_time, max_iter=max_iter, t_vec=t_vec,
                      clusters_list_init = clusters_list_init,
                      n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
@@ -85,13 +82,10 @@ center_pdf_array_est = res$center_pdf_array # Estimated connecting intensities
 
 # 3. Visualization ---------------------------------------------------------
 
-cdf_true_array = network_list$cdf_true_array # True cumulative connecting intensities
-
-
 ### Match the estimated clusters and the true clusters 
 ### Identifiable upon to permutation
 ### ONLY for simulation 
-
+cdf_true_array = network_list$cdf_true_array # True cumulative connecting intensities
 permn = find_permn(center_cdf_array_from = center_cdf_array_est, 
                    center_cdf_array_to = cdf_true_array)$permn
 
@@ -118,7 +112,7 @@ abline(a=0, b=1, col=2)
 
 # 4. Evaluate estimation error -----------------------------------------------
 
-### Compute MSE of connecting intensities (f)
+### Compute MISE of connecting intensities (i.e., $f$)
 dist_mat = matrix(nrow=N_clus, ncol=N_clus)
 for (q in 1:N_clus) {
   for (k in 1:N_clus) {
@@ -126,24 +120,23 @@ for (q in 1:N_clus) {
   }
 }
 f_mean_sq_err = mean(dist_mat[upper.tri(dist_mat, diag=TRUE)]^2)
-print(f_mean_sq_err)
+print(paste("Mean Integrated Squared Error (MISE) of estimated intensities:", f_mean_sq_err))
 
-### Compute ARI: accuracy of clustering (Z) 
+### Compute ARI: accuracy of clustering (i.e., $z$) 
 membership_true_list = network_list$membership_true_list # True cluster memberships
 ARI_tmp = get_one_ARI(memb_est_vec = clus2mem(clusters_list_est[[1]]), 
                       memb_true_vec = membership_true_list[[1]])
-print(ARI_tmp)
+print(paste("Adjusted Rand Index (ARI) of estimated memberships:", ARI_tmp))
 
 
 # 5. Perform model selection ---------------------------------------------------------
-
+gamma = 0.001
 N_clus_min = N_clus - 1 # Minimum candidate number of clusters (i.e., $K$)
 N_clus_max = N_clus + 1 # Maximum candidate number of clusters (i.e., $K$)
-freq_trun_vec = c(Inf) # Candidate values of frequency truncation (i.e., $\ell_0$).
-res_list = list() # List of fitted results for candidate $K$ and $\ell_0$ 
+freq_trun_vec = c(2,3,4) # Candidate values of frequency truncation (i.e., $\ell_0$).
+res_list = list() # List of fitted results for candidates of $K$ and $\ell_0$ 
 
-### Fit models for candidate numbers of clusters and frequency truncation
-
+### Fit models for candidate numbers of clusters and candidate frequency truncations
 for (ind_N_clus in 1:length(N_clus_min:N_clus_max)) {
   res_list[[ind_N_clus]] = list()
   N_clus_tmp = c(N_clus_min:N_clus_max)[ind_N_clus]
@@ -156,8 +149,9 @@ for (ind_N_clus in 1:length(N_clus_min:N_clus_max)) {
     clusters_list_init = res$clusters_list # Initial clustering
     n0_vec_list_init = res$n0_vec_list # Initial node-specific time shifts
     n0_mat_list_init = n0_vec2mat(n0_vec = n0_vec_list_init) # Initial edge-specific time shifts
-    ### Apply algorithm 
-    res = do_cluster_cdf(edge_time_mat_list = edge_time_mat_list, N_clus = N_clus_tmp,
+    ### Apply SidSBM-P 
+    res = do_cluster_pdf(edge_time_mat_list = edge_time_mat_list, 
+                         N_clus = N_clus_tmp, gamma = gamma,
                          total_time = total_time, max_iter=max_iter, t_vec=t_vec,
                          clusters_list_init = clusters_list_init,
                          n0_vec_list_init = n0_vec_list_init, n0_mat_list_init = n0_mat_list_init,
@@ -169,19 +163,27 @@ for (ind_N_clus in 1:length(N_clus_min:N_clus_max)) {
   }
 }
 
-### Select the best number of clusters and frequency truncation parameter
+### Conduct model selection using ICL
 sel_mod_res = select_model(edge_time_mat_list = edge_time_mat_list,
-                           N_node_vec = N_node_vec,
+                           N_node_vec = N_node,
                            N_clus_min = N_clus_min,
                            N_clus_max = N_clus_max,
                            result_list = res_list,
                            total_time = total_time)
+### Print the estimated number of clusters
 ind_best_N_clus = sel_mod_res$ind_best_N_clus
-ind_best_freq_trun = sel_mod_res$ind_best_freq_trun
+N_clus_est = c(N_clus_min:N_clus_max)[ind_best_N_clus] 
+print(paste("Estimated number of clusters:",N_clus_est))
 
-N_clus_est = c(N_clus_min:N_clus_max)[ind_best_N_clus] # Best number of clusters suggested by ICL
-freq_trun_est = freq_trun_vec[ind_best_freq_trun] # Best frequency truncation suggested by ICL
-print(N_clus_est)
-print(freq_trun_est)
+### Print the estimated frequency truncation parameter
+ind_best_freq_trun = sel_mod_res$ind_best_freq_trun
+freq_trun_est = freq_trun_vec[ind_best_freq_trun] 
+print(paste("Estimated frequency truncation:", freq_trun_est))
+
+### Print the ICL values of all candidate models
+ICL_mat = sel_mod_res$ICL_mat
+colnames(ICL_mat) = paste("N_clus =",c(N_clus_min:N_clus_max))
+rownames(ICL_mat) = paste("freq_trun =", freq_trun_vec)
+print(ICL_mat) 
 
 
