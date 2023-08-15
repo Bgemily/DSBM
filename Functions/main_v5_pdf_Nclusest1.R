@@ -30,10 +30,10 @@ main_v5_pdf_Nclusest1 = function(### Parameters for generative model
   
   # Generate networks -------------------------------------------------------
   
-  network_list = generate_network(SEED = SEED, N_subj = N_subj, N_node_vec = N_node_vec, 
-                                  N_clus = N_clus, clus_size_mat = clus_size_mat,
+  network_list = generate_network(SEED = SEED, N_node = N_node_vec[1],
+                                  N_clus = N_clus, clus_size_vec = clus_size_mat[1,],
                                   total_time = total_time, t_vec = t_vec, 
-                                  conn_patt_var = conn_patt_var, conn_patt_sep = conn_patt_sep, const = const,
+                                  conn_patt_sep = conn_patt_sep, const = const,
                                   conn_prob_mean = conn_prob_mean, conn_prob_rad = conn_prob_rad, 
                                   time_shift_struc = time_shift_struc,
                                   time_shift_mean_vec = time_shift_mean_vec, time_shift_rad = time_shift_rad)

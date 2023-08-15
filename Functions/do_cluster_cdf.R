@@ -27,8 +27,7 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
   clusters_list = clusters_list_init
   n0_vec_list = n0_vec_list_init
   n0_mat_list = n0_mat_list_init
-  order_list = lapply(n0_vec_list, function(n0_vec)order(n0_vec))
-  
+
   center_cdf_array = get_center_cdf_array_v2(edge_time_mat_list = edge_time_mat_list, 
                                              clusters_list = clusters_list, 
                                              freq_trun = Inf,
@@ -71,7 +70,7 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
                               n0_vec_list=n0_vec_list_current[m], n0_mat_list=n0_mat_list_current[m], 
                               center_cdf_array = center_cdf_array_current,
                               freq_trun = freq_trun,
-                              t_vec=t_vec, order_list=NULL, 
+                              t_vec=t_vec, 
                               fix_timeshift=fix_timeshift,
                               gamma=gamma,
                               ...)
@@ -171,7 +170,7 @@ do_cluster_cdf = function(edge_time_mat_list, N_clus,
                               clusters_list=clusters_list_current, 
                               n0_vec_list=n0_vec_list_current, n0_mat_list=n0_mat_list_current, 
                               center_cdf_array = center_cdf_array_current,
-                              t_vec=t_vec, order_list=NULL, 
+                              t_vec=t_vec, 
                               fix_timeshift=fix_timeshift,
                               gamma=gamma,
                               ...)

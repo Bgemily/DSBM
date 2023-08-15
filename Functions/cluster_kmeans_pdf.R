@@ -5,10 +5,9 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
                              n0_vec_list=NULL, n0_mat_list=NULL, 
                              center_fft_array=NULL, 
                              freq_trun=5, 
-                             t_vec=seq(0,200,length.out=1000), order_list=NULL, 
+                             t_vec=seq(0,200,length.out=1000), 
                              opt_radius=max(t_vec)/2,
                              fix_timeshift=FALSE,
-                             prob_err_mtplr=0.005,
                              gamma=0.001,
                              ...)
 {
@@ -149,7 +148,7 @@ cluster_kmeans_pdf = function(edge_time_mat_list, clusters_list,
     res = est_n0_vec_pdf(edge_time_mat_list = edge_time_mat_list, clusters_list = clusters_list,
                             n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list, 
                             freq_trun = freq_trun, 
-                            t_vec = t_vec, order_list=order_list, 
+                            t_vec = t_vec, 
                             opt_radius=opt_radius,
                             ...)
     n0_vec_list = res$n0_vec_list

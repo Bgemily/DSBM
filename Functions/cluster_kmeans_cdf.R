@@ -5,7 +5,7 @@ cluster_kmeans_cdf = function(edge_time_mat_list,
                              clusters_list, n0_vec_list=NULL, n0_mat_list=NULL, 
                              center_cdf_array=NULL, 
                              freq_trun = Inf,
-                             t_vec=seq(0,200,length.out=1000), order_list=NULL, 
+                             t_vec=seq(0,200,length.out=1000), 
                              fix_timeshift=FALSE,
                              gamma=0.1,
                              ...)
@@ -143,7 +143,7 @@ cluster_kmeans_cdf = function(edge_time_mat_list,
                           n0_vec_list = n0_vec_list, n0_mat_list = n0_mat_list,
                           center_cdf_array = center_cdf_array,
                           freq_trun = Inf, 
-                          t_vec = t_vec, order_list=order_list, ...)
+                          t_vec = t_vec, ...)
     n0_vec_list = res$n0_vec_list
     n0_mat_list = res$n0_mat_list
     v_vec_list = res$v_vec_list

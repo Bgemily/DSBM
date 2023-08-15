@@ -6,7 +6,7 @@ est_n0_vec_pdf = function(edge_time_mat_list,
                          freq_trun=5,
                          t_vec=seq(0,200,length.out=1000), 
                          step_size=10000/nrow(edge_time_mat_list[[1]]),
-                         max_iter=50, epsilon=0.001, shrink=0.5, order_list=NULL, 
+                         max_iter=50, epsilon=0.001, 
                          opt_radius=max(t_vec)/2,
                          ...)
 {
